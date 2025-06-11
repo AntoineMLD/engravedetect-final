@@ -29,10 +29,13 @@ engravedetect/
 │   ├── database/                 # Gestion de la base de données
 │   │   └── models/              # Modèles de données
 │   │       └── tables.py        # Définition des tables
+│   ├── orchestrator/            # Orchestration du pipeline
+│   │   └── pipeline_manager.py  # Gestionnaire de pipeline
 │   └── utils/                   # Utilitaires communs
 ├── tests/                       # Tests unitaires
 │   └── utils/                  # Tests des utilitaires
 ├── data/                        # Données exportées
+├── logs/                        # Logs d'exécution
 ├── scripts/                     # Scripts utilitaires
 │   └── run_spiders.py         # Lancement des spiders
 └── .env                        # Configuration
@@ -121,3 +124,51 @@ Pour mettre à jour la base de données :
 1. Les nouvelles données sont d'abord stockées dans la table `staging`
 2. Puis nettoyées et enrichies dans la table `enhanced`
 3. Enfin importées dans les tables finales avec les relations appropriées 
+
+## Pipeline d'Exécution
+
+Le projet utilise un orchestrateur centralisé qui gère l'ensemble du pipeline de données. Voici les étapes principales :
+
+1. **Initialisation**
+   - Vérification de la configuration
+   - Création des dossiers nécessaires
+   - Configuration des logs
+
+2. **Pipeline de Données**
+   ```python
+   python -m src.orchestrator.pipeline_manager
+   ```
+   
+   Le pipeline exécute séquentiellement :
+   - Scraping des données sources
+   - Nettoyage et enrichissement
+   - Import dans la base de données
+   - Export des résultats
+
+3. **Système de Logs**
+   - Les logs sont stockés dans le dossier `logs/`
+   - Format : `YYYY-MM-DD_pipeline.log`
+   - Niveaux de logs :
+     - INFO : Progression normale
+     - WARNING : Problèmes non critiques
+     - ERROR : Erreurs nécessitant attention
+     - DEBUG : Détails d'exécution
+
+4. **Gestion des Erreurs**
+   - Reprise automatique en cas d'erreur non critique
+   - Sauvegarde de l'état en cas d'interruption
+   - Notification des erreurs critiques
+
+## Exemple de Log
+
+```log
+2024-01-20 10:15:23 INFO     Démarrage du pipeline
+2024-01-20 10:15:24 INFO     ✅ Configuration chargée
+2024-01-20 10:15:25 INFO     🕷️ Lancement du scraping
+2024-01-20 10:20:15 INFO     ✅ Scraping terminé : 150 verres collectés
+2024-01-20 10:20:16 INFO     🧹 Début du nettoyage des données
+2024-01-20 10:21:00 WARNING  ⚠️ 3 entrées avec indices manquants
+2024-01-20 10:21:01 INFO     ✅ Nettoyage terminé
+2024-01-20 10:21:02 INFO     💾 Import dans la base de données
+2024-01-20 10:22:00 INFO     ✅ Pipeline terminé avec succès
+``` 
