@@ -1,15 +1,15 @@
+from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_, distinct
-from typing import Optional, List
-from ..schemas.verres import VerreFilters, VerreResponse, VerreList
 from ..models.references import Fournisseur, Materiau, Gamme, Serie
 from ..models.verres import Verre
+from ..schemas.verres import VerreFilters, VerreResponse, VerreList
+
 
 def get_verres(
     db: Session,
+    filters: Optional[VerreFilters] = None,
     skip: int = 0,
-    limit: int = 100,
-    filters: Optional[VerreFilters] = None
+    limit: int = 100
 ) -> VerreList:
     """Récupère la liste des verres avec filtres optionnels."""
     # Utilisation de joinedload pour charger les relations
@@ -39,34 +39,40 @@ def get_verres(
 
     total = query.count()
     items = query.order_by(Verre.id).offset(skip).limit(limit).all()
-    
+
     # Conversion des objets SQLAlchemy en schémas Pydantic
     verre_responses = [VerreResponse.model_validate(verre) for verre in items]
-    
+
     return VerreList(total=total, items=verre_responses)
 
-def get_verre(db: Session, verre_id: int):
+
+def get_verre(db: Session, verre_id: int) -> Optional[VerreResponse]:
     """Récupère un verre par son ID."""
     return db.query(Verre).options(
         joinedload(Verre.fournisseur),
         joinedload(Verre.materiau)
     ).filter(Verre.id == verre_id).first()
 
-def get_fournisseurs(db: Session) -> List[str]:
+
+def get_fournisseurs(db: Session) -> List[Fournisseur]:
     """Récupère la liste des noms de fournisseurs."""
-    return [f[0] for f in db.query(Fournisseur.nom).distinct().all()]
+    return db.query(Fournisseur.nom).distinct().all()
 
-def get_materiaux(db: Session) -> List[str]:
+
+def get_materiaux(db: Session) -> List[Materiau]:
     """Récupère la liste des noms de matériaux."""
-    return [m[0] for m in db.query(Materiau.nom).distinct().all()]
+    return db.query(Materiau.nom).distinct().all()
 
-def get_gammes(db: Session) -> List[str]:
+
+def get_gammes(db: Session) -> List[Gamme]:
     """Récupère la liste des noms de gammes."""
-    return [g[0] for g in db.query(Gamme.nom).distinct().all()]
+    return db.query(Gamme.nom).distinct().all()
 
-def get_series(db: Session) -> List[str]:
+
+def get_series(db: Session) -> List[Serie]:
     """Récupère la liste des noms de séries."""
-    return [s[0] for s in db.query(Serie.nom).distinct().all()]
+    return db.query(Serie.nom).distinct().all()
+
 
 def get_stats(db: Session) -> dict:
     """Récupère les statistiques générales."""
@@ -76,4 +82,4 @@ def get_stats(db: Session) -> dict:
         "total_materiaux": db.query(Materiau).distinct().count(),
         "total_gammes": db.query(Gamme).distinct().count(),
         "total_series": db.query(Serie).distinct().count(),
-    } 
+    }

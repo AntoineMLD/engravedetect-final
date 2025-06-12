@@ -1,26 +1,32 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+
 
 class UserBase(BaseModel):
     email: EmailStr
     username: str
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class User(UserBase):
     id: int
     is_active: bool
-    
+
     class Config:
         from_attributes = True
+
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     username: Optional[str] = None
+
 
 class VerreBase(BaseModel):
     nom: str
@@ -31,6 +37,7 @@ class VerreBase(BaseModel):
     protection: Optional[bool] = None
     photochromic: Optional[bool] = None
 
+
 class VerreResponse(VerreBase):
     id: int
     fournisseur: Optional[str] = None
@@ -39,4 +46,4 @@ class VerreResponse(VerreBase):
     serie: Optional[str] = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

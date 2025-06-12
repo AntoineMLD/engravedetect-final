@@ -1,44 +1,46 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     # Nom et version de l'application
     APP_NAME: str = "EngraveDetect API"
     APP_VERSION: str = "1.0.0"
-    
+
     # Configuration de l'API
     API_V1_STR: str = "/api/v1"
-    
+
     # Configuration de la base de données
     DATABASE_URL: str
-    
+
     # Configuration Azure pour le scraping
     AZURE_SERVER: str
     AZURE_DATABASE: str
     AZURE_USERNAME: str
     AZURE_PASSWORD: str
-    
+
     # Configuration de sécurité
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
+
     # Configuration du serveur
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
-    
+
     # Configuration OpenAPI/Swagger
     OPENAPI_URL: str = "/openapi.json"
     DOCS_URL: str = "/docs"
     REDOC_URL: str = "/redoc"
-    
+
     # Description de l'API
     API_DESCRIPTION: str = """
     API REST pour la gestion des verres optiques.
     """
-    
+
     class Config:
         env_file = ".env"
+
 
 settings = Settings()
 
@@ -60,4 +62,4 @@ openapi_config = {
     "docs_url": settings.DOCS_URL,
     "openapi_url": settings.OPENAPI_URL,
     "redoc_url": settings.REDOC_URL
-} 
+}

@@ -1,25 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Dict
-
-from ...core.database.session import get_db
-from ...core.auth import service
+from ...core.database.database import get_db
 from ...core.auth.jwt import get_current_user, create_access_token
 from ...schemas.auth import UserCreate, User, Token
+from ...services import auth as auth_service
 
 router = APIRouter(tags=["auth"])
+
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """
     Inscription d'un nouvel utilisateur.
-    
+
     - **email**: Email unique de l'utilisateur
     - **username**: Nom d'utilisateur unique
     - **password**: Mot de passe (sera haché)
     """
-    return service.create_user(db, user)
+    return auth_service.create_user(db, user)
+
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
@@ -55,6 +56,7 @@ async def login_for_access_token(
     access_token = create_access_token(data={"sub": form_data.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.post("/logout")
 async def logout(
     db: Session = Depends(get_db),
@@ -64,8 +66,9 @@ async def logout(
     Déconnexion utilisateur.
     Révoque le token actuel.
     """
-    service.revoke_token(db, token)
+    auth_service.revoke_token(db, token)
     return {"message": "Déconnexion réussie"}
+
 
 @router.get("/me", response_model=dict)
 async def read_users_me(
@@ -84,4 +87,4 @@ async def read_users_me(
     Raises:
         HTTPException 401: Si le token est invalide ou expiré
     """
-    return current_user 
+    return current_user

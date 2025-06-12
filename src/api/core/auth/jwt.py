@@ -3,7 +3,7 @@ Gestion des JSON Web Tokens (JWT) pour l'authentification.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Dict
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -14,28 +14,39 @@ from .service import verify_token_valid
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/token")
 
-def create_access_token(data: dict) -> str:
-    """Crée un token JWT."""
+
+def create_access_token(data: Dict) -> str:
+    """
+    Crée un token JWT d'accès.
+
+    Args:
+        data: Données à encoder dans le token
+
+    Returns:
+        str: Token JWT encodé
+    """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
+
     encoded_jwt = jwt.encode(
-        to_encode, 
-        settings.SECRET_KEY, 
+        to_encode,
+        settings.SECRET_KEY,
         algorithm=settings.ALGORITHM
     )
     return encoded_jwt
+
 
 def verify_token(token: str, db: Session) -> dict:
     """Vérifie un token JWT et sa validité en base de données."""
     try:
         # Vérification de la signature JWT
         payload = jwt.decode(
-            token, 
-            settings.SECRET_KEY, 
+            token,
+            settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
-        
+
         # Vérification de la validité en BDD
         if not verify_token_valid(db, token):
             raise HTTPException(
@@ -43,9 +54,9 @@ def verify_token(token: str, db: Session) -> dict:
                 detail="Token révoqué ou expiré",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         return payload
-        
+
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -53,9 +64,28 @@ def verify_token(token: str, db: Session) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> dict:
     """Récupère l'utilisateur actuel à partir du token."""
-    return verify_token(token, db) 
+    return verify_token(token, db)
+
+
+def decode_access_token(token: str) -> Dict:
+    """
+    Décode un token JWT.
+
+    Args:
+        token: Token JWT à décoder
+
+    Returns:
+        Dict: Données décodées du token
+    """
+    decoded_token = jwt.decode(
+        token,
+        settings.SECRET_KEY,
+        algorithms=[settings.ALGORITHM]
+    )
+    return decoded_token

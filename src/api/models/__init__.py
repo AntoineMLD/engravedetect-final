@@ -14,4 +14,4 @@ __all__ = [
     'Materiau',
     'Gamme',
     'Serie'
-] 
+]

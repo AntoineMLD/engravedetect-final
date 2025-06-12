@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from ..core.database.database import Base
 
+
 class Verre(Base):
     """Modèle SQLAlchemy pour la table verres."""
     __tablename__ = "verres"
@@ -17,7 +18,7 @@ class Verre(Base):
     protection = Column(Boolean, default=False)
     photochromic = Column(Boolean, default=False)
     tags = Column(String)
-    
+
     # Clés étrangères
     fournisseur_id = Column(Integer, ForeignKey("fournisseurs.id"))
     materiau_id = Column(Integer, ForeignKey("materiaux.id"))
@@ -31,4 +32,4 @@ class Verre(Base):
     serie = relationship("Serie", back_populates="verres")
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
