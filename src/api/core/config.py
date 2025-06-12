@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 
@@ -11,20 +12,20 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Configuration de la base de données
-    DATABASE_URL: str
+    DATABASE_URL: str = "sqlite:///./test.db"  # Valeur par défaut pour les tests
 
     # Configuration Azure
-    AZURE_SERVER: str
-    AZURE_DATABASE: str
-    AZURE_USERNAME: str
-    AZURE_PASSWORD: str
+    AZURE_SERVER: str = "test-server"  # Valeur par défaut pour les tests
+    AZURE_DATABASE: str = "test-db"    # Valeur par défaut pour les tests
+    AZURE_USERNAME: str = "test-user"  # Valeur par défaut pour les tests
+    AZURE_PASSWORD: str = "test-password"  # Valeur par défaut pour les tests
 
     # Configuration Docker Hub
     docker_hub_username: str | None = None
     docker_hub_token: str | None = None
 
     # Configuration de sécurité
-    SECRET_KEY: str
+    SECRET_KEY: str = "test-secret-key-for-testing-only"  # Valeur par défaut pour les tests
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
