@@ -24,10 +24,11 @@ jobs:
       run: |
         flake8 src/api --count --max-complexity=10 --max-line-length=127 --statistics
     - name: Run tests
-      run: |
-        PYTHONPATH=$PYTHONPATH:$(pwd) pytest tests/
       env:
+        SECRET_KEY: "test-secret-key-for-testing-only"
         PYTHONPATH: ${{ github.workspace }}
+      run: |
+        PYTHONPATH=$PYTHONPATH:$(pwd) pytest tests/ -v
 
   docker:
     needs: test

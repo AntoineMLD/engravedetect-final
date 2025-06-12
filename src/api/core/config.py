@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
@@ -12,11 +13,15 @@ class Settings(BaseSettings):
     # Configuration de la base de données
     DATABASE_URL: str
 
-    # Configuration Azure pour le scraping
+    # Configuration Azure
     AZURE_SERVER: str
     AZURE_DATABASE: str
     AZURE_USERNAME: str
     AZURE_PASSWORD: str
+
+    # Configuration Docker Hub
+    docker_hub_username: str | None = None
+    docker_hub_token: str | None = None
 
     # Configuration de sécurité
     SECRET_KEY: str
@@ -38,8 +43,7 @@ class Settings(BaseSettings):
     API REST pour la gestion des verres optiques.
     """
 
-    class Config:
-        env_file = ".env"
+    model_config = ConfigDict(env_file=".env")
 
 
 settings = Settings()

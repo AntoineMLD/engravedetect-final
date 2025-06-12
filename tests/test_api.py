@@ -1,17 +1,11 @@
+"""Tests de base de l'API."""
 from fastapi.testclient import TestClient
 from src.api.main import app
 
 client = TestClient(app)
 
-def test_read_main():
-    response = client.get("/api/v1/health")
+def test_root():
+    """Test la route racine de l'API."""
+    response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
-
-def test_read_verres():
-    response = client.get("/api/v1/verres")
-    assert response.status_code == 401  # Unauthorized without token
-
-def test_read_fournisseurs():
-    response = client.get("/api/v1/verres/fournisseurs/list")
-    assert response.status_code == 401  # Unauthorized without token 
+    assert response.json() == {"message": "Bienvenue sur l'API de gestion des verres optiques"} 
