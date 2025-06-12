@@ -50,7 +50,8 @@ class DataPipelineManager:
                 glass_spider_indo_optical
             )
             from src.data.processing.cleaner import OpticalDataCleaner
-            from src.database.models.tables import DatabaseManager
+            from src.api.models.references import Fournisseur, Materiau, Gamme, Serie
+            from src.api.models.verres import Verre
             
             self.spiders = {
                 'hoya': glass_spider_hoya,
@@ -61,7 +62,13 @@ class DataPipelineManager:
             }
             
             self.cleaner = OpticalDataCleaner()
-            self.db_manager = DatabaseManager()
+            self.models = {
+                'Verre': Verre,
+                'Fournisseur': Fournisseur,
+                'Materiau': Materiau,
+                'Gamme': Gamme,
+                'Serie': Serie
+            }
             
             self.logger.info("✅ Dépendances chargées avec succès")
             
@@ -176,7 +183,18 @@ class DataPipelineManager:
         """
         self.logger.info("🏗️ Création des tables principales...")
         try:
-            self.db_manager.process()
+            from sqlalchemy import create_engine
+            from sqlalchemy.orm import sessionmaker
+            from ..core.config import settings
+            from ..core.database.database import Base
+            
+            # Créer l'engine et la session
+            engine = create_engine(settings.DATABASE_URL)
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            
+            # Créer toutes les tables
+            Base.metadata.create_all(bind=engine)
+            
             self.logger.info("✅ Tables principales créées avec succès")
             return True
         except Exception as e:

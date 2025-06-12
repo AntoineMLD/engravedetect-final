@@ -1,3 +1,119 @@
+# API REST Gestion des Verres Optiques
+
+API REST pour la gestion des données de verres optiques, développée avec FastAPI.
+
+## Fonctionnalités
+
+- ✨ Gestion des verres optiques (consultation, filtrage)
+- 🔒 Authentification JWT
+- 📊 Statistiques et listes (fournisseurs, matériaux)
+- 📝 Documentation API (Swagger/OpenAPI)
+
+## Prérequis
+
+- Python 3.10+
+- PostgreSQL
+
+## Installation
+
+1. Cloner le repository :
+```bash
+git clone <repository-url>
+cd engravedetect-final
+```
+
+2. Créer un environnement virtuel :
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+.\venv\Scripts\activate  # Windows
+```
+
+3. Installer les dépendances :
+```bash
+pip install -r requirements.txt
+```
+
+4. Configurer les variables d'environnement :
+```bash
+cp .env.example .env
+# Modifier .env avec vos paramètres
+```
+
+## Configuration
+
+Le fichier `.env` doit contenir :
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/db_name
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+## Utilisation
+
+1. Démarrer l'API :
+```bash
+uvicorn src.api.main:app --reload
+```
+
+2. Accéder à :
+- API : http://localhost:8000/api/v1
+- Documentation : http://localhost:8000/docs
+- Documentation alternative : http://localhost:8000/redoc
+
+## Tests
+
+Exécuter les tests :
+```bash
+pytest tests/ -v
+```
+
+## Documentation API
+
+La documentation complète de l'API est disponible via Swagger UI à l'adresse `/docs` ou ReDoc à `/redoc`.
+
+### Points d'accès principaux
+
+- `GET /api/v1/verres` : Liste des verres avec filtrage
+- `GET /api/v1/verres/{id}` : Détails d'un verre
+- `GET /api/v1/verres/fournisseurs/list` : Liste des fournisseurs
+- `GET /api/v1/verres/materiaux/list` : Liste des matériaux
+
+## Authentification
+
+L'API utilise l'authentification JWT. Pour accéder aux endpoints protégés :
+
+1. Obtenir un token :
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/token" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "username=user@example.com&password=password"
+```
+
+2. Utiliser le token :
+```bash
+curl "http://localhost:8000/api/v1/verres" \
+     -H "Authorization: Bearer votre-token"
+```
+
+## Structure du Projet
+
+```
+engravedetect-final/
+├── src/
+│   └── api/
+│       ├── core/          # Configuration, DB, sécurité
+│       ├── models/        # Modèles SQLAlchemy
+│       ├── routes/        # Routes API
+│       ├── schemas/       # Schémas Pydantic
+│       └── services/      # Logique métier
+├── tests/                 # Tests
+├── .env                   # Variables d'environnement
+└── requirements.txt       # Dépendances
+```
+
 # EngraveDetect
 
 Système de gestion et d'analyse de données optiques. Ce projet permet de collecter, traiter et analyser les données de verres optiques, notamment les gravures nasales et les caractéristiques techniques.
