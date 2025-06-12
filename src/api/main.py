@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .core.config import settings
 from .routes.v1 import auth, verres
+from .core.config import settings
 from .core.database.init_db import init_db
 
 # Création de l'application FastAPI
 app = FastAPI(
-    title=settings.APP_NAME,
+    title="API Verres Optiques",
     version=settings.APP_VERSION,
     description=settings.API_DESCRIPTION
 )
@@ -21,33 +21,34 @@ app.add_middleware(
 )
 
 # Initialisation de la base de données au démarrage
+
+
 @app.on_event("startup")
 async def startup_event():
+    """Initialisation de la base de données au démarrage."""
     init_db()
 
 # Routes v1
 app.include_router(
     verres.router,
-    prefix=settings.API_V1_STR + "/verres",
-    tags=["verres"]
+    prefix="/api/v1"
 )
 
 app.include_router(
     auth.router,
-    prefix=settings.API_V1_STR + "/auth",
-    tags=["auth"]
+    prefix="/api/v1"
 )
 
-@app.get("/", tags=["status"])
-async def root():
-    """Point d'entrée de l'API."""
-    return {
-        "status": "ok",
-        "version": settings.APP_VERSION
-    }
+
+@app.get("/")
+def root():
+    """Route racine de l'API."""
+    return {"message": "Bienvenue sur l'API de gestion des verres optiques"}
 
 # Point de terminaison de santé
-@app.get("/health")
+
+
+@app.get("/api/v1/health")
 def health_check():
     """Vérifie que l'API est en fonctionnement."""
-    return {"status": "ok"} 
+    return {"status": "healthy"}

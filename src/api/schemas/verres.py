@@ -1,17 +1,20 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+
 class FournisseurResponse(BaseModel):
     nom: str = Field(..., description="Nom du fournisseur")
-    
+
     class Config:
         from_attributes = True
 
+
 class MateriauResponse(BaseModel):
     nom: str = Field(..., description="Type de matériau")
-    
+
     class Config:
         from_attributes = True
+
 
 class VerreBase(BaseModel):
     nom: str = Field(..., description="Nom du verre")
@@ -26,6 +29,7 @@ class VerreBase(BaseModel):
     class Config:
         from_attributes = True
 
+
 class VerreResponse(VerreBase):
     id: int
     fournisseur: Optional[FournisseurResponse] = Field(None, description="Informations du fournisseur")
@@ -33,9 +37,11 @@ class VerreResponse(VerreBase):
     gamme: Optional[str] = Field(None, description="Gamme du produit")
     serie: Optional[str] = Field(None, description="Série du produit")
 
+
 class VerreList(BaseModel):
     total: int = Field(..., description="Nombre total de verres")
     items: List[VerreResponse]
+
 
 class VerreFilters(BaseModel):
     fournisseur: Optional[str] = None
@@ -45,4 +51,4 @@ class VerreFilters(BaseModel):
     indice_min: Optional[float] = None
     indice_max: Optional[float] = None
     protection: Optional[bool] = None
-    photochromic: Optional[bool] = None 
+    photochromic: Optional[bool] = None

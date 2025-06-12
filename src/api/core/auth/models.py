@@ -5,6 +5,7 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -16,9 +17,10 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
-    
+
     # Relation avec les tokens
     tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
+
 
 class Token(Base):
     __tablename__ = "tokens"
@@ -30,6 +32,6 @@ class Token(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime)
-    
+
     # Relation avec l'utilisateur
-    user = relationship("User", back_populates="tokens") 
+    user = relationship("User", back_populates="tokens")

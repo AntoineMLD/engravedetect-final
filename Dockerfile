@@ -22,6 +22,12 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
         msodbcsql18 \
     && rm -rf /var/lib/apt/lists/*
 
+# Variables d'environnement
+ARG DATABASE_URL
+ARG SECRET_KEY
+ENV DATABASE_URL=$DATABASE_URL
+ENV SECRET_KEY=$SECRET_KEY
+
 # Copier les fichiers de dépendances
 COPY requirements.txt .
 
