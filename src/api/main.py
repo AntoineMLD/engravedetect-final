@@ -50,4 +50,8 @@ async def root():
 @app.get("/health")
 def health_check():
     """Vérifie que l'API est en fonctionnement."""
-    return {"status": "ok"} 
+    return {"status": "ok"}
+
+@app.get("/api/v1/health")
+def health_check():
+    return {"status": "healthy"} 

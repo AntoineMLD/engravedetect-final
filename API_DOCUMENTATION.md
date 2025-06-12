@@ -271,3 +271,6 @@ verres_filtres = requests.get(
 - Tokens JWT avec expiration
 - Validation des données avec Pydantic
 - Protection contre les injections SQL via SQLAlchemy 
+
+
+
