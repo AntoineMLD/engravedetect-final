@@ -1,36 +1,33 @@
 version: '3.8'
 
 services:
-  api_bdd:
-    build: .
-    container_name: api_bdd
+  api:
+    image: antoinemld/api_bdd:latest
     ports:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      - AZURE_SERVER=engravedetect.database.windows.net
+      - AZURE_DATABASE=engravedetect
+      - AZURE_USERNAME=engravedetect
+      - AZURE_PASSWORD=your-azure-password
+      - JWT_SECRET_KEY=your-secret-key-here
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
     depends_on:
       - db
-    networks:
-      - app-network
 
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: sql_server
+    image: postgres:15
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${AZURE_PASSWORD}
-      - MSSQL_PID=Express
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=engravedetect
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - sqlserver_data:/var/opt/mssql
-    networks:
-      - app-network
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  sqlserver_data:
-    name: sqlserver_data
-
-networks:
-  app-network:
-    name: app-network 
+  postgres_data: 
