@@ -31,12 +31,7 @@ def create_db_token(db: Session, user_id: int, token: str, request: Request = No
         device_info = user_agent[:200] if user_agent else None
 
     # Création du token en BDD
-    db_token = Token(
-        token=token,
-        user_id=user_id,
-        expires_at=expires_at,
-        device_info=device_info
-    )
+    db_token = Token(token=token, user_id=user_id, expires_at=expires_at, device_info=device_info)
 
     db.add(db_token)
     db.commit()
@@ -76,6 +71,7 @@ def authenticate_user(db: Session, username: str, password: str, request: Reques
     # Création du token JWT
     token_data = {"sub": user.username}  # On enlève user_id car pas nécessaire
     from .jwt import create_access_token
+
     access_token = create_access_token(token_data)
 
     # Enregistrement du token en BDD
@@ -90,23 +86,20 @@ def create_user(db: Session, user: UserCreate) -> User:
     """Crée un nouvel utilisateur."""
     # Vérification si l'email existe déjà
     if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email déjà utilisé"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email déjà utilisé")
 
     # Vérification si le nom d'utilisateur existe déjà
     if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nom d'utilisateur déjà utilisé"
+            detail="Nom d'utilisateur déjà utilisé",
         )
 
     # Création de l'utilisateur
     db_user = User(
         email=user.email,
         username=user.username,
-        hashed_password=get_password_hash(user.password)
+        hashed_password=get_password_hash(user.password),
     )
 
     db.add(db_user)

@@ -17,17 +17,12 @@ class GlassSpiderFullXPath(scrapy.Spider):
         self.log(f"Analyse de la page: {response.url}", level=logging.INFO)
 
         # Récupérer le nom du fournisseur
-        supplier_name = response.xpath(
-            "/html/body/div[2]/div/div[3]/div/div/div/text()"
-        ).get()
+        fournisseur_nom = response.xpath("/html/body/div[2]/div/div[3]/div/div/div/text()").get()
 
         # Sélectionner les lignes avec full XPath
-        lines = response.xpath(
-            '//div[contains(@class, "row") and contains(@class, "tr")]'
-        )
+        lines = response.xpath('//div[contains(@class, "row") and contains(@class, "tr")]')
 
         for line in lines:
-
             item = FranceOptiqueItem()
 
             # Ajoute l'URL source à l'item
@@ -46,16 +41,14 @@ class GlassSpiderFullXPath(scrapy.Spider):
             item["gravure_nasale"] = gravure_nasale.strip()
 
             # Extraction de l'indice et du matériau avec full XPath
-            indice_verre = line.xpath('.//div[@class="td col s1 m1"][4]/p/text()').get()
-            materiaux = line.xpath(
-                "/html/body/div[2]/div/div[4]/div/div/div[1]/div[4]/div[6]/p"
-            ).get()
-            if not indice_verre or not materiaux:
+            indice = line.xpath('.//div[@class="td col s1 m1"][4]/p/text()').get()
+            materiaux = line.xpath("/html/body/div[2]/div/div[4]/div/div/div[1]/div[4]/div[6]/p").get()
+            if not indice or not materiaux:
                 continue
-            item["indice_verre"] = indice_verre.strip()
+            item["indice"] = indice.strip()
             item["materiaux"] = materiaux.strip()
 
             # Ajout du nom du fournisseur de verre
-            item["fournisseur"] = supplier_name.strip()
+            item["fournisseur"] = fournisseur_nom.strip()
 
             yield item

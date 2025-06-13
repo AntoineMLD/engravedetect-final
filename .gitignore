@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+backups/
 *$py.class
 *.so
 .Python

@@ -29,11 +29,7 @@ def create_access_token(data: Dict) -> str:
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
 
-    encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 
@@ -41,11 +37,7 @@ def verify_token(token: str, db: Session) -> dict:
     """Vérifie un token JWT et sa validité en base de données."""
     try:
         # Vérification de la signature JWT
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
         # Vérification de la validité en BDD
         if not verify_token_valid(db, token):
@@ -65,10 +57,7 @@ def verify_token(token: str, db: Session) -> dict:
         )
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
-) -> dict:
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> dict:
     """Récupère l'utilisateur actuel à partir du token."""
     return verify_token(token, db)
 
@@ -83,9 +72,5 @@ def decode_access_token(token: str) -> Dict:
     Returns:
         Dict: Données décodées du token
     """
-    decoded_token = jwt.decode(
-        token,
-        settings.SECRET_KEY,
-        algorithms=[settings.ALGORITHM]
-    )
+    decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     return decoded_token

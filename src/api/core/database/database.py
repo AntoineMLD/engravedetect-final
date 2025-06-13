@@ -6,7 +6,7 @@ from ..config import settings
 # Création de l'engine SQLAlchemy
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True  # Vérifie la connexion avant de l'utiliser
+    pool_pre_ping=True,  # Vérifie la connexion avant de l'utiliser
 )
 
 # Création de la classe de base pour les modèles

@@ -1,17 +1,18 @@
 [flake8]
-max-line-length = 127
-exclude = .git,__pycache__,build,dist
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    venv,
+    backups,
+    .venv
+max-line-length = 100
+ignore = E203, W503, E501, F401
 per-file-ignores =
-    # Ignore unused imports in __init__.py files
     __init__.py:F401
-    # Ignore line length in migrations
-    migrations/*:E501
 max-complexity = 10
-# Ignore some errors
-ignore =
-    # Ignore "line break before binary operator" warning
-    W503
-    # Ignore "line break after binary operator" warning
-    W504
-    # Ignore "module level import not at top of file" warning
-    E402 
+
+# Configuration for flake8-black
+extend-ignore = E203
+black-config = pyproject.toml 

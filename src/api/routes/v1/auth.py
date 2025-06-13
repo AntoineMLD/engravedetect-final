@@ -3,9 +3,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Dict
 from ...core.database.database import get_db
-from ...core.auth.jwt import get_current_user, create_access_token
+from ...core.auth.jwt import get_current_user
 from ...schemas.auth import UserCreate, User, Token
 from ...services import auth as auth_service
+from ...core.auth.service import authenticate_user
 
 router = APIRouter(tags=["auth"])
 
@@ -24,7 +25,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends()
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ) -> Dict[str, str]:
     """
     Obtient un token d'accès JWT en échange des identifiants.
@@ -44,24 +45,21 @@ async def login_for_access_token(
     Raises:
         HTTPException 401: Si les identifiants sont invalides
     """
-    # Ici, vous devriez vérifier les identifiants dans votre base de données
-    # Pour l'exemple, on accepte tout utilisateur avec un mot de passe
-    if not form_data.password:
+    try:
+        user, access_token = authenticate_user(db, form_data.username, form_data.password)
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Identifiants invalides",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = create_access_token(data={"sub": form_data.username})
-    return {"access_token": access_token, "token_type": "bearer"}
-
 
 @router.post("/logout")
-async def logout(
-    db: Session = Depends(get_db),
-    token: str = Depends(get_current_user)
-):
+async def logout(db: Session = Depends(get_db), token: str = Depends(get_current_user)):
     """
     Déconnexion utilisateur.
     Révoque le token actuel.
@@ -71,9 +69,7 @@ async def logout(
 
 
 @router.get("/me", response_model=dict)
-async def read_users_me(
-    current_user: dict = Depends(get_current_user)
-) -> dict:
+async def read_users_me(current_user: dict = Depends(get_current_user)) -> dict:
     """
     Retourne les informations de l'utilisateur connecté.
 

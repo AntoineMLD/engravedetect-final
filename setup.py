@@ -25,8 +25,8 @@ setup(
     ],
     python_requires=">=3.8",
     entry_points={
-        'console_scripts': [
-            'run-pipeline=src.orchestrator.pipeline_manager:main',
+        "console_scripts": [
+            "run-pipeline=src.orchestrator.pipeline_manager:main",
         ],
     },
     classifiers=[
@@ -38,4 +38,4 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-) 
+)

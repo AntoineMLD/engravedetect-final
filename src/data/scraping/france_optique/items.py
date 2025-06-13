@@ -10,7 +10,7 @@ class FranceOptiqueItem(scrapy.Item):
     source_url = scrapy.Field()
     nom_verre = scrapy.Field()
     gravure_nasale = scrapy.Field()
-    indice_verre = scrapy.Field()
+    indice = scrapy.Field()
     materiaux = scrapy.Field()
     fournisseur = scrapy.Field()
-    pass
+    image_gravure = scrapy.Field()  # Chemin vers l'image sauvegardée

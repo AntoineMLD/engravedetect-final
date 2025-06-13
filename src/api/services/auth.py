@@ -21,4 +21,3 @@ def get_user_by_email(db: Session, email: str):
 def revoke_token(db: Session, token: str):
     """Révoque un token JWT."""
     # La révocation est gérée dans le service d'authentification
-    pass

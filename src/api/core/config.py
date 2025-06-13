@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # Configuration Azure
     AZURE_SERVER: str = "test-server"  # Valeur par défaut pour les tests
-    AZURE_DATABASE: str = "test-db"    # Valeur par défaut pour les tests
+    AZURE_DATABASE: str = "test-db"  # Valeur par défaut pour les tests
     AZURE_USERNAME: str = "test-user"  # Valeur par défaut pour les tests
     AZURE_PASSWORD: str = "test-password"  # Valeur par défaut pour les tests
 
@@ -54,16 +54,10 @@ openapi_config = {
     "version": settings.APP_VERSION,
     "description": settings.API_DESCRIPTION,
     "openapi_tags": [
-        {
-            "name": "verres",
-            "description": "Opérations sur les verres optiques"
-        },
-        {
-            "name": "auth",
-            "description": "Authentification et gestion des tokens"
-        }
+        {"name": "verres", "description": "Opérations sur les verres optiques"},
+        {"name": "auth", "description": "Authentification et gestion des tokens"},
     ],
     "docs_url": settings.DOCS_URL,
     "openapi_url": settings.OPENAPI_URL,
-    "redoc_url": settings.REDOC_URL
+    "redoc_url": settings.REDOC_URL,
 }

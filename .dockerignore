@@ -46,6 +46,7 @@ logs/
 # Git
 .git/
 .gitignore
+backups/
 
 # Tests
 tests/

@@ -1,118 +1,126 @@
 import logging
-import os
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from pathlib import Path
 import scrapy
+import sys
+from ..database.reset_database import reset_database
+
 
 class DataPipelineManager:
     """
     Orchestrateur principal du pipeline de données optiques.
     Gère l'ensemble du flux de données : du scraping à la création des tables finales.
     """
-    
+
     def __init__(self):
         self._setup_logging()
+        self._setup_paths()
         self._load_dependencies()
-        
+
     def _setup_logging(self) -> None:
         """Configure le système de logging."""
         log_format = "%(asctime)s [%(levelname)s] %(message)s"
         date_format = "%Y-%m-%d %H:%M:%S"
-        
+
         # Créer le dossier logs s'il n'existe pas
         logs_dir = Path("logs")
         logs_dir.mkdir(exist_ok=True)
-        
+
         # Configurer le fichier de log avec la date
         log_file = logs_dir / f"pipeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        
+
         logging.basicConfig(
             level=logging.INFO,
             format=log_format,
             datefmt=date_format,
             handlers=[
-                logging.FileHandler(log_file, encoding='utf-8'),
-                logging.StreamHandler()
-            ]
+                logging.FileHandler(log_file, encoding="utf-8"),
+                logging.StreamHandler(),
+            ],
         )
-        
+
         self.logger = logging.getLogger(__name__)
-        
+
+    def _setup_paths(self) -> None:
+        """Configure les chemins du projet."""
+        # Obtenir le chemin absolu du projet
+        self.project_root = Path(__file__).resolve().parents[2]
+
+        # Ajouter le chemin du projet au PYTHONPATH pour que Scrapy trouve les settings
+        if str(self.project_root) not in sys.path:
+            sys.path.insert(0, str(self.project_root))
+            self.logger.info(f"Ajout du chemin du projet au PYTHONPATH: {self.project_root}")
+
     def _load_dependencies(self) -> None:
         """Charge les dépendances nécessaires."""
         try:
             from src.data.scraping.france_optique.spiders import (
+                glass_spider,
                 glass_spider_hoya,
                 glass_spider_full_xpath,
                 glass_spider_particular,
                 glass_spider_optovision,
-                glass_spider_indo_optical
+                glass_spider_indo_optical,
             )
             from src.data.processing.cleaner import OpticalDataCleaner
-            from src.api.models.references import Fournisseur, Materiau, Gamme, Serie
-            from src.api.models.verres import Verre
-            
+
             self.spiders = {
-                'hoya': glass_spider_hoya,
-                'full_xpath': glass_spider_full_xpath,
-                'particular': glass_spider_particular,
-                'optovision': glass_spider_optovision,
-                'indo_optical': glass_spider_indo_optical
+                "base": glass_spider,
+                "hoya": glass_spider_hoya,
+                "full_xpath": glass_spider_full_xpath,
+                "particular": glass_spider_particular,
+                "optovision": glass_spider_optovision,
+                "indo_optical": glass_spider_indo_optical,
             }
-            
+
             self.cleaner = OpticalDataCleaner()
-            self.models = {
-                'Verre': Verre,
-                'Fournisseur': Fournisseur,
-                'Materiau': Materiau,
-                'Gamme': Gamme,
-                'Serie': Serie
-            }
-            
             self.logger.info("✅ Dépendances chargées avec succès")
-            
+
         except ImportError as e:
             self.logger.error(f"❌ Erreur lors du chargement des dépendances : {e}")
             raise
-            
+
     def run_spiders(self) -> bool:
         """
         Lance tous les spiders pour collecter les données.
-        
+
         Returns:
             bool: True si tous les spiders ont réussi, False sinon
         """
         self.logger.info("🕷️ Démarrage des spiders...")
-        
+
         try:
             from scrapy.crawler import CrawlerProcess
             from scrapy.utils.project import get_project_settings
-            
+
             process = CrawlerProcess(get_project_settings())
-            
+
             # Ajouter chaque spider au processus
             for spider_name, spider_module in self.spiders.items():
                 self.logger.info(f"➕ Ajout du spider {spider_name}")
                 # Obtenir la classe Spider directement du module
-                spider_class = next(obj for name, obj in spider_module.__dict__.items() 
-                                  if isinstance(obj, type) and issubclass(obj, scrapy.Spider))
+                spider_class = next(
+                    obj
+                    for name, obj in spider_module.__dict__.items()
+                    if isinstance(obj, type) and issubclass(obj, scrapy.Spider)
+                )
                 process.crawl(spider_class)
-            
+
             # Lancer tous les spiders
             process.start()
-            
+
             self.logger.info("✅ Tous les spiders ont terminé avec succès")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"❌ Erreur lors de l'exécution des spiders : {e}")
             return False
-            
+
     def export_staging_data(self) -> Optional[str]:
         """
         Exporte les données de la table staging en CSV.
-        
+
         Returns:
             Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur
         """
@@ -120,6 +128,10 @@ class DataPipelineManager:
         try:
             # Charger les données de staging
             df = self.cleaner.load_data_from_staging()
+            if df.empty:
+                self.logger.warning("⚠️ Aucune donnée trouvée dans la table staging")
+                return None
+
             # Exporter en CSV
             csv_path = self.cleaner.export_to_csv(df)
             self.logger.info(f"✅ Données staging exportées vers {csv_path}")
@@ -127,11 +139,11 @@ class DataPipelineManager:
         except Exception as e:
             self.logger.error(f"❌ Erreur lors de l'export staging : {e}")
             return None
-            
+
     def clean_and_enhance_data(self) -> bool:
         """
         Nettoie les données et les insère dans la table enhanced.
-        
+
         Returns:
             bool: True si le processus a réussi, False sinon
         """
@@ -139,136 +151,120 @@ class DataPipelineManager:
         try:
             # Charger et nettoyer les données
             df_raw = self.cleaner.load_data_from_staging()
+            if df_raw.empty:
+                self.logger.error("❌ Aucune donnée à nettoyer dans la table staging")
+                return False
+
             df_clean = self.cleaner.clean_dataframe(df_raw)
-            
+            if df_clean.empty:
+                self.logger.error("❌ Aucune donnée valide après nettoyage")
+                return False
+
             # Créer la table enhanced et insérer les données
             self.cleaner.create_enhanced_table()
             self.cleaner.insert_to_enhanced(df_clean)
-            
+
             # Afficher les statistiques
             self.cleaner.get_data_statistics(df_clean)
-            
+
             self.logger.info("✅ Données nettoyées et améliorées avec succès")
             return True
         except Exception as e:
             self.logger.error(f"❌ Erreur lors du nettoyage des données : {e}")
             return False
-            
+
     def export_enhanced_data(self) -> Optional[str]:
         """
         Exporte les données de la table enhanced en CSV.
-        
+
         Returns:
             Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur
         """
         self.logger.info("📤 Export des données enhanced en CSV...")
         try:
-            # Charger les données de la table enhanced
-            df = self.cleaner.load_data_from_staging()  # On charge d'abord les données brutes
-            df_clean = self.cleaner.clean_dataframe(df)  # On les nettoie
+            # Charger les données directement depuis la table enhanced
+            df = self.cleaner.load_data_from_enhanced()
+            if df.empty:
+                self.logger.warning("⚠️ Aucune donnée trouvée dans la table enhanced")
+                return None
+
             # Exporter en CSV
-            csv_path = self.cleaner.export_enhanced_to_csv(df_clean)
+            csv_path = self.cleaner.export_enhanced_to_csv(df)
             self.logger.info(f"✅ Données enhanced exportées vers {csv_path}")
             return csv_path
         except Exception as e:
             self.logger.error(f"❌ Erreur lors de l'export enhanced : {e}")
             return None
-            
-    def create_main_tables(self) -> bool:
-        """
-        Crée les tables principales et y insère les données.
-        
-        Returns:
-            bool: True si le processus a réussi, False sinon
-        """
-        self.logger.info("🏗️ Création des tables principales...")
-        try:
-            from sqlalchemy import create_engine
-            from sqlalchemy.orm import sessionmaker
-            from ..core.config import settings
-            from ..core.database.database import Base
-            
-            # Créer l'engine et la session
-            engine = create_engine(settings.DATABASE_URL)
-            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-            
-            # Créer toutes les tables
-            Base.metadata.create_all(bind=engine)
-            
-            self.logger.info("✅ Tables principales créées avec succès")
-            return True
-        except Exception as e:
-            self.logger.error(f"❌ Erreur lors de la création des tables principales : {e}")
-            return False
-            
+
     def run_full_pipeline(self) -> Dict[str, bool]:
         """
         Exécute l'ensemble du pipeline de données.
-        
+
         Returns:
-            Dict[str, bool]: Statut de chaque étape du pipeline
+            Dict[str, bool]: Dictionnaire indiquant le statut de chaque étape
         """
-        self.logger.info("🚀 Démarrage du pipeline complet...")
-        self.logger.info("=" * 80)
-        
         results = {
+            "reset_database": False,
             "spiders": False,
-            "staging_export": False,
-            "data_cleaning": False,
-            "enhanced_export": False,
-            "main_tables": False
+            "clean_and_enhance": False,
+            "export_enhanced": False,
         }
-        
-        # 1. Lancer les spiders
-        results["spiders"] = self.run_spiders()
-        if not results["spiders"]:
-            self.logger.error("⛔ Arrêt du pipeline : échec des spiders")
+
+        try:
+            # 1. Réinitialiser la base de données
+            self.logger.info("🔄 Réinitialisation de la base de données...")
+            if not reset_database():
+                self.logger.error("❌ Échec de la réinitialisation de la base de données")
+                return results
+            results["reset_database"] = True
+
+            # 2. Lancer les spiders
+            if not self.run_spiders():
+                self.logger.error("❌ Échec des spiders")
+                return results
+            results["spiders"] = True
+
+            # 3. Nettoyer et enrichir les données
+            if not self.clean_and_enhance_data():
+                self.logger.error("❌ Échec du nettoyage et de l'enrichissement des données")
+                return results
+            results["clean_and_enhance"] = True
+
+            # 4. Exporter les données enrichies
+            csv_path = self.export_enhanced_data()
+            if not csv_path:
+                self.logger.error("❌ Échec de l'export des données enrichies")
+                return results
+            results["export_enhanced"] = True
+
+            self.logger.info("✨ Pipeline terminé avec succès!")
             return results
-            
-        # 2. Exporter les données staging
-        staging_csv = self.export_staging_data()
-        results["staging_export"] = staging_csv is not None
-        
-        # 3. Nettoyer et améliorer les données
-        results["data_cleaning"] = self.clean_and_enhance_data()
-        if not results["data_cleaning"]:
-            self.logger.error("⛔ Arrêt du pipeline : échec du nettoyage des données")
+
+        except Exception as e:
+            self.logger.error(f"❌ Erreur dans le pipeline : {e}")
             return results
-            
-        # 4. Exporter les données enhanced
-        enhanced_csv = self.export_enhanced_data()
-        results["enhanced_export"] = enhanced_csv is not None
-        
-        # 5. Créer les tables principales
-        results["main_tables"] = self.create_main_tables()
-        
-        # Résumé final
-        self.logger.info("=" * 80)
-        self.logger.info("📊 Résumé du pipeline :")
-        for step, success in results.items():
-            status = "✅" if success else "❌"
-            self.logger.info(f"{status} {step}")
-        
-        return results
+
 
 def main():
     """Point d'entrée principal du script."""
     try:
         pipeline = DataPipelineManager()
         results = pipeline.run_full_pipeline()
-        
-        # Vérifier si toutes les étapes ont réussi
-        if all(results.values()):
-            logging.info("✨ Pipeline terminé avec succès !")
-            return 0
-        else:
-            logging.error("⚠️ Pipeline terminé avec des erreurs.")
-            return 1
-            
+
+        # Afficher le résumé des résultats
+        print("\nRésumé du pipeline :")
+        print("=" * 50)
+        for step, success in results.items():
+            status = "✅" if success else "❌"
+            print(f"{status} {step}")
+
+        # Retourner un code d'erreur si une étape a échoué
+        return 0 if all(results.values()) else 1
+
     except Exception as e:
-        logging.error(f"❌ Erreur fatale dans le pipeline : {e}")
+        print(f"❌ Erreur critique : {e}")
         return 1
 
+
 if __name__ == "__main__":
-    exit_code = main()
-    exit(exit_code) 
+    exit(main())
