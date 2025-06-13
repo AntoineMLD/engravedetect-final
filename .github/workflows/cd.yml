@@ -5,28 +5,16 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  build-only:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build Docker image
-      run: docker build -t api_bdd .
-
-    - name: Deploy to production
-      env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-        HOST: ${{ secrets.DEPLOY_HOST }}
-        USERNAME: ${{ secrets.DEPLOY_USERNAME }}
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+    - name: Simulate Docker build (no push, no deploy)
       run: |
-        echo "$DEPLOY_KEY" > deploy_key
-        chmod 600 deploy_key
-        ssh -i deploy_key -o StrictHostKeyChecking=no $USERNAME@$HOST "
-          export DATABASE_URL='$DATABASE_URL'
-          export SECRET_KEY='$SECRET_KEY'
-          docker-compose pull
-          docker-compose up -d
-        " 
+        echo "Building image for local testing only..."
+        docker build -t local/api_bdd:latest .
+
+    - name: No deployment target
+      run: echo "No server configured for deployment yet."
