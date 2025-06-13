@@ -255,7 +255,7 @@ verres_filtres = requests.get(
 - `403 Forbidden`: Non autorisé
 - `404 Not Found`: Ressource non trouvée
 - `422 Unprocessable Entity`: Données invalides
-- `500 Internal Server Error`: Erreur serveur
+- `500 Internal Server Error`: Erreur serveur.
 
 ## Notes importantes
 
