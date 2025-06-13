@@ -260,7 +260,7 @@ verres_filtres = requests.get(
 ## Notes importantes
 
 1. Tous les endpoints nécessitent une authentification JWT valide.
-2. Les requêtes de liste supportent la pagination via les paramètres `skip` et `limit`.
+2. Les requêtes de liste supportent la pagination via les paramètres `skip` et `limit`
 3. Les filtres sont optionnels et peuvent être combinés.
 4. Les dates sont au format ISO 8601.
 5. Les réponses sont en JSON.
