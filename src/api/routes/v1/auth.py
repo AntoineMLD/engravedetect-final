@@ -48,9 +48,9 @@ async def login_for_access_token(
     try:
         user, access_token = authenticate_user(db, form_data.username, form_data.password)
         return {"access_token": access_token, "token_type": "bearer"}
-    except HTTPException as e:
-        raise e
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Identifiants invalides",
