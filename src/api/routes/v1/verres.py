@@ -64,7 +64,10 @@ async def read_stats(db: Session = Depends(get_db), _: dict = Depends(get_curren
 @router.post("/", response_model=VerreResponse, status_code=201)
 async def create_verre(verre: VerreCreate, db: Session = Depends(get_db), _: dict = Depends(get_current_user)):
     """Crée un nouveau verre."""
-    return verres_service.create_verre(db, verre)
+    try:
+        return verres_service.create_verre(db, verre)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.put("/{verre_id}", response_model=VerreResponse)

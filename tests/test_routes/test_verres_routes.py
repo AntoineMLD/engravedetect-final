@@ -2,6 +2,27 @@ import pytest
 from fastapi.testclient import TestClient
 from src.api.main import app
 from src.api.schemas.verres import VerreCreate, VerreUpdate
+from src.api.models.verres import Verre
+
+
+@pytest.fixture
+def test_verre(db_session):
+    """Crée un verre de test dans la base de données."""
+    verre = Verre(
+        nom="Test Verre",
+        fournisseur="Test Fournisseur",
+        materiaux="Test Materiaux",
+        indice=1.5,
+        protection=True,
+        photochromic=False,
+        hauteur_min=10.0,
+        hauteur_max=20.0,
+        gravure="TEST123",
+    )
+    db_session.add(verre)
+    db_session.commit()
+    db_session.refresh(verre)
+    return verre
 
 
 def test_verres_unauthorized(client):
@@ -52,12 +73,11 @@ def test_create_verre_invalid_data(client, auth_headers):
     assert response.status_code == 422
 
 
-def test_update_verre(client, auth_headers, mock_verre):
+def test_update_verre(client, auth_headers, test_verre):
     """Test de mise à jour d'un verre."""
-    verre_id = 1
     update_data = {"nom": "Updated Verre", "fournisseur": "Updated Fournisseur"}
 
-    response = client.put(f"/api/v1/verres/{verre_id}", json=update_data, headers=auth_headers)
+    response = client.put(f"/api/v1/verres/{test_verre.id}", json=update_data, headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["nom"] == update_data["nom"]
@@ -66,28 +86,25 @@ def test_update_verre(client, auth_headers, mock_verre):
 
 def test_update_verre_not_found(client, auth_headers):
     """Test de mise à jour d'un verre inexistant."""
-    verre_id = 999
     update_data = {"nom": "Updated Verre", "fournisseur": "Updated Fournisseur"}
 
-    response = client.put(f"/api/v1/verres/{verre_id}", json=update_data, headers=auth_headers)
+    response = client.put("/api/v1/verres/999", json=update_data, headers=auth_headers)
     assert response.status_code == 404
 
 
-def test_delete_verre(client, auth_headers, mock_verre):
+def test_delete_verre(client, auth_headers, test_verre):
     """Test de suppression d'un verre."""
-    verre_id = 1
-    response = client.delete(f"/api/v1/verres/{verre_id}", headers=auth_headers)
+    response = client.delete(f"/api/v1/verres/{test_verre.id}", headers=auth_headers)
     assert response.status_code == 204
 
 
 def test_delete_verre_not_found(client, auth_headers):
     """Test de suppression d'un verre inexistant."""
-    verre_id = 999
-    response = client.delete(f"/api/v1/verres/{verre_id}", headers=auth_headers)
+    response = client.delete("/api/v1/verres/999", headers=auth_headers)
     assert response.status_code == 404
 
 
-def test_get_verres(client, auth_headers, mock_verre):
+def test_get_verres(client, auth_headers, test_verre):
     """Test de récupération de la liste des verres."""
     response = client.get("/api/v1/verres/", headers=auth_headers)
     assert response.status_code == 200
@@ -96,24 +113,22 @@ def test_get_verres(client, auth_headers, mock_verre):
     assert "total" in data
 
 
-def test_get_verre_by_id(client, auth_headers, mock_verre):
+def test_get_verre_by_id(client, auth_headers, test_verre):
     """Test de récupération d'un verre par son ID."""
-    verre_id = 1
-    response = client.get(f"/api/v1/verres/{verre_id}", headers=auth_headers)
+    response = client.get(f"/api/v1/verres/{test_verre.id}", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == verre_id
-    assert data["nom"] == mock_verre.nom
+    assert data["id"] == test_verre.id
+    assert data["nom"] == test_verre.nom
 
 
 def test_get_verre_by_id_not_found(client, auth_headers):
     """Test de récupération d'un verre inexistant."""
-    verre_id = 999
-    response = client.get(f"/api/v1/verres/{verre_id}", headers=auth_headers)
+    response = client.get("/api/v1/verres/999", headers=auth_headers)
     assert response.status_code == 404
 
 
-def test_get_verres_with_filters(client, auth_headers, mock_verre):
+def test_get_verres_with_filters(client, auth_headers, test_verre):
     """Test de récupération des verres avec filtres."""
     filters = {"fournisseur": "Test Fournisseur", "indice_min": 1.0, "indice_max": 2.0, "protection": True}
 

@@ -61,15 +61,24 @@ def get_stats(db: Session) -> dict:
 
 def create_verre(db: Session, verre: VerreCreate) -> VerreResponse:
     """Crée un nouveau verre."""
-    # Créer le verre dans la base de données
+
+    # Vérifications métiers simples
+    if not verre.nom:
+        raise ValueError("Le nom du verre est requis")
+    if verre.indice <= 0:
+        raise ValueError("L'indice de réfraction doit être positif")
+    if verre.hauteur_min is not None and verre.hauteur_max is not None:
+        if verre.hauteur_min > verre.hauteur_max:
+            raise ValueError("La hauteur minimale ne peut pas être supérieure à la hauteur maximale")
+
+    # Création et insertion en base
     db_verre = Verre(**verre.model_dump())
     db.add(db_verre)
     db.commit()
-    db.refresh(db_verre)
+    db.refresh(db_verre) 
 
-    # Convertir en VerreResponse
+    # Conversion en réponse Pydantic
     return VerreResponse.model_validate(db_verre)
-
 
 def update_verre(db: Session, verre_id: int, verre: VerreUpdate) -> Optional[VerreResponse]:
     """Met à jour un verre existant."""

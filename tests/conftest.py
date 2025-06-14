@@ -1,84 +1,94 @@
 import os
 import pytest
-from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from src.api.main import app
+from src.api.core.database.database import Base, get_db
 from src.api.core.auth.jwt import create_access_token
+from src.api.core.auth.jwt import get_current_user
 
 
-@pytest.fixture(autouse=True)
+# Configuration de la base SQLite pour les tests
+SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
+
+engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ========================================
+# 1. Configuration des variables d'env
+# ========================================
+
+
+@pytest.fixture(autouse=True, scope="session")
 def setup_test_environment():
-    """Configure l'environnement de test avec des variables d'environnement factices."""
-    # Sauvegarde des variables d'environnement existantes
+    """Configure les variables d'environnement pour les tests."""
     original_env = dict(os.environ)
-
-    # Configuration des variables d'environnement pour les tests
     test_env = {
-        "DATABASE_URL": "sqlite:///./test.db",
+        "DATABASE_URL": SQLALCHEMY_TEST_DATABASE_URL,
+        "SECRET_KEY": "test-secret-key-for-testing-only",
         "AZURE_SERVER": "test-server",
         "AZURE_DATABASE": "test-db",
         "AZURE_USERNAME": "test-user",
         "AZURE_PASSWORD": "test-password",
-        "SECRET_KEY": "test-secret-key-for-testing-only",
         "deploy_ssh_key": "",
     }
-
     os.environ.update(test_env)
-
     yield
-
-    # Restauration des variables d'environnement d'origine
     os.environ.clear()
     os.environ.update(original_env)
 
 
+# ========================================
+# 2. Setup de la base de test
+# ========================================
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_db():
+    """Crée les tables une fois pour tous les tests."""
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+
+
+# ========================================
+# 3. Session DB propre à chaque test
+# ========================================
 @pytest.fixture
-def mock_settings():
-    """Mock les settings pour les tests."""
-    with patch("src.api.core.config.Settings") as mock_settings:
-        mock_settings.return_value.DATABASE_URL = "sqlite:///./test.db"
-        mock_settings.return_value.SECRET_KEY = "test_key"
-        mock_settings.return_value.AZURE_SERVER = "test_server"
-        mock_settings.return_value.AZURE_DATABASE = "test_db"
-        mock_settings.return_value.AZURE_USERNAME = "test_user"
-        mock_settings.return_value.AZURE_PASSWORD = "test_pass"
-        mock_settings.return_value.deploy_ssh_key = ""
-        yield mock_settings
+def db_session():
+    """Fournit une session SQLAlchemy pour les tests."""
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.rollback()
+        db.close()
 
 
-@pytest.fixture
-def mock_db():
-    """Mock de la session de base de données."""
-    mock = MagicMock()
-    # Configuration par défaut
-    mock.query.return_value.filter.return_value.first.return_value = None
-    mock.query.return_value.filter.return_value.count.return_value = 1
-    mock.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = []
-    return mock
-
-
+# ========================================
+# 4. Utilisateur de test
+# ========================================
 @pytest.fixture
 def mock_current_user():
-    """Fixture pour créer un utilisateur de test."""
+    """Utilisateur simulé pour l'authentification."""
     return {"sub": "test@example.com", "id": 1}
 
 
 @pytest.fixture
 def auth_headers(mock_current_user):
-    """Fixture pour créer les headers d'authentification."""
+    """Crée les headers avec JWT valide."""
     token = create_access_token(mock_current_user)
     return {"Authorization": f"Bearer {token}"}
 
 
+# ========================================
+# 5. Client FastAPI avec dépendances injectées
+# ========================================
 @pytest.fixture
-def client(mock_db, mock_current_user):
-    """Client de test avec base de données mockée et authentification."""
-    from src.api.main import app
-    from src.api.core.database.database import get_db
-    from src.api.core.auth.jwt import get_current_user
+def client(db_session, mock_current_user):
+    """Fournit un client de test FastAPI avec dépendances surchargées."""
 
     def override_get_db():
-        return mock_db
+        yield db_session
 
     def override_get_current_user():
         return mock_current_user
@@ -86,30 +96,7 @@ def client(mock_db, mock_current_user):
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
 
-    with TestClient(app) as test_client:
-        yield test_client
+    with TestClient(app) as c:
+        yield c
 
     app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def test_client():
-    """Crée un client de test pour l'application FastAPI."""
-    return TestClient(app)
-
-
-@pytest.fixture
-def mock_verre():
-    """Fixture pour créer un verre de test."""
-    verre = MagicMock()
-    verre.id = 1
-    verre.nom = "Test Verre"
-    verre.fournisseur = "Test Fournisseur"
-    verre.materiaux = "Test Materiaux"
-    verre.indice = 1.5
-    verre.protection = True
-    verre.photochromic = False
-    verre.hauteur_min = 10.0
-    verre.hauteur_max = 20.0
-    verre.gravure = "TEST123"
-    return verre
