@@ -75,10 +75,10 @@ def create_verre(db: Session, verre: VerreCreate) -> VerreResponse:
     db_verre = Verre(**verre.model_dump())
     db.add(db_verre)
     db.commit()
-    db.refresh(db_verre) 
-
+    db.refresh(db_verre)
     # Conversion en réponse Pydantic
     return VerreResponse.model_validate(db_verre)
+
 
 def update_verre(db: Session, verre_id: int, verre: VerreUpdate) -> Optional[VerreResponse]:
     """Met à jour un verre existant."""
