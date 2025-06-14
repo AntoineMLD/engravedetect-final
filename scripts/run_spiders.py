@@ -77,7 +77,7 @@ def run_spider(spider_name):
         final_count = count_database_rows()
         new_items = final_count - initial_count
 
-        print(f"\nRésultats:")
+        print("\nRésultats:")
         print(f"✅ Nouveaux items: {new_items}")
         print(f"📊 Total en base: {final_count}")
 

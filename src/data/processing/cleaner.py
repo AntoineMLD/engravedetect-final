@@ -4,6 +4,7 @@ import pandas as pd
 import pyodbc
 from datetime import datetime
 from dotenv import load_dotenv
+import csv
 
 
 class OpticalDataCleaner:
@@ -51,7 +52,7 @@ class OpticalDataCleaner:
         """Charge les données depuis la table staging."""
         try:
             query = """
-                SELECT 
+                SELECT
                     id,
                     source_url,
                     nom_verre,
@@ -59,7 +60,7 @@ class OpticalDataCleaner:
                     indice,
                     materiaux,
                     fournisseur
-                FROM staging 
+                FROM staging
                 ORDER BY id
             """
 
@@ -90,7 +91,7 @@ class OpticalDataCleaner:
             for col in string_columns:
                 if col in df.columns:
                     df[col] = df[col].str.strip()
-                    df[col] = df[col].str.replace("\s+", " ", regex=True)
+                    df[col] = df[col].str.replace(r"\s+", " ", regex=True)
 
             # Convertir la colonne indice en numérique
             df["indice"] = df["indice"].astype(str).str.replace(",", ".").astype(float)
@@ -200,7 +201,6 @@ class OpticalDataCleaner:
                         cursor.execute(
                             """
                             IF OBJECT_ID('enhanced', 'U') IS NOT NULL DROP TABLE enhanced;
-                            
                             CREATE TABLE enhanced (
                                 id INT IDENTITY(1,1) PRIMARY KEY,
                                 nom_verre NVARCHAR(MAX) NOT NULL,
@@ -211,7 +211,6 @@ class OpticalDataCleaner:
                                 source_url NVARCHAR(MAX),
                                 created_at DATETIME2 DEFAULT GETDATE()
                             );
-                            
                             CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur);
                             CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux);
                         """
@@ -310,9 +309,8 @@ class OpticalDataCleaner:
                     # Vérifier si le fournisseur existe
                     cursor.execute(
                         """
-                        SELECT id FROM fournisseurs 
-                        WHERE nom = ?
-                    """,
+                        SELECT id FROM fournisseurs
+                        WHERE nom = ?""",
                         (fournisseur,),
                     )
                     result = cursor.fetchone()
@@ -342,9 +340,8 @@ class OpticalDataCleaner:
 
                     cursor.execute(
                         """
-                        SELECT id FROM materiaux 
-                        WHERE nom = ?
-                    """,
+                        SELECT id FROM materiaux
+                        WHERE nom = ?""",
                         (materiau,),
                     )
                     result = cursor.fetchone()
@@ -372,89 +369,59 @@ class OpticalDataCleaner:
             raise
 
     def _clean_specific_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Nettoyage spécifique pour chaque colonne."""
-
-        # Nettoyage des matériaux
-        df["materiaux"] = df["materiaux"].str.strip()
-        df["materiaux"] = df["materiaux"].str.upper()
-        # Standardisation des matériaux
-        material_mapping = {
-            "ORG": "ORGANIQUE",
-            "ORGANIC": "ORGANIQUE",
-            "MIN": "MINERAL",
-            "MINERAL": "MINERAL",
-            "TRIVEX": "TRIVEX",
-            "PC": "POLYCARBONATE",
-            "POLYCARBONATE": "POLYCARBONATE",
-        }
-        df["materiaux"] = df["materiaux"].replace(material_mapping)
-
-        # Nettoyage de l'indice (préparation basique)
-        if "indice" in df.columns:
-            df["indice"] = df["indice"].astype(str).str.strip()
-            df["indice"] = df["indice"].replace("", "1.5")  # Valeur par défaut si vide
-            df["indice"] = df["indice"].replace("pas d'indice", "1.5")  # Valeur par défaut si pas d'indice
-
-        # Nettoyage du fournisseur
-        df["fournisseur"] = df["fournisseur"].str.strip()
-        # Supprimer "Produits optiques : " du début si présent
-        df["fournisseur"] = df["fournisseur"].str.replace(r"^Produits optiques\s*:\s*", "", regex=True)
-        df["fournisseur"] = df["fournisseur"].str.upper()
-
-        # Validation uniquement pour les URLs sources
-        df.loc[
-            ~df["source_url"].str.startswith(("http://", "https://"), na=False),
-            "source_url",
-        ] = ""
-
-        return df
+        """Nettoie les colonnes spécifiques du DataFrame."""
+        try:
+            # Nettoyage des colonnes string
+            string_columns = ["nom_verre", "materiaux", "fournisseur", "gravure_nasale"]
+            for col in string_columns:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).str.strip()
+                    df[col] = df[col].str.replace(r"\s+", " ", regex=True)
+            return df
+        except Exception as e:
+            self.logger.error(f"❌ Erreur lors du nettoyage des colonnes : {e}")
+            raise
 
     def get_data_statistics(self, df: pd.DataFrame):
-        """Affiche les statistiques des données nettoyées."""
-        self.logger.info("\n📊 STATISTIQUES DES DONNÉES NETTOYÉES:")
-        self.logger.info(f"🔢 Total de verres: {len(df)}")
+        """Affiche des statistiques sur les données."""
+        try:
+            # Statistiques de base
+            self.logger.info(f"Nombre total de lignes : {len(df)}")
+            self.logger.info(f"Nombre de colonnes : {len(df.columns)}")
 
-        # Statistiques par fournisseur
-        fournisseurs_stats = df["fournisseur"].value_counts()
-        self.logger.info(f"🏢 Nombre de fournisseurs: {len(fournisseurs_stats)}")
-        self.logger.info("\n📈 Répartition par fournisseur:")
-        for fournisseur, count in fournisseurs_stats.head(10).items():
-            self.logger.info(f"   • {fournisseur}: {count} verres")
+            # Statistiques par fournisseur
+            fournisseur_stats = df["fournisseur"].value_counts()
+            self.logger.info("\nRépartition par fournisseur :")
+            for fournisseur, count in fournisseur_stats.items():
+                self.logger.info(f"   • {fournisseur}: {count} verres")
 
-        # Statistiques par matériau
-        materiaux_stats = df["materiaux"].value_counts()
-        self.logger.info("\n🔬 Répartition par matériau:")
-        for materiau, count in materiaux_stats.items():
-            self.logger.info(f"   • {materiau}: {count} verres")
+            # Statistiques par indice
+            indice_stats = df["indice"].value_counts()
+            self.logger.info("\nRépartition par indice :")
+            for indice, count in indice_stats.items():
+                self.logger.info(f"   • {indice}: {count} verres")
+        except Exception as e:
+            self.logger.error(f"❌ Erreur lors de l'affichage des statistiques : {e}")
+            raise
 
-        # Statistiques par indice
-        indices_stats = df["indice"].value_counts()
-        self.logger.info("\n🔍 Répartition par indice:")
-        for indice, count in indices_stats.head(10).items():
-            self.logger.info(f"   • {indice}: {count} verres")
+    def log_progress(self, message):
+        """Affiche un message de progression."""
+        print("📊 " + message)
 
     def export_to_csv(self, df: pd.DataFrame) -> str:
-        """Exporte le DataFrame nettoyé vers un fichier CSV."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        # Utiliser le chemin absolu pour le dossier data à la racine
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        data_dir = os.path.join(root_dir, "data")
-
-        # S'assurer que le dossier existe
-        if not os.path.exists(data_dir):
-            self.logger.error(f"❌ Le dossier data n'existe pas : {data_dir}")
-            raise FileNotFoundError(f"Le dossier data n'existe pas : {data_dir}")
-
-        csv_filename = os.path.join(data_dir, f"verres_optiques_clean_{timestamp}.csv")
-
+        """Exporte les données vers un fichier CSV."""
         try:
-            # Export avec encodage UTF-8 et délimiteur point-virgule
-            df.to_csv(csv_filename, sep=";", index=False, encoding="utf-8")
+            # Créer le dossier data s'il n'existe pas
+            os.makedirs("data", exist_ok=True)
 
-            self.logger.info(f"💾 Export CSV terminé: {csv_filename}")
-            self.logger.info(f"📊 {len(df)} lignes exportées")
+            # Nom du fichier avec timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            csv_filename = f"data/export_{timestamp}.csv"
 
+            # Export en CSV
+            df.to_csv(csv_filename, index=False, sep=";", encoding="utf-8")
+
+            self.logger.info("✅ Données exportées avec succès")
             return csv_filename
 
         except Exception as e:
@@ -462,181 +429,16 @@ class OpticalDataCleaner:
             raise
 
     def insert_to_enhanced(self, df: pd.DataFrame):
-        """Insère les données nettoyées dans la table enhanced."""
+        """Insère les données dans la table enhanced."""
         try:
             with self.get_connection() as conn:
                 with conn.cursor() as cursor:
-                    # Préparation de la requête d'insertion
-                    insert_query = """
-                        INSERT INTO enhanced (
-                            nom_verre,
-                            materiaux,
-                            indice,
-                            fournisseur,
-                            gravure_nasale,
-                            source_url
-                        ) VALUES (?, ?, ?, ?, ?, ?)
-                    """
-
-                    # Compteurs pour le suivi
-                    total_rows = len(df)
-                    inserted_rows = 0
-                    error_rows = 0
-
-                    # Insertion ligne par ligne
-                    for index, row in df.iterrows():
-                        try:
-                            # Log des données pour le debug
-                            self.logger.debug(f"Insertion ligne {index}:")
-                            self.logger.debug(f"nom_verre: {row['nom_verre']}")
-                            self.logger.debug(f"materiaux: {row['materiaux']}")
-                            self.logger.debug(f"indice: {row['indice']}")
-                            self.logger.debug(f"fournisseur: {row['fournisseur']}")
-                            self.logger.debug(f"gravure_nasale: {row['gravure_nasale']}")
-
-                            # Exécution de l'insertion
-                            cursor.execute(
-                                insert_query,
-                                (
-                                    row["nom_verre"],
-                                    row["materiaux"],
-                                    row["indice"],
-                                    row["fournisseur"],
-                                    row["gravure_nasale"],
-                                    row["source_url"],
-                                ),
-                            )
-                            inserted_rows += 1
-
-                        except Exception as e:
-                            error_rows += 1
-                            self.logger.error(f"❌ Erreur lors de l'insertion de la ligne {index}: {e}")
-                            self.logger.error(f"Données de la ligne : {row.to_dict()}")
-
-                    conn.commit()
-
-                    # Log du résumé
-                    self.logger.info("✅ Résumé de l'insertion:")
-                    self.logger.info(f"  - {inserted_rows} lignes insérées avec succès")
-                    self.logger.info(f"  - {error_rows} lignes ignorées ou en erreur")
-
-                    # Vérification du nombre final de lignes
-                    cursor.execute("SELECT COUNT(*) FROM enhanced")
-                    final_count = cursor.fetchone()[0]
-                    self.logger.info(f"Nombre final de lignes dans enhanced: {final_count}")
-
-        except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'insertion dans enhanced : {e}")
-            raise
-
-    def load_data_from_enhanced(self):
-        """Charge les données depuis la table enhanced."""
-        try:
-            query = """
-                SELECT 
-                    id,
-                    nom_verre,
-                    materiaux,
-                    indice,
-                    fournisseur,
-                    gravure_nasale,
-                    source_url
-                FROM enhanced 
-                ORDER BY id
-            """
-
-            with self.get_connection() as conn:
-                df = pd.read_sql(query, conn)
-
-            self.logger.info(f"🔍 {len(df)} lignes chargées depuis la table enhanced")
-            return df
-
-        except Exception as e:
-            self.logger.error(f"❌ Erreur lors du chargement des données enhanced : {e}")
-            raise
-
-    def insert_from_enhanced_csv(self, csv_path: str) -> bool:
-        """
-        Insère les données depuis le CSV enhanced vers la table enhanced avec vérifications.
-
-        Args:
-            csv_path: Chemin vers le fichier CSV enhanced
-
-        Returns:
-            bool: True si l'insertion a réussi, False sinon
-        """
-        try:
-            self.logger.info(f"📥 Lecture du fichier CSV: {csv_path}")
-
-            # Lecture du CSV
-            df = pd.read_csv(csv_path, sep=";", encoding="utf-8")
-            self.logger.info(f"📊 {len(df)} lignes lues depuis le CSV")
-
-            # Vérification des colonnes requises
-            required_columns = [
-                "nom_verre",
-                "materiaux",
-                "indice",
-                "fournisseur",
-                "gravure_nasale",
-                "source_url",
-            ]
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                self.logger.error(f"❌ Colonnes manquantes dans le CSV: {missing_columns}")
-                return False
-
-            # Nettoyage des données
-            df["nom_verre"] = df["nom_verre"].astype(str).str.strip()
-            df["materiaux"] = df["materiaux"].astype(str).str.strip()
-            df["fournisseur"] = df["fournisseur"].astype(str).str.strip()
-            df["gravure_nasale"] = df["gravure_nasale"].astype(str).str.strip()
-            df["source_url"] = df["source_url"].astype(str).str.strip()
-
-            # Conversion de l'indice en float
-            df["indice"] = pd.to_numeric(df["indice"], errors="coerce")
-
-            # Vérification des valeurs nulles
-            null_counts = df.isnull().sum()
-            self.logger.info("Valeurs nulles par colonne:")
-            for col, count in null_counts.items():
-                self.logger.info(f"  - {col}: {count}")
-
-            # Vérification des valeurs vides
-            empty_counts = (df == "").sum()
-            self.logger.info("Valeurs vides par colonne:")
-            for col, count in empty_counts.items():
-                self.logger.info(f"  - {col}: {count}")
-
-            # Insertion dans la table enhanced
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
-
-                # Vérifier que la table est vide
-                cursor.execute("SELECT COUNT(*) FROM enhanced")
-                count = cursor.fetchone()[0]
-                if count > 0:
-                    self.logger.warning(f"⚠️ La table enhanced contient déjà {count} lignes")
-                    cursor.execute("TRUNCATE TABLE enhanced")
-                    self.logger.info("✅ Table enhanced vidée")
-
-                inserted_count = 0
-                error_count = 0
-
-                for index, row in df.iterrows():
-                    try:
-                        # Vérification des valeurs requises
-                        if pd.isna(row["nom_verre"]) or pd.isna(row["materiaux"]) or pd.isna(row["fournisseur"]):
-                            self.logger.warning(f"⚠️ Ligne {index} ignorée: valeurs requises manquantes")
-                            error_count += 1
-                            continue
-
-                        # Insertion dans la table enhanced
+                    for _, row in df.iterrows():
                         cursor.execute(
                             """
                             INSERT INTO enhanced (
-                                nom_verre, materiaux, indice, fournisseur,
-                                gravure_nasale, source_url
+                                nom_verre, materiaux, indice,
+                                fournisseur, gravure_nasale, source_url
                             ) VALUES (?, ?, ?, ?, ?, ?)
                         """,
                             (
@@ -648,39 +450,65 @@ class OpticalDataCleaner:
                                 row["source_url"],
                             ),
                         )
-
-                        inserted_count += 1
-                        if inserted_count % 100 == 0:
-                            self.logger.info(f"✓ {inserted_count} lignes insérées")
-                            conn.commit()
-
-                    except Exception as row_error:
-                        self.logger.error(f"❌ Erreur lors de l'insertion de la ligne {index}: {str(row_error)}")
-                        self.logger.error(f"Données de la ligne : {row.to_dict()}")
-                        error_count += 1
-                        continue
-
-                conn.commit()
-                self.logger.info(f"✅ Résumé de l'insertion:")
-                self.logger.info(f"  - {inserted_count} lignes insérées avec succès")
-                self.logger.info(f"  - {error_count} lignes ignorées ou en erreur")
-
-                # Vérification finale
-                cursor.execute("SELECT COUNT(*) FROM enhanced")
-                final_count = cursor.fetchone()[0]
-                self.logger.info(f"Nombre final de lignes dans enhanced: {final_count}")
-
-                if final_count == inserted_count:
-                    self.logger.info("✅ Vérification réussie: nombre de lignes correspond")
-                    return True
-                else:
-                    self.logger.error(
-                        f"❌ Vérification échouée: nombre de lignes incorrect ({final_count} vs {inserted_count})"
-                    )
-                    return False
-
+                    conn.commit()
+            self.logger.info("✅ Données insérées avec succès dans la table enhanced")
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'insertion depuis le CSV : {str(e)}")
+            self.logger.error(f"❌ Erreur lors de l'insertion : {e}")
+            raise
+
+    def load_data_from_enhanced(self):
+        """Charge les données depuis la table enhanced."""
+        try:
+            query = """
+                SELECT
+                    id,
+                    nom_verre,
+                    materiaux,
+                    indice,
+                    fournisseur,
+                    gravure_nasale,
+                    source_url,
+                    created_at
+                FROM enhanced
+                ORDER BY id
+            """
+            with self.get_connection() as conn:
+                df = pd.read_sql(query, conn)
+            self.logger.info(f"🔍 {len(df)} lignes chargées depuis la table enhanced")
+            return df
+        except Exception as e:
+            self.logger.error(f"❌ Erreur lors du chargement des données : {e}")
+            raise
+
+    def insert_from_enhanced_csv(self, csv_path: str) -> bool:
+        """Insère les données depuis un fichier CSV amélioré."""
+        try:
+            with open(csv_path, "r", encoding="utf-8") as file:
+                reader = csv.DictReader(file, delimiter=";")
+                with self.get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        for row in reader:
+                            cursor.execute(
+                                """
+                                INSERT INTO staging (
+                                    source_url, nom_verre, gravure_nasale,
+                                    indice, materiaux, fournisseur
+                                ) VALUES (?, ?, ?, ?, ?, ?)
+                            """,
+                                (
+                                    row["source_url"],
+                                    row["nom_verre"],
+                                    row["gravure_nasale"],
+                                    row["indice"],
+                                    row["materiaux"],
+                                    row["fournisseur"],
+                                ),
+                            )
+                        conn.commit()
+            self.logger.info("✅ Données importées avec succès")
+            return True
+        except Exception as e:
+            self.logger.error(f"❌ Erreur lors de l'import: {str(e)}")
             return False
 
     def insert_to_verres(self, df: pd.DataFrame) -> bool:
@@ -748,9 +576,9 @@ class OpticalDataCleaner:
                         continue
 
                 conn.commit()
-                self.logger.info(f"✅ Résumé de l'insertion dans verres:")
-                self.logger.info(f"  - {inserted_count} lignes insérées avec succès")
-                self.logger.info(f"  - {error_count} lignes ignorées ou en erreur")
+                self.logger.info("✅ Résumé de l'insertion dans verres:")
+                self.logger.info(f"- {inserted_count} lignes insérées avec succès")
+                self.logger.info(f"- {error_count} lignes ignorées ou en erreur")
 
                 # Vérification finale
                 cursor.execute("SELECT COUNT(*) FROM verres")

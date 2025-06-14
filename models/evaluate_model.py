@@ -10,12 +10,11 @@ from torchvision import transforms
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
+from models.efficientnet_triplet import EfficientNetEmbedding
 
 # Config
 main_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(main_dir)
-
-from models.efficientnet_triplet import EfficientNetEmbedding
 
 MODEL_PATH = os.path.join(main_dir, "models", "weights", "efficientnet_triplet.pth")
 REFERENCE_DIR = os.path.join(main_dir, "data", "split", "train")  # base de référence

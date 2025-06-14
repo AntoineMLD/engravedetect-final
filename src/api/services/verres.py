@@ -66,7 +66,7 @@ def create_verre(db: Session, verre: VerreCreate) -> VerreResponse:
     db.add(db_verre)
     db.commit()
     db.refresh(db_verre)
-    
+
     # Convertir en VerreResponse
     return VerreResponse.model_validate(db_verre)
 
@@ -76,12 +76,12 @@ def update_verre(db: Session, verre_id: int, verre: VerreUpdate) -> Optional[Ver
     db_verre = db.query(Verre).filter(Verre.id == verre_id).first()
     if not db_verre:
         return None
-    
+
     # Mise à jour des champs non-nuls
     update_data = verre.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_verre, field, value)
-    
+
     db.commit()
     db.refresh(db_verre)
     return VerreResponse.model_validate(db_verre)
@@ -92,7 +92,7 @@ def delete_verre(db: Session, verre_id: int) -> bool:
     db_verre = db.query(Verre).filter(Verre.id == verre_id).first()
     if not db_verre:
         return False
-    
+
     db.delete(db_verre)
     db.commit()
     return True

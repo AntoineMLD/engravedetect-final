@@ -4,10 +4,7 @@ from typing import List, Optional
 from ...core.database.database import get_db
 from ...core.auth.jwt import get_current_user
 from ...services import verres as verres_service
-from ...schemas.verres import (
-    VerreResponse, VerreList, VerreFilters,
-    VerreCreate, VerreUpdate
-)
+from ...schemas.verres import VerreResponse, VerreList, VerreFilters, VerreCreate, VerreUpdate
 
 router = APIRouter()
 
@@ -65,22 +62,13 @@ async def read_stats(db: Session = Depends(get_db), _: dict = Depends(get_curren
 
 
 @router.post("/", response_model=VerreResponse, status_code=201)
-async def create_verre(
-    verre: VerreCreate,
-    db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user)
-):
+async def create_verre(verre: VerreCreate, db: Session = Depends(get_db), _: dict = Depends(get_current_user)):
     """Crée un nouveau verre."""
     return verres_service.create_verre(db, verre)
 
 
 @router.put("/{verre_id}", response_model=VerreResponse)
-async def update_verre(
-    verre_id: int,
-    verre: VerreUpdate,
-    db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user)
-):
+async def update_verre(verre_id: int, verre: VerreUpdate, db: Session = Depends(get_db), _: dict = Depends(get_current_user)):
     """Met à jour un verre existant."""
     updated_verre = verres_service.update_verre(db, verre_id, verre)
     if not updated_verre:
@@ -89,11 +77,7 @@ async def update_verre(
 
 
 @router.delete("/{verre_id}", status_code=204)
-async def delete_verre(
-    verre_id: int,
-    db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user)
-):
+async def delete_verre(verre_id: int, db: Session = Depends(get_db), _: dict = Depends(get_current_user)):
     """Supprime un verre."""
     if not verres_service.delete_verre(db, verre_id):
         raise HTTPException(status_code=404, detail="Verre non trouvé")

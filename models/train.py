@@ -5,15 +5,13 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from models.efficientnet_triplet import EfficientNetEmbedding
+from models.losses.triplet_losses import HardTripletLoss
+from data.datasets.triplet_dataset import TripletDataset, default_transform
 
 # Ajout du répertoire parent au chemin Python (si lancé depuis models/train.py par ex.)
 main_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(main_dir)
-
-# Imports depuis modules maison
-from models.efficientnet_triplet import EfficientNetEmbedding
-from models.losses.triplet_losses import HardTripletLoss
-from data.datasets.triplet_dataset import TripletDataset, default_transform
 
 # --- Configuration globale ---
 DATA_DIR = os.path.join(main_dir, "data", "split", "train")

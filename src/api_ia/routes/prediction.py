@@ -96,7 +96,7 @@ async def validate_prediction(
             }
 
         # Générer et sauvegarder le rapport
-        metrics = monitor.generate_report()
+        monitor.generate_report()
 
         return {"status": "success", "message": "Prédiction validée"}
     except Exception as e:

@@ -170,6 +170,49 @@ class AzureSQLPipeline:
             conn.commit()
             spider.logger.info("Table verres vidée avec succès")
 
+    def _process_gravure_nasale(self, item: dict, spider) -> dict:
+        """Traite la gravure nasale d'un item."""
+        gravure_nasale = item.get("gravure_nasale")
+        if gravure_nasale:
+            if isinstance(gravure_nasale, list):
+                item["gravure_nasale"] = " ".join(gravure_nasale)
+                item["image_gravure"] = None
+            else:
+                image_url = self.extract_image_url(gravure_nasale)
+                if image_url and image_url.startswith(("http", "https")):
+                    local_image_path = self.download_image_with_retry(image_url, spider)
+                    item["image_gravure"] = local_image_path
+                    item["gravure_nasale"] = image_url
+                else:
+                    item["gravure_nasale"] = self.clean_html_tags(gravure_nasale)
+        return item
+
+    def _insert_into_staging(self, item: dict, spider) -> bool:
+        """Insère un item dans la table staging."""
+        try:
+            with pyodbc.connect(self.conn_str) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO staging (source_url, nom_verre, gravure_nasale, indice, materiaux, fournisseur)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        item["source_url"],
+                        item["nom_verre"],
+                        item["gravure_nasale"],
+                        item["indice"],
+                        item["materiaux"],
+                        item["fournisseur"],
+                    ),
+                )
+                conn.commit()
+                spider.logger.info(f"Item ajouté à la table staging: {item['nom_verre']}")
+                return True
+        except Exception as e:
+            spider.logger.error(f"Erreur lors de l'insertion dans staging: {e}")
+            return False
+
     def process_item(self, item, spider):
         """Traite chaque élément collecté par le spider."""
         try:
@@ -189,22 +232,7 @@ class AzureSQLPipeline:
                 spider.logger.warning(f"URL non prévue trouvée: {source_url}")
 
             # Traitement de la gravure nasale
-            gravure_nasale = item.get("gravure_nasale")
-            if gravure_nasale:
-                # Si c'est une liste (cas du texte), on la joint en string
-                if isinstance(gravure_nasale, list):
-                    item["gravure_nasale"] = " ".join(gravure_nasale)
-                    item["image_gravure"] = None  # Pas d'image dans ce cas
-                # Si c'est une string et que c'est une URL ou une balise img
-                else:
-                    image_url = self.extract_image_url(gravure_nasale)
-                    if image_url and image_url.startswith(("http", "https")):
-                        local_image_path = self.download_image_with_retry(image_url, spider)
-                        item["image_gravure"] = local_image_path
-                        item["gravure_nasale"] = image_url
-                    else:
-                        # Nettoyer les balises HTML si c'est du texte
-                        item["gravure_nasale"] = self.clean_html_tags(gravure_nasale)
+            item = self._process_gravure_nasale(item, spider)
 
             # Nettoyage des balises HTML dans materiaux
             if "materiaux" in item:
@@ -218,30 +246,7 @@ class AzureSQLPipeline:
             self.items_by_url[source_url].append(dict(item))
 
             # Insérer dans la table staging
-            try:
-                with pyodbc.connect(self.conn_str) as conn:
-                    cursor = conn.cursor()
-
-                    # Insertion dans staging
-                    cursor.execute(
-                        """
-                        INSERT INTO staging (source_url, nom_verre, gravure_nasale, indice, materiaux, fournisseur)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """,
-                        (
-                            item["source_url"],
-                            item["nom_verre"],
-                            item["gravure_nasale"],
-                            item["indice"],
-                            item["materiaux"],
-                            item["fournisseur"],
-                        ),
-                    )
-
-                    conn.commit()
-                    spider.logger.info(f"Item ajouté à la table staging: {item['nom_verre']}")
-            except Exception as e:
-                spider.logger.error(f"Erreur lors de l'insertion dans staging: {e}")
+            self._insert_into_staging(item, spider)
 
             return item
 

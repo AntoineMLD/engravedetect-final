@@ -40,7 +40,7 @@ def export_staging_to_csv():
             with conn.cursor() as cursor:
                 # Requête pour récupérer toutes les données
                 query = """
-                SELECT 
+                SELECT
                     id,
                     source_url,
                     nom_verre,
@@ -48,7 +48,7 @@ def export_staging_to_csv():
                     indice,
                     materiaux,
                     fournisseur
-                FROM staging 
+                FROM staging
                 ORDER BY id
                 """
 
@@ -75,7 +75,7 @@ def export_staging_to_csv():
                     for row in rows:
                         writer.writerow(row)
 
-                print(f"🎉 Export terminé avec succès!")
+                print("🎉 Export terminé avec succès!")
                 print(f"📁 Fichier créé: {csv_filename}")
                 print(f"📈 Nombre de lignes exportées: {len(rows)}")
 
@@ -102,11 +102,11 @@ def get_staging_stats():
                 # Nombre de verres par fournisseur
                 cursor.execute(
                     """
-                    SELECT fournisseur, COUNT(*) as nb_verres 
-                    FROM staging 
-                    GROUP BY fournisseur 
+                    SELECT fournisseur, COUNT(*) as nb_verres
+                    FROM staging
+                    GROUP BY fournisseur
                     ORDER BY nb_verres DESC
-                """
+                    """
                 )
                 fournisseurs_stats = cursor.fetchall()
 
@@ -135,14 +135,14 @@ def main():
     csv_file = export_staging_to_csv()
 
     if csv_file:
-        print(f"\n✨ Export réussi!")
+        print("\n✨ Export réussi!")
         print(f"📁 Fichier disponible: {csv_file}")
 
         # Ouvrir le dossier dans l'explorateur (Windows)
         try:
             os.startfile("data")
-        except:
-            pass
+        except Exception as e:
+            print(f"❌ Impossible d'ouvrir le dossier: {str(e)}")
     else:
         print("\n❌ Export échoué")
 

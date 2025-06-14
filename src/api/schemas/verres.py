@@ -4,6 +4,7 @@ from typing import Optional, List
 
 class VerreBase(BaseModel):
     """Schéma de base pour les verres."""
+
     nom: str = Field(..., description="Nom du verre")
     fournisseur: str = Field(..., description="Fournisseur du verre")
     materiaux: str = Field(..., description="Matériau du verre")
@@ -17,11 +18,13 @@ class VerreBase(BaseModel):
 
 class VerreCreate(VerreBase):
     """Schéma pour la création d'un verre."""
+
     pass
 
 
 class VerreUpdate(BaseModel):
     """Schéma pour la mise à jour d'un verre."""
+
     nom: Optional[str] = Field(None, description="Nom du verre")
     fournisseur: Optional[str] = Field(None, description="Fournisseur du verre")
     materiaux: Optional[str] = Field(None, description="Matériau du verre")
@@ -35,6 +38,7 @@ class VerreUpdate(BaseModel):
 
 class VerreResponse(VerreBase):
     """Schéma de réponse pour un verre."""
+
     id: int = Field(..., description="Identifiant unique du verre")
 
     model_config = {"from_attributes": True}
@@ -42,12 +46,14 @@ class VerreResponse(VerreBase):
 
 class VerreList(BaseModel):
     """Schéma de réponse pour la liste des verres."""
+
     total: int = Field(..., description="Nombre total de verres")
     items: List[VerreResponse] = Field(..., description="Liste des verres")
 
 
 class VerreFilters(BaseModel):
     """Schéma pour les filtres de recherche."""
+
     fournisseur: Optional[str] = None
     materiaux: Optional[str] = None
     indice_min: Optional[float] = None

@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from src.api.main import app
+from src.api.core.auth.jwt import create_access_token
 
 
 @pytest.fixture(autouse=True)
@@ -57,17 +58,37 @@ def mock_db():
 
 
 @pytest.fixture
-def client(mock_db):
-    """Client de test avec base de données mockée."""
+def mock_current_user():
+    """Fixture pour créer un utilisateur de test."""
+    return {"sub": "test@example.com", "id": 1}
+
+
+@pytest.fixture
+def auth_headers(mock_current_user):
+    """Fixture pour créer les headers d'authentification."""
+    token = create_access_token(mock_current_user)
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def client(mock_db, mock_current_user):
+    """Client de test avec base de données mockée et authentification."""
     from src.api.main import app
     from src.api.core.database.database import get_db
+    from src.api.core.auth.jwt import get_current_user
 
     def override_get_db():
         return mock_db
 
+    def override_get_current_user():
+        return mock_current_user
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
     with TestClient(app) as test_client:
         yield test_client
+
     app.dependency_overrides.clear()
 
 
