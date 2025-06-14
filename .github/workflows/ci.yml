@@ -32,9 +32,10 @@ jobs:
     - name: Run tests
       env:
         SECRET_KEY: "test-secret-key-for-testing-only"
-        PYTHONPATH: ${{ github.workspace }}/src
+        PYTHONPATH: ${{ github.workspace }}
       run: |
-        pytest tests/ -v
+        cd ${{ github.workspace }}
+        python -m pytest tests/ -v
 
   docker:
     needs: test
