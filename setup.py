@@ -15,7 +15,6 @@ setup(
         "requests>=2.31.0",
         "SQLAlchemy>=2.0.0",
         "numpy>=1.24.0",
-        "logging>=0.5.1.2",
         "fastapi>=0.104.0",
         "uvicorn>=0.24.0",
         "pydantic>=2.4.2",

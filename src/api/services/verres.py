@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from ..models.verres import Verre
-from ..schemas.verres import VerreFilters, VerreResponse, VerreList
+from ..schemas.verres import VerreFilters, VerreResponse, VerreList, VerreCreate, VerreUpdate
 
 
 def get_verres(db: Session, filters: Optional[VerreFilters] = None, skip: int = 0, limit: int = 100) -> VerreList:
@@ -57,3 +57,42 @@ def get_stats(db: Session) -> dict:
         "total_fournisseurs": db.query(Verre.fournisseur).distinct().count(),
         "total_materiaux": db.query(Verre.materiaux).distinct().count(),
     }
+
+
+def create_verre(db: Session, verre: VerreCreate) -> VerreResponse:
+    """Crée un nouveau verre."""
+    # Créer le verre dans la base de données
+    db_verre = Verre(**verre.model_dump())
+    db.add(db_verre)
+    db.commit()
+    db.refresh(db_verre)
+    
+    # Convertir en VerreResponse
+    return VerreResponse.model_validate(db_verre)
+
+
+def update_verre(db: Session, verre_id: int, verre: VerreUpdate) -> Optional[VerreResponse]:
+    """Met à jour un verre existant."""
+    db_verre = db.query(Verre).filter(Verre.id == verre_id).first()
+    if not db_verre:
+        return None
+    
+    # Mise à jour des champs non-nuls
+    update_data = verre.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_verre, field, value)
+    
+    db.commit()
+    db.refresh(db_verre)
+    return VerreResponse.model_validate(db_verre)
+
+
+def delete_verre(db: Session, verre_id: int) -> bool:
+    """Supprime un verre."""
+    db_verre = db.query(Verre).filter(Verre.id == verre_id).first()
+    if not db_verre:
+        return False
+    
+    db.delete(db_verre)
+    db.commit()
+    return True

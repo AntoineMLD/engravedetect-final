@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     API REST pour la gestion des verres optiques.
     """
 
+    # Configuration du déploiement
+    deploy_ssh_key: str = ""  # Utiliser une chaîne vide comme valeur par défaut
+
     model_config = ConfigDict(env_file=".env")
 
 

@@ -1,0 +1,165 @@
+# Règles de configuration Cursor pour un projet Python avec IA, FastAPI, PostgreSQL
+# Ces règles visent à optimiser la génération de code et réduire la consommation de tokens
+
+# Configuration générale
+settings:
+  # Mode de génération de code
+  code_generation:
+    style: "simple"  # Style simple et clair pour débutants
+    max_tokens_per_request: 1000  # Limite pour éviter les réponses trop longues
+    temperature: 0.3  # Température basse pour des réponses plus déterministes
+
+  # Gestion du contexte
+  context:
+    max_files: 5  # Nombre maximum de fichiers à inclure dans le contexte
+    max_lines_per_file: 100  # Nombre maximum de lignes par fichier
+    include_patterns:  # Fichiers à inclure dans le contexte
+      - "src/**/*.py"
+      - "tests/**/*.py"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - ".env"
+      - ".github/**/*"
+      - ".cursor-rules"
+      - "pyproject.toml"
+      - "setup.py"
+    exclude_patterns:  # Fichiers à exclure
+      - "*.pyc"
+      - "__pycache__"
+      - "venv"
+      - ".git"
+      - "data/*"
+      - "logs/*"
+      - "*.egg-info"
+
+# Règles de style de code
+code_style:
+  python:
+    # Formatage
+    max_line_length: 88  # Compatible avec black
+    indent_size: 4
+    use_spaces: true
+    
+    # Nommage
+    naming:
+      classes: "PascalCase"
+      functions: "snake_case"
+      variables: "snake_case"
+      constants: "UPPER_CASE"
+      models: "PascalCase"  # Pour les modèles SQLAlchemy
+      schemas: "PascalCase"  # Pour les schémas Pydantic
+    
+    # Documentation
+    docstrings:
+      required: true
+      style: "google"  # Style Google pour les docstrings
+      min_length: 1  # Au moins une ligne de description
+      language: "fr"
+
+# Règles de qualité de code
+quality:
+  # Tests
+  testing:
+    required: true
+    min_coverage: 70
+    framework: "pytest"
+    patterns:
+      - "tests/**/test_*.py"
+      - "tests/**/*_test.py"
+    
+  # Gestion des erreurs
+  error_handling:
+    required: true
+    custom_exceptions: true
+    logging: true
+    error_codes: true
+    
+  # Dépendances
+  dependencies:
+    check_unused: true
+    version_pinning: true
+    security_scan: true
+
+# Règles spécifiques au projet
+project_specific:
+  # Architecture
+  architecture:
+    pattern: "clean_architecture"
+    layers:
+      - "presentation"  # API FastAPI
+      - "application"   # Services et cas d'utilisation
+      - "domain"       # Modèles et règles métier
+      - "infrastructure"  # Base de données et services externes
+      - "tests"        # Tests unitaires et d'intégration
+      - "docs"         # Documentation
+      - "scripts"      # Scripts utilitaires
+      - "config"       # Configuration
+      - "utils"        # Utilitaires communs
+      - "models"       # Modèles de données
+      - "schemas"      # Schémas de validation
+    
+  # API
+  api:
+    framework: "fastapi"
+    versioning: true
+    documentation: true
+    endpoints:
+      - "verres"
+      - "auth"
+      - "statistiques"
+    
+  # Base de données
+  database:
+    type: "azure"
+    migrations: true
+    connection_pooling: true
+    models:
+      - "verres"
+      - "fournisseurs"
+      - "materiaux"
+      
+
+# Règles de sécurité
+security:
+  # Secrets
+  secrets:
+    env_vars: true
+    no_hardcoding: true
+    azure_key_vault: true
+    
+  # Validation
+  validation:
+    input_validation: true
+    output_validation: true
+    sql_injection_prevention: true
+    xss_prevention: true
+
+# Règles de performance
+performance:
+  # Optimisations
+  optimizations:
+    database_queries: true
+    caching: true
+    async_operations: true
+    connection_pooling: true
+    
+  # Monitoring
+  monitoring:
+    logging: true
+    metrics: true
+    tracing: true
+    azure_monitor: true
+
+# Règles de déploiement
+deployment:
+  docker:
+    multi_stage: true
+    health_checks: true
+    environment_vars: true
+  
+  ci_cd:
+    github_actions: true
+    automated_tests: true
+    security_scan: true 

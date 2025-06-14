@@ -20,9 +20,8 @@ app.add_middleware(
 )
 
 # Routes v1
-app.include_router(verres.router, prefix="/api/v1")
-
-app.include_router(auth.router, prefix="/api/v1/auth")
+app.include_router(verres.router, prefix="/api/v1/verres", tags=["verres"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 
 
 @app.get("/")
