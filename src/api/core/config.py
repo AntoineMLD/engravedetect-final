@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 # Charger les variables d'environnement
 load_dotenv()
 
+
 class Settings(BaseSettings):
     # Nom et version de l'application
     APP_NAME: str = "EngraveDetect API"

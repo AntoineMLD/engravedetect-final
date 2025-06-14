@@ -3,11 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 
+
 class EfficientNetEmbedding(nn.Module):
     """
     Modèle basé sur EfficientNet-B0 pour l'extraction d'embedding.
     Conçu pour fonctionner avec des images grayscale et compatible Triplet Loss.
     """
+
     def __init__(self, embedding_dim: int = 256, pretrained: bool = True):
         super().__init__()
 
@@ -20,7 +22,7 @@ class EfficientNetEmbedding(nn.Module):
         # récupère la dimension du backbone
         last_channel = self.backbone.classifier[1].in_features
 
-        # supprime la tête de classification 
+        # supprime la tête de classification
         self.backbone.classifier = nn.Identity()
 
         # Tête MLP pour projeter les features en vecteurs d'embedding
@@ -29,10 +31,10 @@ class EfficientNetEmbedding(nn.Module):
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
             nn.Dropout(0.3),
-            nn.Linear(512, embedding_dim)
+            nn.Linear(512, embedding_dim),
         )
 
-        # Adaptateur pour convertir des images 1 canal (grayscale) en 3 canaux 
+        # Adaptateur pour convertir des images 1 canal (grayscale) en 3 canaux
         self.grayscale_conv = nn.Conv2d(1, 3, kernel_size=1)
         nn.init.kaiming_normal_(self.grayscale_conv.weight)
 
@@ -54,7 +56,7 @@ class EfficientNetEmbedding(nn.Module):
         embedding = self.embedding_head(features)
         embedding = F.normalize(embedding, p=2, dim=1)
         return embedding
-    
+
     def forward(self, anchor, positive, negative):
         """
         Pour compatibilité avec Triplet Loss.
@@ -64,5 +66,3 @@ class EfficientNetEmbedding(nn.Module):
         negative_emb = self.forward_one(negative)
 
         return anchor_emb, positive_emb, negative_emb
-    
-    

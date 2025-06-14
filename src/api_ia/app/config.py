@@ -63,7 +63,7 @@ required_vars = [
     "AZURE_PASSWORD",
     "SECRET_KEY",
     "ADMIN_EMAIL",
-    "ADMIN_PASSWORD"
+    "ADMIN_PASSWORD",
 ]
 
 missing_vars = [var for var in required_vars if not os.getenv(var)]

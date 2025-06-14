@@ -1,28 +1,23 @@
-import json 
+import json
 import os
 import logging
 import pyodbc
 from typing import List, Dict, Optional, Any
 from contextlib import contextmanager
-from .config import (
-    AZURE_SERVER,
-    AZURE_DATABASE,
-    AZURE_USERNAME,
-    AZURE_PASSWORD,
-    AZURE_DRIVER
-)
+from .config import AZURE_SERVER, AZURE_DATABASE, AZURE_USERNAME, AZURE_PASSWORD, AZURE_DRIVER
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
+
 
 @contextmanager
 def get_db_connection():
     """
     Gestionnaire de contexte pour la connexion à la base de données Azure.
-    
+
     Yields:
         pyodbc.Connection: Objet de connexion à la base de données.
-        
+
     Raises:
         pyodbc.Error: Si la connexion échoue.
     """
@@ -46,17 +41,18 @@ def get_db_connection():
         if conn:
             conn.close()
 
+
 def execute_query(query: str, params: tuple = None) -> List[tuple]:
     """
     Exécute une requête SQL avec des paramètres.
-    
+
     Args:
         query (str): Requête SQL à exécuter.
         params (tuple, optional): Paramètres de la requête.
-        
+
     Returns:
         List[tuple]: Résultats de la requête.
-        
+
     Raises:
         pyodbc.Error: Si l'exécution de la requête échoue.
     """
@@ -72,13 +68,14 @@ def execute_query(query: str, params: tuple = None) -> List[tuple]:
         logger.error(f"Erreur lors de l'exécution de la requête: {e}")
         raise
 
+
 def parse_verre_tags(tags_json: str) -> List[str]:
     """
     Parse les tags JSON d'un verre.
-    
+
     Args:
         tags_json (str): Tags au format JSON.
-        
+
     Returns:
         List[str]: Liste des tags.
     """
@@ -88,14 +85,15 @@ def parse_verre_tags(tags_json: str) -> List[str]:
         logger.error(f"Erreur de décodage JSON pour les tags: {e}")
         return []
 
+
 def create_verre_dict(row: tuple, columns: List[str]) -> Dict[str, Any]:
     """
     Crée un dictionnaire pour un verre à partir d'une ligne de la base de données.
-    
+
     Args:
         row (tuple): Ligne de la base de données.
         columns (List[str]): Noms des colonnes.
-        
+
     Returns:
         Dict[str, Any]: Dictionnaire représentant le verre.
     """
@@ -104,13 +102,14 @@ def create_verre_dict(row: tuple, columns: List[str]) -> Dict[str, Any]:
         verre["tags"] = parse_verre_tags(verre["tags"])
     return verre
 
+
 def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
     """
     Trouve les verres correspondant aux tags donnés.
-    
+
     Args:
         tags (list): Liste de tags à rechercher.
-        
+
     Returns:
         list: Liste des verres correspondant aux tags.
     """
@@ -125,10 +124,10 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
             FROM verres v
             WHERE v.tags IS NOT NULL
         """
-        
+
         results = execute_query(query)
         logger.info(f"Nombre total de verres trouvés: {len(results)}")
-        
+
         # Filtrer les verres qui ont exactement les tags recherchés
         verres = []
         for row in results:
@@ -136,22 +135,24 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
             try:
                 # Parser les tags du verre
                 verre_tags = parse_verre_tags(tags_json)
-                
+
                 # Convertir tous les tags en minuscules pour la comparaison
                 verre_tags_lower = [vt.strip().lower() for vt in verre_tags]
                 search_tags_lower = [tag.strip().lower() for tag in tags]
-                
+
                 # Vérifier que TOUS les tags recherchés sont présents
                 if all(tag in verre_tags_lower for tag in search_tags_lower):
-                    verres.append({
-                        "id": verre_id,
-                        "nom": nom,
-                         "indice": indice,
-                        "gravure": gravure,
-                        "url_source": url_source,
-                        "fournisseur": fournisseur,
-                        "tags": verre_tags  # Garder les tags originaux dans la réponse
-                    })
+                    verres.append(
+                        {
+                            "id": verre_id,
+                            "nom": nom,
+                            "indice": indice,
+                            "gravure": gravure,
+                            "url_source": url_source,
+                            "fournisseur": fournisseur,
+                            "tags": verre_tags,  # Garder les tags originaux dans la réponse
+                        }
+                    )
             except Exception as e:
                 logger.error(f"Erreur lors du traitement des tags pour le verre {verre_id}: {e}")
                 continue
@@ -163,13 +164,14 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
         logger.error(f"Erreur lors de la recherche des verres: {e}")
         return []
 
+
 def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
     """
     Récupère les détails complets d'un verre.
-    
+
     Args:
         verre_id (int): Identifiant du verre.
-        
+
     Returns:
         Optional[Dict[str, Any]]: Détails du verre ou None si non trouvé.
     """
@@ -180,28 +182,29 @@ def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
             FROM verres
             WHERE id = @verre_id
         """
-        
+
         results = execute_query(query, (verre_id,))
         if not results:
             logger.warning(f"Verre avec ID {verre_id} non trouvé")
             return None
-            
+
         with get_db_connection() as conn:
             cursor = conn.cursor()
             columns = [column[0] for column in cursor.description]
             return create_verre_dict(results[0], columns)
-            
+
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des détails du verre: {e}")
         return None
 
+
 def get_verre_staging_details(verre_id: int) -> Optional[Dict[str, Any]]:
     """
     Récupère les détails d'un verre depuis la table staging.
-    
+
     Args:
         verre_id (int): Identifiant du verre.
-        
+
     Returns:
         Optional[Dict[str, Any]]: Détails du verre ou None si non trouvé.
     """
@@ -212,21 +215,17 @@ def get_verre_staging_details(verre_id: int) -> Optional[Dict[str, Any]]:
             FROM verres_staging
             WHERE id = @verre_id
         """
-        
+
         results = execute_query(query, (verre_id,))
         if not results:
             logger.warning(f"Verre staging avec ID {verre_id} non trouvé")
             return None
-            
+
         with get_db_connection() as conn:
             cursor = conn.cursor()
             columns = [column[0] for column in cursor.description]
             return create_verre_dict(results[0], columns)
-            
+
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des détails du verre staging: {e}")
         return None
-
-
-
-

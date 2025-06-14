@@ -6,15 +6,13 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-
+from efficientnet_triplet import EfficientNetEmbedding
+from losses.triplet_losses import HardTripletLoss
+from datasets.triplet_dataset import TripletDataset, default_transform
 
 main_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(main_dir)
 
-# Imports depuis modules maison
-from efficientnet_triplet import EfficientNetEmbedding
-from losses.triplet_losses import HardTripletLoss
-from datasets.triplet_dataset import TripletDataset, default_transform
 
 # --- Configuration globale ---
 DATA_DIR = os.path.join(main_dir, "data", "split", "train")
@@ -81,7 +79,7 @@ print(f"Modèle sauvegardé dans : {SAVE_PATH}")
 
 # --- Courbe de perte ---
 plt.figure(figsize=(10, 5))
-plt.plot(train_losses, marker='o', color='royalblue')
+plt.plot(train_losses, marker="o", color="royalblue")
 plt.title("Courbe de perte (Training Loss)")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")

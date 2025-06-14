@@ -5,4 +5,4 @@ Ce package contient l'API FastAPI et ses composants.
 
 """
 Package api_ia
-""" 
+"""
