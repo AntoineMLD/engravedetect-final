@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "src"
+name = "engravedetect"
 version = "0.1.0"
 description = "EngraveDetect - Détection de gravures"
 requires-python = ">=3.8"
 authors = [
-    {name = "Votre Nom", email = "votre.email@example.com"}
+    {name = "Antoine Moulard", email = "antoine.moulard@hotmail.com"}
 ]
 dependencies = [
     "fastapi",
@@ -27,6 +27,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
     "black",
     "flake8",
     "mypy"
@@ -34,7 +36,10 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["api_ia", "api", "models", "database", "utils", "orchestrator", "data", "datasets", "scripts", "reports"]
+
+# Recherche automatique de tous les packages Python valides dans /src
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.black]
 line-length = 127
@@ -44,10 +49,10 @@ include = '\.pyi?$'
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-v --cov=src"
+addopts = "-v --cov=engravedetect"
 
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = true 
+disallow_untyped_defs = true
