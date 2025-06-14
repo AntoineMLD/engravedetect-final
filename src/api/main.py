@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes.v1 import auth, verres
-from .core.config import settings
+from engravedetect.api.routes.v1 import auth, verres
+from engravedetect.api.core.config import settings
 
 # Création de l'application FastAPI
 app = FastAPI(

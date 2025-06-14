@@ -1,3 +1,0 @@
-"""
-TripleNetLoss model implementation.
-"""

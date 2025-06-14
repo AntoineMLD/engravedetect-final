@@ -1,4 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "engravedetect"
+version = "0.1.0"
+description = "EngraveDetect - Détection de gravures"
+requires-python = ">=3.8"
+authors = [
+    {name = "Votre Nom", email = "votre.email@example.com"}
+]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "sqlalchemy",
+    "python-multipart",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "pillow",
+    "numpy",
+    "torch",
+    "torchvision"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8",
+    "mypy"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["api_ia", "api", "models", "database", "utils", "orchestrator", "data", "datasets", "scripts", "reports"]
+
 [tool.black]
 line-length = 127
 target-version = ['py310']
-include = '\.pyi?$' 
+include = '\.pyi?$'
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true 

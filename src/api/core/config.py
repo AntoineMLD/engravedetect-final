@@ -1,6 +1,10 @@
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
+import os
+from dotenv import load_dotenv
 
+# Charger les variables d'environnement
+load_dotenv()
 
 class Settings(BaseSettings):
     # Nom et version de l'application
@@ -39,9 +43,7 @@ class Settings(BaseSettings):
     REDOC_URL: str = "/redoc"
 
     # Description de l'API
-    API_DESCRIPTION: str = """
-    API REST pour la gestion des verres optiques.
-    """
+    API_DESCRIPTION: str = "API de gestion des verres optiques"
 
     # Configuration du déploiement
     deploy_ssh_key: str = ""  # Utiliser une chaîne vide comme valeur par défaut
