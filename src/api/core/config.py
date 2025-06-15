@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, field_validator
+from pydantic import ConfigDict, field_validator, computed_field
 import os
 from dotenv import load_dotenv
 
@@ -19,28 +19,31 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # Configuration Azure
-    AZURE_SERVER: str
-    AZURE_DATABASE: str
-    AZURE_USERNAME: str
-    AZURE_PASSWORD: str
+    AZURE_SERVER: str | None = None
+    AZURE_DATABASE: str | None = None
+    AZURE_USERNAME: str | None = None
+    AZURE_PASSWORD: str | None = None
 
-    @field_validator("AZURE_SERVER", "AZURE_DATABASE", "AZURE_USERNAME", "AZURE_PASSWORD", "DATABASE_URL")
+    @field_validator('AZURE_SERVER', 'AZURE_DATABASE', 'AZURE_USERNAME', 'AZURE_PASSWORD')
     @classmethod
-    def validate_azure_config(cls, v: str, info) -> str:
-        if not v:
+    def validate_azure_config(cls, v: str | None, info) -> str | None:
+        if v is not None and not v:
             raise ValueError(f"{info.field_name} ne peut pas être vide")
         return v
 
+    @computed_field
     @property
     def DATABASE_URL(self) -> str:
         """Construit la chaîne de connexion ODBC pour Azure SQL Server."""
-        return (
-            f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
-            f"{self.AZURE_SERVER}/{self.AZURE_DATABASE}?"
-            "driver=ODBC+Driver+18+for+SQL+Server&"
-            "TrustServerCertificate=yes&"
-            "Connection Timeout=30"
-        )
+        if all([self.AZURE_SERVER, self.AZURE_DATABASE, self.AZURE_USERNAME, self.AZURE_PASSWORD]):
+            return (
+                f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
+                f"{self.AZURE_SERVER}/{self.AZURE_DATABASE}?"
+                "driver=ODBC+Driver+18+for+SQL+Server&"
+                "TrustServerCertificate=yes&"
+                "Connection Timeout=30"
+            )
+        return "sqlite:///./test.db"  # Base de données de test par défaut
 
     # Configuration Docker Hub
     docker_hub_username: str | None = None
