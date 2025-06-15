@@ -32,8 +32,7 @@ class Settings(BaseSettings):
         return v
 
     @computed_field
-    @property
-    def DATABASE_URL(self) -> str:
+    def database_url(self) -> str:
         """Construit la chaîne de connexion ODBC pour Azure SQL Server."""
         if all([self.AZURE_SERVER, self.AZURE_DATABASE, self.AZURE_USERNAME, self.AZURE_PASSWORD]):
             return (
