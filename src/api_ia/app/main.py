@@ -92,10 +92,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    swagger_ui_init_oauth={
-        "usePkceWithAuthorizationCodeGrant": True,
-        "useBasicAuthenticationWithAccessCodeGrant": True
-    }
+    swagger_ui_init_oauth={"usePkceWithAuthorizationCodeGrant": True, "useBasicAuthenticationWithAccessCodeGrant": True},
 )
 
 # Ajout des middlewares
@@ -142,9 +139,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return token_data.username
-    except HTTPException as e:
-        raise e
-    except Exception as e:
+
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
@@ -175,23 +171,19 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @app.post(
-    "/embedding", 
-    summary="Obtenir l'embedding d'une image", 
+    "/embedding",
+    summary="Obtenir l'embedding d'une image",
     description="Calcule et renvoie l'embedding vectoriel d'une image",
-    dependencies=[Depends(oauth2_scheme)]
+    dependencies=[Depends(oauth2_scheme)],
 )
 @limiter.limit("5/minute")
-async def get_image_embedding(
-    request: Request, 
-    file: UploadFile = File(...), 
-    token: str = Depends(oauth2_scheme)
-):
+async def get_image_embedding(request: Request, file: UploadFile = File(...), token: str = Depends(oauth2_scheme)):
     """
     Calcule l'embedding d'une image
     """
     # Vérification du token
     verify_token(token)
-    
+
     image_bytes = await file.read()
     if not validate_image_file(image_bytes):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid image file")

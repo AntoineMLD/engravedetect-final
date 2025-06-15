@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     AZURE_USERNAME: str | None = None
     AZURE_PASSWORD: str | None = None
 
-    @field_validator('AZURE_SERVER', 'AZURE_DATABASE', 'AZURE_USERNAME', 'AZURE_PASSWORD')
+    @field_validator("AZURE_SERVER", "AZURE_DATABASE", "AZURE_USERNAME", "AZURE_PASSWORD")
     @classmethod
     def validate_azure_config(cls, v: str | None, info) -> str | None:
         if v is not None and not v:

@@ -122,25 +122,19 @@ def verify_token(token: str) -> TokenData:
         else:
             log_security_event("TOKEN_INVALID_VERSION", f"Ancienne version de token pour {username}", "WARNING")
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="Token obsolète", 
-                headers={"WWW-Authenticate": "Bearer"}
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token obsolète", headers={"WWW-Authenticate": "Bearer"}
             )
 
     except jwt.ExpiredSignatureError:
         log_security_event("TOKEN_EXPIRED", "Token expiré", "WARNING")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Token expiré", 
-            headers={"WWW-Authenticate": "Bearer"}
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expiré", headers={"WWW-Authenticate": "Bearer"}
         )
 
     except jwt.PyJWTError as e:
         log_security_event("TOKEN_INVALID", f"Erreur JWT : {str(e)}", "ERROR")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Token invalide", 
-            headers={"WWW-Authenticate": "Bearer"}
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide", headers={"WWW-Authenticate": "Bearer"}
         )
 
 
@@ -148,26 +142,20 @@ def verify_token(token: str) -> TokenData:
 def check_mime_type(file_content: bytes) -> Tuple[bool, str]:
     """
     Vérifie le type MIME d'un fichier en utilisant python-magic.
-    
+
     Args:
         file_content (bytes): Contenu du fichier à vérifier
-        
+
     Returns:
         Tuple[bool, str]: (est_valide, type_mime)
     """
     try:
         mime = magic.Magic(mime=True)
         mime_type = mime.from_buffer(file_content)
-        
+
         # Types MIME autorisés pour les images
-        allowed_mime_types = {
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'image/bmp',
-            'image/webp'
-        }
-        
+        allowed_mime_types = {"image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp"}
+
         return mime_type in allowed_mime_types, mime_type
     except Exception as e:
         log_security_event("MIME_CHECK_ERROR", str(e), "ERROR")
@@ -177,11 +165,11 @@ def check_mime_type(file_content: bytes) -> Tuple[bool, str]:
 def validate_image_file(file_content: bytes, max_size: int = 5 * 1024 * 1024) -> bool:
     """
     Valide un fichier image en vérifiant sa taille et son type MIME.
-    
+
     Args:
         file_content (bytes): Contenu du fichier à valider
         max_size (int): Taille maximale autorisée en octets (défaut: 5MB)
-        
+
     Returns:
         bool: True si le fichier est valide, False sinon
     """
