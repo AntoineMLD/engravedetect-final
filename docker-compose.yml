@@ -13,6 +13,8 @@ services:
       - JWT_SECRET_KEY=your-secret-key-here
       - JWT_ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
+    networks:
+      - app-network
 
   api_ia:
     build:
@@ -28,6 +30,36 @@ services:
       - ./src/api_ia/weights:/app/api_ia/weights
       - ./src/api_ia/models:/app/api_ia/models
     restart: unless-stopped
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-  postgres_data: 
+  grafana_data: 

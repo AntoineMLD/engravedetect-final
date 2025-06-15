@@ -176,21 +176,26 @@ def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
         Optional[Dict[str, Any]]: Détails du verre ou None si non trouvé.
     """
     try:
-        # Requête SQL optimisée pour Azure
-        query = """
-            SELECT *
-            FROM verres
-            WHERE id = @verre_id
-        """
-
-        results = execute_query(query, (verre_id,))
-        if not results:
-            logger.warning(f"Verre avec ID {verre_id} non trouvé")
-            return None
-
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Requête SQL optimisée pour Azure
+            query = """
+                SELECT *
+                FROM verres
+                WHERE id = ?
+            """
+            cursor.execute(query, (verre_id,))
+            
+            # Récupérer les colonnes avant de récupérer les résultats
             columns = [column[0] for column in cursor.description]
+            
+            # Récupérer les résultats
+            results = cursor.fetchall()
+            
+            if not results:
+                logger.warning(f"Verre avec ID {verre_id} non trouvé")
+                return None
+
             return create_verre_dict(results[0], columns)
 
     except Exception as e:

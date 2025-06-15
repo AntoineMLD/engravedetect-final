@@ -30,7 +30,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 ROTATION_THRESHOLD_MINUTES = 5
 
 # Configuration du modèle
-MODEL_WEIGHTS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "weights", "model.pth")
+MODEL_WEIGHTS_PATH = "/app/api_ia/weights/efficientnet_triplet.pth"
 IMAGE_SIZE = 224
 
 # Configuration des références
