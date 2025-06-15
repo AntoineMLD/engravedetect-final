@@ -26,7 +26,6 @@ from api_ia.app.security import (
     get_user,
 )
 from api_ia.app.middleware.security import SecurityHeadersMiddleware
-from api_ia.app.monitoring.metrics_collector import monitor
 from api_ia.app.config import ADMIN_EMAIL, ADMIN_PASSWORD, API_TITLE, API_VERSION, API_DESCRIPTION
 from api_ia.app.openapi_config import setup_openapi
 import io
@@ -50,11 +49,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=True)
 
 
 # Modèles de données
-class PredictionValidation(BaseModel):
-    predicted_class: str
-
-
-# Utilisation d'une classe de modèle plus simple pour éviter les problèmes de validation
 class Match(BaseModel):
     class_: str = None
     similarity: float = 0.0
@@ -74,11 +68,6 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str
     version: str
-
-
-class ValidationResponse(BaseModel):
-    status: str
-    message: str
 
 
 # Initialisation du limiteur de taux
@@ -204,7 +193,6 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
     """
     Point de terminaison pour la classification d'image
     """
-    start_time = time.time()
     logger.info("Début du traitement de la requête /match")
 
     try:
@@ -233,73 +221,14 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
             formatted_match = {"class_": match.get("class", ""), "similarity": match.get("similarity", 0.0)}
             formatted_matches.append(formatted_match)
 
-        # Calcul du temps de traitement
-        processing_time = time.time() - start_time
-
-        # Enregistrement des métriques temporaires (non validées)
-        best_match = matches[0] if matches else {"class": "unknown", "similarity": 0.0}
-        monitor.add_temp_prediction(
-            {
-                "timestamp": datetime.now(),
-                "predicted_label": best_match["class"],
-                "confidence": float(best_match["similarity"]),
-                "embedding": embedding.flatten().tolist(),
-                "processing_time": processing_time,
-            }
-        )
-
         log_security_event("PREDICTION_SUCCESS", f"Successful prediction for user {current_user}")
-
+        logger.info(f"Correspondances trouvées: {formatted_matches}")
         return {"matches": formatted_matches}
 
     except Exception as e:
         log_security_event("PREDICTION_ERROR", f"Error during prediction: {str(e)}", "ERROR")
         logger.error(f"Erreur lors du traitement: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors du traitement de l'image: {str(e)}")
-
-
-@app.post(
-    "/validate_prediction",
-    response_model=ValidationResponse,
-    summary="Valider une prédiction",
-    description="Permet de valider une prédiction et de l'ajouter aux métriques",
-)
-@limiter.limit("10/minute")
-async def validate_prediction(
-    request: Request, validation: PredictionValidation, current_user: str = Depends(get_current_user)
-):
-    """
-    Valide une prédiction et l'ajoute aux métriques
-    """
-    try:
-        logger.info(f"[API] Réception d'une demande de validation pour la classe: {validation.predicted_class}")
-
-        # Ajouter la prédiction validée aux métriques
-        logger.info("[API] Tentative de validation via le moniteur")
-        success = monitor.validate_last_prediction(validation.predicted_class)
-
-        if not success:
-            return {"status": "warning", "message": "Aucune prédiction récente à valider"}
-
-        logger.info(f"[API] Prédiction validée pour la classe: {validation.predicted_class}")
-
-        # Générer et sauvegarder le rapport avec les prédictions validées
-        logger.info("[API] Génération du rapport")
-        metrics = monitor.generate_report()
-
-        log_security_event("VALIDATION_SUCCESS", f"Prediction validated by user {current_user}")
-
-        if metrics:
-            logger.info(f"[API] Rapport généré avec {metrics['n_predictions']} prédictions au total")
-        else:
-            logger.warning("[API] Aucune métrique générée")
-
-        return {"status": "success", "message": "Prédiction validée"}
-    except Exception as e:
-        log_security_event("VALIDATION_ERROR", f"Error during validation: {str(e)}", "ERROR")
-        logger.error(f"[API] Erreur lors de la validation de la prédiction: {str(e)}")
-        logger.exception("[API] Détails de l'erreur:")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la validation de la prédiction: {str(e)}")
 
 
 @app.post(
