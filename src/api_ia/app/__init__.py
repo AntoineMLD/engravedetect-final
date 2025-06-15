@@ -1,3 +1,3 @@
 """
-Package app de l'API IA
+API IA application package
 """

@@ -2,32 +2,32 @@ version: '3.8'
 
 services:
   api:
-    image: antoinemld/api_bdd:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     env_file:
       - .env
     environment:
-      - AZURE_SERVER=engravedetect.database.windows.net
-      - AZURE_DATABASE=engravedetect
-      - AZURE_USERNAME=engravedetect
-      - AZURE_PASSWORD=your-azure-password
       - JWT_SECRET_KEY=your-secret-key-here
       - JWT_ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
-    depends_on:
-      - db
 
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=engravedetect
+  api_ia:
+    build:
+      context: .
+      dockerfile: Dockerfile.api_ia
     ports:
-      - "5432:5432"
+      - "8001:8000"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./src/api_ia/weights:/app/api_ia/weights
+      - ./src/api_ia/models:/app/api_ia/models
+    restart: unless-stopped
 
 volumes:
   postgres_data: 

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 import os
 from dotenv import load_dotenv
 
@@ -16,13 +16,31 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Configuration de la base de données
-    DATABASE_URL: str = "sqlite:///./test.db"  # Valeur par défaut pour les tests
+    DATABASE_URL: str
 
     # Configuration Azure
-    AZURE_SERVER: str = "test-server"  # Valeur par défaut pour les tests
-    AZURE_DATABASE: str = "test-db"  # Valeur par défaut pour les tests
-    AZURE_USERNAME: str = "test-user"  # Valeur par défaut pour les tests
-    AZURE_PASSWORD: str = "test-password"  # Valeur par défaut pour les tests
+    AZURE_SERVER: str
+    AZURE_DATABASE: str
+    AZURE_USERNAME: str
+    AZURE_PASSWORD: str
+
+    @field_validator('AZURE_SERVER', 'AZURE_DATABASE', 'AZURE_USERNAME', 'AZURE_PASSWORD', 'DATABASE_URL')
+    @classmethod
+    def validate_azure_config(cls, v: str, info) -> str:
+        if not v:
+            raise ValueError(f"{info.field_name} ne peut pas être vide")
+        return v
+
+    @property
+    def DATABASE_URL(self) -> str:
+        """Construit la chaîne de connexion ODBC pour Azure SQL Server."""
+        return (
+            f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
+            f"{self.AZURE_SERVER}/{self.AZURE_DATABASE}?"
+            "driver=ODBC+Driver+18+for+SQL+Server&"
+            "TrustServerCertificate=yes&"
+            "Connection Timeout=30"
+        )
 
     # Configuration Docker Hub
     docker_hub_username: str | None = None

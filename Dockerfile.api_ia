@@ -1,0 +1,42 @@
+# Utiliser une image Python officielle avec CUDA pour le support GPU
+FROM python:3.10-slim
+
+# Définir les variables d'environnement
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+# Créer et définir le répertoire de travail
+WORKDIR /app
+
+# Installer les dépendances système nécessaires
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libgl1-mesa-glx \
+    curl \
+    gnupg \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier les fichiers de dépendances
+COPY src/api_ia/requirements.txt .
+
+# Installer les dépendances Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Créer un utilisateur non-root
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Copier le code source
+COPY --chown=appuser:appuser src/api_ia /app/api_ia
+COPY --chown=appuser:appuser src/models /app/models
+
+# Exposer le port
+EXPOSE 8000
+
+# Commande pour démarrer l'application
+CMD ["uvicorn", "api_ia.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
