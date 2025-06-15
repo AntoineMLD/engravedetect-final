@@ -15,9 +15,6 @@ class Settings(BaseSettings):
     # Configuration de l'API
     API_V1_STR: str = "/api/v1"
 
-    # Configuration de la base de données
-    DATABASE_URL: str
-
     # Configuration Azure
     AZURE_SERVER: str | None = None
     AZURE_DATABASE: str | None = None
