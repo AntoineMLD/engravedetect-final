@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     curl \
     gnupg2 \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer le pilote ODBC pour SQL Server

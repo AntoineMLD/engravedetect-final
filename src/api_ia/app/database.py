@@ -105,13 +105,13 @@ def create_verre_dict(row: tuple, columns: List[str]) -> Dict[str, Any]:
 
 def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
     """
-    Trouve les verres correspondant aux tags donnés.
+    Trouve les verres qui ont exactement les tags spécifiés, dans n'importe quel ordre.
 
     Args:
         tags (list): Liste de tags à rechercher.
 
     Returns:
-        list: Liste des verres correspondant aux tags.
+        list: Liste des verres qui ont exactement ces tags.
     """
     try:
         if not tags:
@@ -140,8 +140,8 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
                 verre_tags_lower = [vt.strip().lower() for vt in verre_tags]
                 search_tags_lower = [tag.strip().lower() for tag in tags]
 
-                # Vérifier que TOUS les tags recherchés sont présents
-                if all(tag in verre_tags_lower for tag in search_tags_lower):
+                # Vérifier que les verres ont exactement les mêmes tags (même nombre et mêmes tags)
+                if set(verre_tags_lower) == set(search_tags_lower):
                     verres.append(
                         {
                             "id": verre_id,
@@ -157,7 +157,7 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
                 logger.error(f"Erreur lors du traitement des tags pour le verre {verre_id}: {e}")
                 continue
 
-        logger.info(f"Nombre de verres correspondant aux tags: {len(verres)}")
+        logger.info(f"Nombre de verres correspondant exactement aux tags: {len(verres)}")
         return verres
 
     except Exception as e:

@@ -25,6 +25,7 @@ from api_ia.app.security import (
     authenticate_user,
     get_user,
 )
+from api_ia.app.middleware.security import SecurityHeadersMiddleware
 from api_ia.app.monitoring.metrics_collector import monitor
 from api_ia.app.config import ADMIN_EMAIL, ADMIN_PASSWORD, API_TITLE, API_VERSION, API_DESCRIPTION
 from api_ia.app.openapi_config import setup_openapi
@@ -45,7 +46,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Configuration OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=True)
 
 
 # Modèles de données
@@ -72,6 +73,7 @@ class MatchResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    version: str
 
 
 class ValidationResponse(BaseModel):
@@ -90,12 +92,17 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    swagger_ui_init_oauth={
+        "usePkceWithAuthorizationCodeGrant": True,
+        "useBasicAuthenticationWithAccessCodeGrant": True
+    }
 )
 
-# Configuration CORS
+# Ajout des middlewares
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En production, spécifiez les origines exactes
+    allow_origins=["*"],  # À configurer selon vos besoins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -125,15 +132,24 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Dépendance pour obtenir l'utilisateur actuel à partir du token
     """
-    token_data = verify_token(token)
-    user = get_user(token_data.username)
-    if user is None:
+    try:
+        token_data = verify_token(token)
+        user = get_user(token_data.username)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return token_data.username
+    except HTTPException as e:
+        raise e
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return user
 
 
 @app.post(
@@ -153,18 +169,29 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token, _ = create_access_token(user["username"])
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token, version = create_access_token(user["username"])
+    log_security_event("TOKEN_CREATED", f"Token v{version} généré pour {user['username']}")
+    return {"access_token": access_token, "token_type": "bearer", "version": str(version)}
 
 
 @app.post(
-    "/embedding", summary="Obtenir l'embedding d'une image", description="Calcule et renvoie l'embedding vectoriel d'une image"
+    "/embedding", 
+    summary="Obtenir l'embedding d'une image", 
+    description="Calcule et renvoie l'embedding vectoriel d'une image",
+    dependencies=[Depends(oauth2_scheme)]
 )
 @limiter.limit("5/minute")
-async def get_image_embedding(request: Request, file: UploadFile = File(...), token: str = Depends(verify_token)):
+async def get_image_embedding(
+    request: Request, 
+    file: UploadFile = File(...), 
+    token: str = Depends(oauth2_scheme)
+):
     """
     Calcule l'embedding d'une image
     """
+    # Vérification du token
+    verify_token(token)
+    
     image_bytes = await file.read()
     if not validate_image_file(image_bytes):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid image file")

@@ -10,6 +10,7 @@ alembic==1.12.1
 psycopg2-binary==2.9.9
 python-dotenv==1.0.0
 email-validator==2.1.0
+python-magic==0.4.27
 
 # Dépendances de test
 pytest==7.4.3

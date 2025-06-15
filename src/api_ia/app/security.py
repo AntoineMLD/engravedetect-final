@@ -14,6 +14,7 @@ from logging.handlers import RotatingFileHandler
 from passlib.context import CryptContext
 from api_ia.app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, ROTATION_THRESHOLD_MINUTES, LOG_DIR
 from .database import get_db_connection
+import magic
 
 
 # Logger sécurité
@@ -116,39 +117,94 @@ def verify_token(token: str) -> TokenData:
             )
 
         stored_version = token_versions.get(username, 0)
-        if token_version < stored_version:
+        if token_version == stored_version:  # On accepte uniquement la version exacte
+            return TokenData(username=username, exp=datetime.fromtimestamp(payload["exp"]), token_version=token_version)
+        else:
             log_security_event("TOKEN_INVALID_VERSION", f"Ancienne version de token pour {username}", "WARNING")
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token obsolète", headers={"WWW-Authenticate": "Bearer"}
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                detail="Token obsolète", 
+                headers={"WWW-Authenticate": "Bearer"}
             )
-
-        return TokenData(username=username, exp=datetime.fromtimestamp(payload["exp"]), token_version=token_version)
 
     except jwt.ExpiredSignatureError:
         log_security_event("TOKEN_EXPIRED", "Token expiré", "WARNING")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expiré", headers={"WWW-Authenticate": "Bearer"}
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Token expiré", 
+            headers={"WWW-Authenticate": "Bearer"}
         )
 
     except jwt.PyJWTError as e:
         log_security_event("TOKEN_INVALID", f"Erreur JWT : {str(e)}", "ERROR")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide", headers={"WWW-Authenticate": "Bearer"}
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Token invalide", 
+            headers={"WWW-Authenticate": "Bearer"}
         )
 
 
 # Validation fichier
+def check_mime_type(file_content: bytes) -> Tuple[bool, str]:
+    """
+    Vérifie le type MIME d'un fichier en utilisant python-magic.
+    
+    Args:
+        file_content (bytes): Contenu du fichier à vérifier
+        
+    Returns:
+        Tuple[bool, str]: (est_valide, type_mime)
+    """
+    try:
+        mime = magic.Magic(mime=True)
+        mime_type = mime.from_buffer(file_content)
+        
+        # Types MIME autorisés pour les images
+        allowed_mime_types = {
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/bmp',
+            'image/webp'
+        }
+        
+        return mime_type in allowed_mime_types, mime_type
+    except Exception as e:
+        log_security_event("MIME_CHECK_ERROR", str(e), "ERROR")
+        return False, "unknown"
+
+
 def validate_image_file(file_content: bytes, max_size: int = 5 * 1024 * 1024) -> bool:
+    """
+    Valide un fichier image en vérifiant sa taille et son type MIME.
+    
+    Args:
+        file_content (bytes): Contenu du fichier à valider
+        max_size (int): Taille maximale autorisée en octets (défaut: 5MB)
+        
+    Returns:
+        bool: True si le fichier est valide, False sinon
+    """
+    # Vérification de la taille
     if len(file_content) > max_size:
         log_security_event("FILE_TOO_LARGE", f"Taille : {len(file_content)} > {max_size}", "WARNING")
         return False
 
-    allowed_signatures = [b"\xFF\xD8\xFF", b"\x89\x50\x4E\x47"]
-    is_valid = any(file_content.startswith(sig) for sig in allowed_signatures)
+    # Vérification du type MIME
+    is_valid_mime, mime_type = check_mime_type(file_content)
+    if not is_valid_mime:
+        log_security_event("INVALID_FILE_TYPE", f"Type MIME non autorisé : {mime_type}", "WARNING")
+        return False
 
-    if not is_valid:
-        log_security_event("INVALID_FILE_TYPE", "Type non autorisé", "WARNING")
-    return is_valid
+    # Vérification des signatures de fichier (double vérification)
+    allowed_signatures = [b"\xFF\xD8\xFF", b"\x89\x50\x4E\x47"]
+    is_valid_signature = any(file_content.startswith(sig) for sig in allowed_signatures)
+
+    if not is_valid_signature:
+        log_security_event("INVALID_FILE_SIGNATURE", "Signature de fichier non autorisée", "WARNING")
+        return False
+
+    return True
 
 
 # Logs sécurité
