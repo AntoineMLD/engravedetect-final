@@ -185,13 +185,13 @@ def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
                 WHERE id = ?
             """
             cursor.execute(query, (verre_id,))
-            
+
             # Récupérer les colonnes avant de récupérer les résultats
             columns = [column[0] for column in cursor.description]
-            
+
             # Récupérer les résultats
             results = cursor.fetchall()
-            
+
             if not results:
                 logger.warning(f"Verre avec ID {verre_id} non trouvé")
                 return None

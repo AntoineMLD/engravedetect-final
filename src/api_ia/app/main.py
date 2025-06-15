@@ -23,8 +23,12 @@ from api_ia.app.model_loader import load_model, preprocess_image, get_embedding
 from api_ia.app.similarity_search import get_top_matches, load_references
 from api_ia.app.database import find_matching_verres, get_verre_details
 from api_ia.app.security import (
-    authenticate_user, create_access_token, get_user,
-    verify_token, validate_image_file, log_security_event
+    authenticate_user,
+    create_access_token,
+    get_user,
+    verify_token,
+    validate_image_file,
+    log_security_event,
 )
 from api_ia.app.middleware.security import SecurityHeadersMiddleware
 from api_ia.app.config import ADMIN_EMAIL, ADMIN_PASSWORD, API_TITLE, API_VERSION, API_DESCRIPTION
@@ -73,7 +77,7 @@ app = FastAPI(
     description=API_DESCRIPTION,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
 )
 
 app.state.limiter = limiter
@@ -102,6 +106,7 @@ except Exception as e:
 
 # -------------------- Pydantic Schemas --------------------
 
+
 class Match(BaseModel):
     class_: str = None
     similarity: float = 0.0
@@ -112,15 +117,19 @@ class Match(BaseModel):
         fields = {"class_": "class"}
         schema_extra = {"example": {"class": "e_courbebasse", "similarity": 0.95}}
 
+
 class MatchResponse(BaseModel):
     matches: List[Match]
+
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
     version: str
 
+
 # -------------------- Dependencies --------------------
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
@@ -132,7 +141,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid authentication")
 
+
 # -------------------- Endpoints --------------------
+
 
 @app.post("/token", response_model=TokenResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -142,6 +153,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token, version = create_access_token(user["username"])
     log_security_event("TOKEN_CREATED", f"Token v{version} for {user['username']}")
     return {"access_token": access_token, "token_type": "bearer", "version": str(version)}
+
 
 @app.post("/embedding")
 @limiter.limit("5/minute")
@@ -162,6 +174,7 @@ async def get_image_embedding(request: Request, file: UploadFile = File(...), to
     finally:
         EMBED_LATENCY.observe(time.time() - start_time)
 
+
 @app.post("/match", response_model=MatchResponse)
 @limiter.limit("5/minute")
 async def get_best_match(request: Request, file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
@@ -181,6 +194,7 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
     finally:
         MATCH_LATENCY.observe(time.time() - start_time)
 
+
 @app.post("/search_tags")
 @limiter.limit("10/minute")
 async def search_tags(request: Request, tags: List[str] = Body(...), current_user: str = Depends(get_current_user)):
@@ -197,6 +211,7 @@ async def search_tags(request: Request, tags: List[str] = Body(...), current_use
     finally:
         SEARCH_TAGS_LATENCY.observe(time.time() - start_time)
 
+
 @app.get(
     "/verre/{verre_id}",
     summary="Obtenir les détails d'un verre",
@@ -204,13 +219,11 @@ async def search_tags(request: Request, tags: List[str] = Body(...), current_use
 )
 @limiter.limit("20/minute")
 async def get_verre(
-    request: Request,  # ✅ Ajouté pour SlowAPI
-    verre_id: int,
-    current_user_email: str = Depends(get_current_user)
+    request: Request, verre_id: int, current_user_email: str = Depends(get_current_user)  # ✅ Ajouté pour SlowAPI
 ):
     VERRE_DETAIL_COUNT.inc()  # Incrémenter le compteur de requêtes
     start_time = time.time()  # Démarrer le chronomètre
-    
+
     try:
         logger.info(f"Recherche du verre avec ID: {verre_id}")
         verre = get_verre_details(verre_id)
@@ -221,22 +234,25 @@ async def get_verre(
 
         logger.info(f"Verre trouvé: {verre['nom']}")
         return {"verre": verre}
-        
+
     except Exception as e:
         VERRE_DETAIL_ERRORS.inc()  # Incrémenter le compteur d'erreurs
         logger.error(f"Erreur lors de la récupération du verre: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du verre: {str(e)}")
-        
+
     finally:
         VERRE_DETAIL_LATENCY.observe(time.time() - start_time)  # Enregistrer la latence
+
 
 @app.get("/")
 async def root():
     return {"message": "Bienvenue sur l'API de classification d'images"}
 
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
 
 @app.get("/metrics")
 def metrics():
