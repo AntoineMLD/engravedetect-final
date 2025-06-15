@@ -36,9 +36,7 @@ def get_top_matches(query_emb, k=5):
     """
     scores = []
     for cls, ref_emb in reference_embeddings:
-        sim = cosine_similarity([query_emb], [ref_emb])[0][
-            0
-        ]
+        sim = cosine_similarity([query_emb], [ref_emb])[0][0]
         #  La similarité cosinus est une mesure de similarité entre deux vecteurs qui varie de -1 (complètement différent) à 1 (identique).
         scores.append((cls, sim))
     top = sorted(scores, key=lambda x: x[1], reverse=True)[:k]
