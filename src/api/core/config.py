@@ -21,6 +21,15 @@ class Settings(BaseSettings):
     AZURE_USERNAME: str | None = None
     AZURE_PASSWORD: str | None = None
 
+    # Champs supplémentaires trouvés dans votre .env
+    database_url: str | None = None  # Permet de surcharger via .env
+    admin_email: str = "admin@example.com"
+    admin_password: str = "admin123"
+    csrf_secret_key: str = "default-csrf-secret-key"
+    csrf_token_expire_minutes: str = "60"
+    allowed_hosts: str = "localhost,127.0.0.1"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+
     @field_validator("AZURE_SERVER", "AZURE_DATABASE", "AZURE_USERNAME", "AZURE_PASSWORD")
     @classmethod
     def validate_azure_config(cls, v: str | None, info) -> str | None:
@@ -29,8 +38,14 @@ class Settings(BaseSettings):
         return v
 
     @computed_field
-    def database_url(self) -> str:
+    @property
+    def computed_database_url(self) -> str:
         """Construit la chaîne de connexion ODBC pour Azure SQL Server."""
+        # Si database_url est défini dans .env, l'utiliser
+        if self.database_url:
+            return self.database_url
+            
+        # Sinon, construire depuis les paramètres Azure
         if all([self.AZURE_SERVER, self.AZURE_DATABASE, self.AZURE_USERNAME, self.AZURE_PASSWORD]):
             return (
                 f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
@@ -66,7 +81,11 @@ class Settings(BaseSettings):
     # Configuration du déploiement
     deploy_ssh_key: str = ""  # Utiliser une chaîne vide comme valeur par défaut
 
-    model_config = ConfigDict(env_file=".env")
+    # AJOUT IMPORTANT : Permettre les champs extra
+    model_config = ConfigDict(
+        env_file=".env",
+        extra="allow"  # Permet les champs supplémentaires
+    )
 
 
 settings = Settings()

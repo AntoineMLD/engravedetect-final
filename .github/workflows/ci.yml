@@ -43,6 +43,30 @@ jobs:
         cd ${{ github.workspace }}
         python -m pytest tests/ -v
 
+    - name: 📊 Run performance tests
+      run: |
+        python -m pytest tests/test_performance.py -v
+
+    - name: 📈 Code quality metrics
+      run: |
+        pip install radon
+        echo "=== Code Complexity ==="
+        radon cc src -a
+        echo "=== Maintainability Index ==="
+        radon mi src
+        echo "=== Raw Metrics ==="
+        radon raw src
+
+    - name: 📝 Generate code coverage report
+      run: |
+        pytest --cov=src --cov-report=xml --cov-report=term-missing
+
+    - name: 📤 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
   docker:
     needs: test
     runs-on: ubuntu-latest
@@ -53,3 +77,54 @@ jobs:
 
     - name: 🐳 Build Docker image
       run: docker build -t api_bdd .
+
+    - name: 🔍 Scan Docker image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'api_bdd:latest'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
+  security:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧾 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 🔍 Run Bandit security checks
+      run: |
+        pip install bandit
+        bandit -r src/ -f json -o bandit-results.json
+
+    - name: 📊 Run Safety checks
+      run: |
+        pip install safety
+        safety check
+
+    - name: 📝 Run dependency audit
+      run: |
+        pip install pip-audit
+        pip-audit
+
+  documentation:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧾 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 📚 Check documentation
+      run: |
+        pip install pydocstyle
+        pydocstyle src/
+
+    - name: 🔍 Check for dead links
+      run: |
+        pip install mkdocs-linkcheck
+        mkdocs-linkcheck
