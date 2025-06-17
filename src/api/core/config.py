@@ -44,7 +44,7 @@ class Settings(BaseSettings):
         # Si database_url est défini dans .env, l'utiliser
         if self.database_url:
             return self.database_url
-            
+
         # Sinon, construire depuis les paramètres Azure
         if all([self.AZURE_SERVER, self.AZURE_DATABASE, self.AZURE_USERNAME, self.AZURE_PASSWORD]):
             return (
@@ -82,10 +82,7 @@ class Settings(BaseSettings):
     deploy_ssh_key: str = ""  # Utiliser une chaîne vide comme valeur par défaut
 
     # AJOUT IMPORTANT : Permettre les champs extra
-    model_config = ConfigDict(
-        env_file=".env",
-        extra="allow"  # Permet les champs supplémentaires
-    )
+    model_config = ConfigDict(env_file=".env", extra="allow")  # Permet les champs supplémentaires
 
 
 settings = Settings()

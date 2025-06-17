@@ -55,6 +55,6 @@ def test_model_end_to_end(model):
 def test_model_init_without_pretrained():
     """Vérifie que le modèle s'initialise sans poids préentraînés."""
     try:
-        model = EfficientNetEmbedding(embedding_dim=64, pretrained=False)
+        EfficientNetEmbedding(embedding_dim=64, pretrained=False)
     except Exception as e:
         pytest.fail(f"Échec d'initialisation sans pretrained : {e}")

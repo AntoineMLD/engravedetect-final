@@ -10,7 +10,7 @@ from src.api.core.auth.jwt import create_access_token
 from src.api.core.auth.jwt import get_current_user
 
 # Ajouter le répertoire src au PYTHONPATH pour les tests du modèle
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Configuration de la base SQLite pour les tests
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
