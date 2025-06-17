@@ -16,4 +16,6 @@ python-magic==0.4.27
 pytest==7.4.3
 pytest-cov==4.1.0
 httpx==0.25.1  # Pour TestClient
-pytest-asyncio==0.21.1 
+pytest-asyncio==0.21.1
+matplotlib==3.8.2  # Pour les tests d'évaluation du modèle
+psutil==5.9.8  # Pour les tests de performance 
