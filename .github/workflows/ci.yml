@@ -38,12 +38,21 @@ jobs:
 
     - name: 🧪 Run tests with pytest
       env:
+        ENVIRONMENT: "test"
         SECRET_KEY: "test-secret-key-for-testing-only"
+        database_url: "sqlite:///./test.db"
+        AZURE_SERVER: ""
+        AZURE_DATABASE: ""
+        AZURE_USERNAME: ""
+        AZURE_PASSWORD: ""
       run: |
         cd ${{ github.workspace }}
         python -m pytest tests/ -v
 
     - name: 📊 Run performance tests
+      env:
+        ENVIRONMENT: "test"
+        database_url: "sqlite:///./test.db"
       run: |
         python -m pytest tests/test_performance.py -v
 

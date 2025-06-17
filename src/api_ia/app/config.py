@@ -24,7 +24,7 @@ Fournit des endpoints pour l'analyse d'images et la recherche de correspondances
 """
 
 # Configuration de la sécurité
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
+SECRET_KEY = os.getenv("SECRET_KEY", "test-secret-key-for-testing-only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 ROTATION_THRESHOLD_MINUTES = 5
@@ -46,14 +46,14 @@ HOST = "0.0.0.0"
 PORT = 8001  # Port pour l'API IA
 
 # Configuration de sécurité
-SECRET_KEY = os.getenv("SECRET_KEY", "")
+SECRET_KEY = os.getenv("SECRET_KEY", "test-secret-key-for-testing-only")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 ROTATION_THRESHOLD_MINUTES = int(os.getenv("ROTATION_THRESHOLD_MINUTES", "25"))
 
 # Configuration d'authentification
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 
 # Configuration des chemins
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,17 +74,18 @@ REPORTS_DIR = os.path.join(LOG_DIR, "reports")
 # Création des répertoires nécessaires
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
-# Vérification des variables d'environnement requises
-required_vars = [
-    "AZURE_SERVER",
-    "AZURE_DATABASE",
-    "AZURE_USERNAME",
-    "AZURE_PASSWORD",
-    "SECRET_KEY",
-    "ADMIN_EMAIL",
-    "ADMIN_PASSWORD",
-]
+# Vérification des variables d'environnement requises uniquement en production
+if os.getenv("ENVIRONMENT") == "production":
+    required_vars = [
+        "AZURE_SERVER",
+        "AZURE_DATABASE",
+        "AZURE_USERNAME",
+        "AZURE_PASSWORD",
+        "SECRET_KEY",
+        "ADMIN_EMAIL",
+        "ADMIN_PASSWORD",
+    ]
 
-missing_vars = [var for var in required_vars if not os.getenv(var)]
-if missing_vars:
-    raise ValueError(f"Variables d'environnement manquantes : {', '.join(missing_vars)}")
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        raise ValueError(f"Variables d'environnement manquantes : {', '.join(missing_vars)}")
