@@ -26,6 +26,7 @@ def model_available():
     """Vérifie si le modèle est disponible."""
     try:
         from src.api_ia.app.model_loader import load_model
+
         load_model()
         return True
     except Exception as e:

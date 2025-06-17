@@ -15,12 +15,12 @@ from src.models.evaluate_model import (
     plot_topk,
     plot_confusion,
     extract_embeddings,
-    transform
+    transform,
 )
 from src.models.efficientnet_triplet import EfficientNetEmbedding
 
 # Configuration matplotlib
-matplotlib.use('Agg')  # Utiliser le backend Agg pour éviter les problèmes avec Tkinter
+matplotlib.use("Agg")  # Utiliser le backend Agg pour éviter les problèmes avec Tkinter
 
 # Ajouter le répertoire parent au PYTHONPATH
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

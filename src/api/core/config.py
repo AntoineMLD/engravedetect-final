@@ -9,6 +9,7 @@ load_dotenv()
 # Déterminer si nous sommes en mode test
 IS_TEST = os.getenv("ENVIRONMENT") == "test"
 
+
 class Settings(BaseSettings):
     # Nom et version de l'application
     APP_NAME: str = "EngraveDetect API"
