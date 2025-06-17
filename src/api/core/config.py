@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 # Charger les variables d'environnement
 load_dotenv()
 
+# Déterminer si nous sommes en mode test
+IS_TEST = os.getenv("ENVIRONMENT") == "test"
 
 class Settings(BaseSettings):
     # Nom et version de l'application
@@ -16,10 +18,10 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Configuration Azure
-    AZURE_SERVER: str | None = None
-    AZURE_DATABASE: str | None = None
-    AZURE_USERNAME: str | None = None
-    AZURE_PASSWORD: str | None = None
+    AZURE_SERVER: str = "test-server" if IS_TEST else os.getenv("AZURE_SERVER", "")
+    AZURE_DATABASE: str = "test-db" if IS_TEST else os.getenv("AZURE_DATABASE", "")
+    AZURE_USERNAME: str = "test-user" if IS_TEST else os.getenv("AZURE_USERNAME", "")
+    AZURE_PASSWORD: str = "test-password" if IS_TEST else os.getenv("AZURE_PASSWORD", "")
 
     # Champs supplémentaires trouvés dans votre .env
     database_url: str | None = None  # Permet de surcharger via .env
@@ -32,8 +34,8 @@ class Settings(BaseSettings):
 
     @field_validator("AZURE_SERVER", "AZURE_DATABASE", "AZURE_USERNAME", "AZURE_PASSWORD")
     @classmethod
-    def validate_azure_config(cls, v: str | None, info) -> str | None:
-        if v is not None and not v:
+    def validate_azure_config(cls, v: str, info) -> str:
+        if not IS_TEST and not v:
             raise ValueError(f"{info.field_name} ne peut pas être vide")
         return v
 
@@ -45,7 +47,11 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
 
-        # Sinon, construire depuis les paramètres Azure
+        # En mode test, utiliser SQLite
+        if IS_TEST:
+            return "sqlite:///./test.db"
+
+        # En production, construire depuis les paramètres Azure
         if all([self.AZURE_SERVER, self.AZURE_DATABASE, self.AZURE_USERNAME, self.AZURE_PASSWORD]):
             return (
                 f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
