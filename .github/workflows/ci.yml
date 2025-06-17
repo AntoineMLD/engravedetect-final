@@ -39,12 +39,14 @@ jobs:
     - name: 🧪 Run tests with pytest
       env:
         ENVIRONMENT: "test"
-        SECRET_KEY: "test-secret-key-for-testing-only"
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        AZURE_SERVER: ${{ secrets.AZURE_SERVER }}
+        AZURE_DATABASE: ${{ secrets.AZURE_DATABASE }}
+        AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
+        AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
+        ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         database_url: "sqlite:///./test.db"
-        AZURE_SERVER: ""
-        AZURE_DATABASE: ""
-        AZURE_USERNAME: ""
-        AZURE_PASSWORD: ""
       run: |
         cd ${{ github.workspace }}
         python -m pytest tests/ -v
@@ -52,6 +54,13 @@ jobs:
     - name: 📊 Run performance tests
       env:
         ENVIRONMENT: "test"
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        AZURE_SERVER: ${{ secrets.AZURE_SERVER }}
+        AZURE_DATABASE: ${{ secrets.AZURE_DATABASE }}
+        AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
+        AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
+        ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         database_url: "sqlite:///./test.db"
       run: |
         python -m pytest tests/test_performance.py -v
