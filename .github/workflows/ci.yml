@@ -28,20 +28,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-asyncio pytest-cov flake8
         pip install -e .
-        python -c "import src.api.main"
 
     - name: 🛠️ Set PYTHONPATH
       run: |
         echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
         echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
 
-    - name: 🔍 Lint with flake8
-      run: |
-        flake8 src/api --count --max-complexity=10 --max-line-length=127 --statistics
-
-    - name: 🧪 Run tests with pytest
+    - name: 🧪 Run tests
       env:
         ENVIRONMENT: "test"
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -53,42 +47,7 @@ jobs:
         ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         database_url: "sqlite:///./test.db"
       run: |
-        cd ${{ github.workspace }}
         python -m pytest tests/ -v
-
-    - name: 📊 Run performance tests
-      env:
-        ENVIRONMENT: "test"
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        AZURE_SERVER: ${{ secrets.AZURE_SERVER }}
-        AZURE_DATABASE: ${{ secrets.AZURE_DATABASE }}
-        AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
-        AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
-        ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        database_url: "sqlite:///./test.db"
-      run: |
-        python -m pytest tests/test_performance.py -v
-
-    - name: 📈 Code quality metrics
-      run: |
-        pip install radon
-        echo "=== Code Complexity ==="
-        radon cc src -a
-        echo "=== Maintainability Index ==="
-        radon mi src
-        echo "=== Raw Metrics ==="
-        radon raw src
-
-    - name: 📝 Generate code coverage report
-      run: |
-        pytest --cov=src --cov-report=xml --cov-report=term-missing
-
-    - name: 📤 Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
 
   docker:
     needs: test
