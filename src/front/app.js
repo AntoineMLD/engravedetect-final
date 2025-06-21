@@ -637,9 +637,10 @@ function updateVerreDetails() {
             <p><strong>ID:</strong> ${verre.id}</p>
             <p><strong>Fournisseur:</strong> ${verre.fournisseur || 'Non spécifié'}</p>
             <p><strong>Indice:</strong> ${verre.indice || 'Non spécifié'}</p>
-            <p><strong>Hauteur min:</strong> ${verre.min_hauteur || 'Non spécifié'}</p>
-            <p><strong>Hauteur max:</strong> ${verre.max_hauteur || 'Non spécifié'}</p>
+            <p><strong>Hauteur min:</strong> ${verre.min_hauteur || verre.hauteur_min || 'Non spécifié'}</p>
+            <p><strong>Hauteur max:</strong> ${verre.max_hauteur || verre.hauteur_max || 'Non spécifié'}</p>
             <p><strong>Tags:</strong> ${verre.tags ? verre.tags.join(', ') : 'Aucun'}</p>
+            ${verre.url_source ? `<p><strong>URL source:</strong> <a href="${verre.url_source}" target="_blank" rel="noopener noreferrer">${verre.url_source}</a></p>` : ''}
         </div>
     `;
     

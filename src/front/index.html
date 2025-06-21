@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
   <link rel="stylesheet" href="./style.css" />
-  <title>Recherche de Verres</title>
+  <title>EngraveDetect - Recherche de Verres</title>
   <style>
     body {
       font-family: sans-serif;
@@ -60,7 +61,9 @@
   <!-- Section de connexion -->
   <div id="loginSection" class="login-section">
     <div class="login-container">
-      <h1>🔍 Recherche de verres par symboles et tags via API</h1>
+      <div class="logo-container">
+        <img src="./logo_engravedetect.png" alt="EngraveDetect Logo" class="logo">
+      </div>
       <form id="loginForm" class="login-form">
         <div class="form-group">
           <label for="username">Nom d'utilisateur:</label>
@@ -79,16 +82,24 @@
   <div id="mainSection" class="main-section" style="display: none;">
     <!-- Barre de déconnexion -->
     <div class="logout-bar">
-      <span id="userInfo"></span>
-      <button id="logoutBtn" class="logout-btn">📤 Déconnexion</button>
+      <div class="header-logo">
+        <img src="./logo_engravedetect.png" alt="EngraveDetect Logo" class="header-logo-img">
+        <span class="header-title">EngraveDetect</span>
+      </div>
+      <div class="user-info">
+        <span id="userInfo"></span>
+        <button id="logoutBtn" class="logout-btn">📤 Déconnexion</button>
+      </div>
     </div>
 
     <div class="container">
-      <h1>🔍 Recherche de verres par symboles et tags via API</h1>
+      <div class="logo-container main-logo">
+        <img src="./logo_engravedetect.png" alt="EngraveDetect Logo" class="logo">
+      </div>
 
       <!-- Section dessin -->
       <div class="drawing-section">
-        <h2>🎨 Dessinez une gravure</h2>
+        <h2>🎨 Dessiner une gravure</h2>
         <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
         <div class="canvas-controls">
           <button id="clearBtn" class="btn">🗑️ Effacer le dessin</button>

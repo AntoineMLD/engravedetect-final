@@ -14,6 +14,8 @@ COPY index.html /app/
 COPY style.css /app/
 COPY app.js /app/
 COPY api.js /app/
+COPY favicon.ico /app/
+COPY logo_engravedetect.png /app/
 
 # Exposer le port 80
 EXPOSE 80
