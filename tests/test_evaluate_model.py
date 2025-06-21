@@ -181,7 +181,7 @@ class TestPerformanceMetrics:
         """Test simulation d'usage mémoire avec gros datasets"""
         # Simuler des embeddings de grande taille
         large_embeddings = np.random.rand(1000, 256)
-        large_labels = [f"class_{i%10}" for i in range(1000)]
+        large_labels = [f"class_{i % 10}" for i in range(1000)]
 
         # Test que le calcul ne plante pas
         test_emb = large_embeddings[:100]
@@ -195,7 +195,7 @@ class TestPerformanceMetrics:
     def test_timing_consistency(self):
         """Test que les calculs sont déterministes"""
         embeddings = np.random.rand(50, 10)
-        labels = [f"class_{i%5}" for i in range(50)]
+        labels = [f"class_{i % 5}" for i in range(50)]
 
         # Deux calculs identiques
         result1, _, _ = compute_topk_accuracy(embeddings[:25], labels[:25], embeddings[25:], labels[25:], [1])

@@ -4,7 +4,7 @@ exclude =
     __pycache__,
     build,
     dist,
-    venv,
+    engravedetect-env,
     backups,
     .venv
 max-line-length = 100

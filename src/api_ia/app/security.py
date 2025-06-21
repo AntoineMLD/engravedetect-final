@@ -174,7 +174,7 @@ def validate_image_file(file_content: bytes, max_size: int = 5 * 1024 * 1024) ->
         return False
 
     # Vérification des signatures de fichier (double vérification)
-    allowed_signatures = [b"\xFF\xD8\xFF", b"\x89\x50\x4E\x47"]
+    allowed_signatures = [b"\xff\xd8\xff", b"\x89\x50\x4e\x47"]
     is_valid_signature = any(file_content.startswith(sig) for sig in allowed_signatures)
 
     if not is_valid_signature:

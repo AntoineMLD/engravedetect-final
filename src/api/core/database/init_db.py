@@ -20,11 +20,7 @@ def init_db():
     db = SessionLocal()
     try:
         # Création de l'utilisateur admin
-        admin_user = UserCreate(
-            email=settings.admin_email,
-            username="admin",
-            password=settings.admin_password
-        )
+        admin_user = UserCreate(email=settings.admin_email, username="admin", password=settings.admin_password)
         create_user(db, admin_user)
         logger.info(f"Utilisateur admin créé avec succès: {settings.admin_email}")
     except Exception as e:

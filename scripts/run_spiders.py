@@ -51,7 +51,7 @@ def count_database_rows():
 
 def run_spider(spider_name):
     """Exécute un spider Scrapy et affiche le nombre de lignes ajoutées."""
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"Spider: {spider_name}")
     print(f"Démarrage: {datetime.now().strftime('%H:%M:%S')}")
     print("=" * 50)

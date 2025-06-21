@@ -19,20 +19,20 @@ def load_references(model):
     """
     global reference_embeddings
     reference_embeddings = []  # Reset
-    
+
     if not os.path.exists(REFERENCE_DIR):
         raise FileNotFoundError(f"Le répertoire de référence {REFERENCE_DIR} n'existe pas")
 
     logger.info(f"Chargement des références depuis {REFERENCE_DIR}")
-    
+
     for cls in os.listdir(REFERENCE_DIR):
         path = os.path.join(REFERENCE_DIR, cls, f"{cls}.png")
         logger.info(f"Recherche du fichier: {path}")
-        
+
         if not os.path.exists(path):
             logger.warning(f"Fichier non trouvé: {path}")
             continue
-            
+
         try:
             img = Image.open(path).convert("L")
             tensor = preprocess_image(img)
@@ -42,7 +42,7 @@ def load_references(model):
             logger.info(f"Référence chargée: {cls}")
         except Exception as e:
             logger.error(f"Erreur lors du chargement de {cls}: {e}")
-    
+
     logger.info(f"Total des références chargées: {len(reference_embeddings)}")
 
 
@@ -54,7 +54,7 @@ def get_top_matches(query_emb, k=5):
     if not reference_embeddings:
         logger.warning("Aucune référence chargée!")
         return []
-        
+
     scores = []
     for cls, ref_emb in reference_embeddings:
         sim = cosine_similarity([query_emb], [ref_emb])[0][0]
