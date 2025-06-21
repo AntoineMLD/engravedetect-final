@@ -1,6 +1,18 @@
-version: '3.8'
-
 services:
+  front:
+    build:
+      context: ./src/front
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - api_ia
+    volumes:
+      - ./data/oversampled_gravures:/app/data/oversampled_gravures
+    networks:
+      - app-network
+
   api:
     build:
       context: .

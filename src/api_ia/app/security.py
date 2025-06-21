@@ -91,23 +91,19 @@ def authenticate_user(username: str, password: str):
 
 # Tokens
 def create_access_token(username: str) -> Tuple[str, int]:
-    current_version = token_versions.get(username, 0) + 1
-    token_versions[username] = current_version
-
     expire = datetime.utcnow() + timedelta(minutes=TOKEN_SETTINGS["ACCESS_TOKEN_EXPIRE_MINUTES"])
-    payload = {"sub": username, "exp": expire, "token_version": current_version}
+    payload = {"sub": username, "exp": expire}
 
     token = jwt.encode(payload, TOKEN_SETTINGS["SECRET_KEY"], algorithm=TOKEN_SETTINGS["ALGORITHM"])
 
-    log_security_event("TOKEN_CREATED", f"Token v{current_version} généré pour {username}")
-    return token, current_version
+    log_security_event("TOKEN_CREATED", f"Token généré pour {username}")
+    return token, 1  # Version fixe à 1 pour compatibilité
 
 
 def verify_token(token: str) -> TokenData:
     try:
         payload = jwt.decode(token, TOKEN_SETTINGS["SECRET_KEY"], algorithms=[TOKEN_SETTINGS["ALGORITHM"]])
         username = payload.get("sub")
-        token_version = payload.get("token_version", 0)
 
         if not username:
             raise HTTPException(
@@ -116,14 +112,7 @@ def verify_token(token: str) -> TokenData:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        stored_version = token_versions.get(username, 0)
-        if token_version == stored_version:  # On accepte uniquement la version exacte
-            return TokenData(username=username, exp=datetime.fromtimestamp(payload["exp"]), token_version=token_version)
-        else:
-            log_security_event("TOKEN_INVALID_VERSION", f"Ancienne version de token pour {username}", "WARNING")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token obsolète", headers={"WWW-Authenticate": "Bearer"}
-            )
+        return TokenData(username=username, exp=datetime.fromtimestamp(payload["exp"]))
 
     except jwt.ExpiredSignatureError:
         log_security_event("TOKEN_EXPIRED", "Token expiré", "WARNING")

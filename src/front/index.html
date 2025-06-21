@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./style.css" />
+  <title>Recherche de Verres</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background-color: #f7f7f7;
+    }
+    canvas {
+      border: 1px solid #333;
+    }
+    .suggestion {
+      width: 60px;
+      height: 60px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .tag {
+      background-color: #cce5ff;
+      padding: 4px 8px;
+      margin: 2px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    .verre-card {
+      border: 1px solid #aaa;
+      margin: 5px;
+      padding: 8px;
+      background-color: #fff;
+    }
+    .error-message {
+      color: #dc3545;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    .success-message {
+      color: #28a745;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Section de connexion -->
+  <div id="loginSection" class="login-section">
+    <div class="login-container">
+      <h1>🔍 Recherche de verres par symboles et tags via API</h1>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="username">Nom d'utilisateur:</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="login-btn">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Section principale -->
+  <div id="mainSection" class="main-section" style="display: none;">
+    <!-- Barre de déconnexion -->
+    <div class="logout-bar">
+      <span id="userInfo"></span>
+      <button id="logoutBtn" class="logout-btn">📤 Déconnexion</button>
+    </div>
+
+    <div class="container">
+      <h1>🔍 Recherche de verres par symboles et tags via API</h1>
+
+      <!-- Layout en deux colonnes comme Streamlit -->
+      <div class="columns">
+        <!-- Colonne de gauche -->
+        <div class="left-column">
+          <!-- Section dessin -->
+          <div class="drawing-section">
+            <h2>🎨 Dessinez une gravure</h2>
+            <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+            <div class="canvas-controls">
+              <button id="clearBtn" class="btn">🗑️ Effacer le dessin</button>
+              <button id="searchSymbolsBtn" class="btn">🔍 Rechercher les symboles similaires</button>
+            </div>
+          </div>
+
+          <!-- Section résultats de recherche de symboles -->
+          <div id="resultsContainer" class="results-section"></div>
+
+          <!-- Section tags sélectionnés -->
+          <div class="tags-section">
+            <h2>🏷️ Tags sélectionnés</h2>
+            <div id="tagList" class="tag-list"></div>
+            <button id="resetTagsBtn" class="btn">🧹 Réinitialiser les tags</button>
+          </div>
+
+          <!-- Section saisie manuelle de tags -->
+          <div class="manual-tags-section">
+            <h2>Ajouter des tags manuellement</h2>
+            <input type="text" id="manualInput" placeholder="Ajouter les lettres ou chiffres de la gravure" class="manual-input">
+            <button id="addManualTagsBtn" class="btn">➕ Ajouter ces tags</button>
+          </div>
+
+          <!-- Section recherche de verres -->
+          <div class="search-section">
+            <button id="searchVerresBtn" class="btn">📦 Rechercher les verres correspondants</button>
+          </div>
+
+          <!-- Section résultats de recherche de verres -->
+          <div id="verresContainer" class="verres-section"></div>
+        </div>
+
+        <!-- Colonne de droite -->
+        <div class="right-column">
+          <div id="verreDetailsContainer" class="verre-details-section">
+            <h2>Détails du verre sélectionné</h2>
+            <p>Sélectionnez un verre pour voir les détails.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template pour les détails d'un verre -->
+  <template id="verre-details-template">
+    <div class="verre-details-container">
+      <h3 class="verre-name"></h3>
+      <button class="btn-refresh">🔄 Actualiser les données</button>
+      
+      <div class="details-grid">
+        <div class="general-info">
+          <h4>Informations générales</h4>
+          <div class="info-columns">
+            <div class="info-col">
+              <p><strong>ID:</strong> <span class="verre-id"></span></p>
+              <p><strong>Fournisseur:</strong> <span class="verre-fournisseur"></span></p>
+              <p><strong>Nom de base:</strong> <span class="verre-nom-base"></span></p>
+              <p><strong>Nom complet (staging):</strong> <span class="verre-nom-complet"></span></p>
+              <p><strong>Variante:</strong> <span class="verre-variante"></span></p>
+              <p><strong>Indice:</strong> <span class="verre-indice"></span></p>
+            </div>
+            <div class="info-col">
+              <p><strong>Hauteur:</strong> <span class="verre-hauteur"></span></p>
+              <p><strong>Source:</strong> <span class="verre-source"></span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="materiau-info">
+          <h4>Matériau</h4>
+          <p><strong>Nom:</strong> <span class="materiau-nom"></span></p>
+          <p><strong>Description:</strong> <span class="materiau-description"></span></p>
+        </div>
+
+        <div class="serie-info">
+          <h4>Série</h4>
+          <p><strong>Nom:</strong> <span class="serie-nom"></span></p>
+          <p><strong>Description:</strong> <span class="serie-description"></span></p>
+        </div>
+
+        <div class="traitements-info">
+          <h4>Traitements</h4>
+          <div class="traitements-list"></div>
+        </div>
+
+        <div class="tags-info">
+          <h4>Tags</h4>
+          <div class="tags-list"></div>
+        </div>
+
+        <div class="gravure-image">
+          <h4>Image</h4>
+          <img class="verre-gravure" alt="Gravure du verre" />
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>

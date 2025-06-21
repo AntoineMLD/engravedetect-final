@@ -72,3 +72,4 @@ temp/
 
 # Scrapy
 .scrapy 
+.early.coverage

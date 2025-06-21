@@ -184,12 +184,22 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
         image_bytes = await file.read()
         if not validate_image_file(image_bytes):
             raise HTTPException(status_code=400, detail="Invalid image")
+        
         img = Image.open(io.BytesIO(image_bytes)).convert("L")
+        
+        # Log pour déboguer l'image reçue
+        logger.info(f"Image reçue - Taille: {img.size}, Mode: {img.mode}")
+        
         embedding = get_embedding(model, img)
+        
+        # Log pour déboguer l'embedding
+        logger.info(f"Embedding généré - Shape: {embedding.shape}, Min: {embedding.min():.6f}, Max: {embedding.max():.6f}, Mean: {embedding.mean():.6f}")
+        
         matches = get_top_matches(embedding)
         return {"matches": [{"class_": m.get("class", ""), "similarity": m.get("similarity", 0.0)} for m in matches]}
     except Exception as e:
         MATCH_REQUEST_ERRORS.inc()
+        logger.error(f"Erreur dans get_best_match: {e}")
         raise HTTPException(status_code=500, detail=f"Match error: {e}")
     finally:
         MATCH_LATENCY.observe(time.time() - start_time)
