@@ -87,6 +87,22 @@ function setupEventListeners() {
     if (searchVerresBtn) {
         searchVerresBtn.addEventListener('click', searchVerres);
     }
+    
+    // Modal close button
+    const closeModalBtn = document.querySelector('.close');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('verreModal');
+    if (modal) {
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+    }
 }
 
 function setupCanvas() {
@@ -124,18 +140,18 @@ function handleTouch(e) {
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
     
-    if (e.type === 'touchstart') {
-        startDrawing({ clientX: x, clientY: y });
-    } else if (e.type === 'touchmove') {
-        draw({ clientX: x, clientY: y });
-    }
+    const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                     e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+        clientX: x,
+        clientY: y
+    });
+    
+    canvas.dispatchEvent(mouseEvent);
 }
 
 function startDrawing(e) {
     isDrawing = true;
-    const rect = canvas.getBoundingClientRect();
-    lastX = e.clientX - rect.left;
-    lastY = e.clientY - rect.top;
+    draw(e);
 }
 
 function draw(e) {
@@ -145,17 +161,15 @@ function draw(e) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
     ctx.stroke();
-    
-    lastX = x;
-    lastY = y;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
 }
 
 function stopDrawing() {
     isDrawing = false;
+    ctx.beginPath();
 }
 
 function clearCanvas() {
@@ -420,17 +434,15 @@ async function searchVerres() {
             headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await fetch(`${API_BASE_URL}/verres/search`, {
+        const response = await fetch(`${API_IA_BASE_URL}/search_tags`, {
             method: 'POST',
             headers: headers,
-            credentials: 'include',
-            body: JSON.stringify({
-                tags: selectedTags
-            })
+            body: JSON.stringify(selectedTags)
         });
         
         if (response.ok) {
-            matchedVerres = await response.json();
+            const data = await response.json();
+            matchedVerres = data.results || [];
             searchPerformed = true;
             updateUI();
         } else {
@@ -522,21 +534,46 @@ function updateVerresDisplay() {
         return;
     }
     
-    let html = `<h3>${matchedVerres.length} verres trouvés</h3>`;
-    html += '<div class="verres-list">';
+    // Filtrer les doublons basés sur le nom et le lien de gravure
+    const uniqueVerres = [];
+    const seen = new Set();
     
     matchedVerres.forEach(verre => {
+        const nom = verre.nom || 'Non spécifié';
+        const gravure = verre.gravure || '';
+        const key = `${nom}|${gravure}`;
+        
+        if (!seen.has(key)) {
+            seen.add(key);
+            uniqueVerres.push(verre);
+        }
+    });
+    
+    let html = `<h3>${uniqueVerres.length} verres trouvés (doublons supprimés)</h3>`;
+    html += '<div class="verres-list">';
+    
+    uniqueVerres.forEach(verre => {
         const nom = verre.nom || 'Non spécifié';
         const fournisseur = verre.fournisseur || 'Non spécifié';
         const variante = verre.variante || '';
         const tags = verre.tags ? verre.tags.join(', ') : '';
+        const gravure = verre.gravure || '';
         
         html += `
             <div class="verre-item">
-                <h4>${nom} ${variante}</h4>
-                <p><strong>Fournisseur:</strong> ${fournisseur}</p>
-                <p><strong>Tags:</strong> ${tags}</p>
-                <button onclick="selectVerre(${verre.id})" class="select-verre-btn">Voir détails</button>
+                <div class="verre-content">
+                    <div class="verre-info">
+                        <h4>${nom} ${variante}</h4>
+                        <p><strong>Fournisseur:</strong> ${fournisseur}</p>
+                        <p><strong>Tags:</strong> ${tags}</p>
+                        <button onclick="selectVerre(${verre.id})" class="select-verre-btn">Voir détails</button>
+                    </div>
+                    <div class="verre-gravure">
+                        ${gravure ? `<img src="${gravure}" alt="Gravure" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="no-gravure" style="display: none; color: #999; font-size: 12px;">Gravure non disponible</div>` : 
+                        '<div class="no-gravure" style="color: #999; font-size: 12px;">Aucune gravure</div>'}
+                    </div>
+                </div>
             </div>
         `;
     });
@@ -554,21 +591,36 @@ async function selectVerre(verreId) {
             headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await fetch(`${API_BASE_URL}/verres/${verreId}`, {
-            headers: headers,
-            credentials: 'include'
+        const response = await fetch(`${API_IA_BASE_URL}/verre/${verreId}`, {
+            headers: headers
         });
         
         if (response.ok) {
-            selectedVerreDetails = await response.json();
+            const data = await response.json();
+            selectedVerreDetails = data.verre;
             selectedVerreId = verreId;
             updateVerreDetails();
+            openModal();
         } else {
             alert('Erreur lors de la récupération des détails du verre');
         }
     } catch (error) {
         console.error('Erreur lors de la sélection du verre:', error);
         alert('Erreur de connexion au serveur');
+    }
+}
+
+function openModal() {
+    const modal = document.getElementById('verreModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('verreModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
@@ -585,6 +637,8 @@ function updateVerreDetails() {
             <p><strong>ID:</strong> ${verre.id}</p>
             <p><strong>Fournisseur:</strong> ${verre.fournisseur || 'Non spécifié'}</p>
             <p><strong>Indice:</strong> ${verre.indice || 'Non spécifié'}</p>
+            <p><strong>Hauteur min:</strong> ${verre.min_hauteur || 'Non spécifié'}</p>
+            <p><strong>Hauteur max:</strong> ${verre.max_hauteur || 'Non spécifié'}</p>
             <p><strong>Tags:</strong> ${verre.tags ? verre.tags.join(', ') : 'Aucun'}</p>
         </div>
     `;

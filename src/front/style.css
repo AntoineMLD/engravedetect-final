@@ -369,37 +369,68 @@ body {
 
 .verre-item {
     background: #f8f9fa;
-    padding: 20px;
-    border-radius: 10px;
-    border-left: 4px solid #28a745;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    margin-bottom: 15px;
+}
+
+.verre-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.verre-info {
+    flex: 1;
+}
+
+.verre-gravure {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e1e5e9;
+    overflow: hidden;
+}
+
+.verre-gravure img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.no-gravure {
+    text-align: center;
+    padding: 10px;
 }
 
 .verre-item h4 {
-    margin-bottom: 10px;
+    margin: 0 0 10px 0;
     color: #333;
-    font-size: 1.1em;
 }
 
 .verre-item p {
-    margin-bottom: 8px;
+    margin: 5px 0;
     color: #555;
-    font-size: 14px;
 }
 
 .select-verre-btn {
-    background: #007bff;
+    background: #667eea;
     color: white;
     border: none;
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
     margin-top: 10px;
-    transition: background 0.3s ease;
 }
 
 .select-verre-btn:hover {
-    background: #0056b3;
+    background: #5a6fd8;
 }
 
 /* Section détails verre */
@@ -453,5 +484,61 @@ body {
         margin-bottom: 20px;
         justify-content: center;
     }
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e1e5e9;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+.modal-body {
+    padding: 20px;
 }
 

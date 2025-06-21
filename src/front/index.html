@@ -86,52 +86,53 @@
     <div class="container">
       <h1>🔍 Recherche de verres par symboles et tags via API</h1>
 
-      <!-- Layout en deux colonnes comme Streamlit -->
-      <div class="columns">
-        <!-- Colonne de gauche -->
-        <div class="left-column">
-          <!-- Section dessin -->
-          <div class="drawing-section">
-            <h2>🎨 Dessinez une gravure</h2>
-            <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
-            <div class="canvas-controls">
-              <button id="clearBtn" class="btn">🗑️ Effacer le dessin</button>
-              <button id="searchSymbolsBtn" class="btn">🔍 Rechercher les symboles similaires</button>
-            </div>
-          </div>
-
-          <!-- Section résultats de recherche de symboles -->
-          <div id="resultsContainer" class="results-section"></div>
-
-          <!-- Section tags sélectionnés -->
-          <div class="tags-section">
-            <h2>🏷️ Tags sélectionnés</h2>
-            <div id="tagList" class="tag-list"></div>
-            <button id="resetTagsBtn" class="btn">🧹 Réinitialiser les tags</button>
-          </div>
-
-          <!-- Section saisie manuelle de tags -->
-          <div class="manual-tags-section">
-            <h2>Ajouter des tags manuellement</h2>
-            <input type="text" id="manualInput" placeholder="Ajouter les lettres ou chiffres de la gravure" class="manual-input">
-            <button id="addManualTagsBtn" class="btn">➕ Ajouter ces tags</button>
-          </div>
-
-          <!-- Section recherche de verres -->
-          <div class="search-section">
-            <button id="searchVerresBtn" class="btn">📦 Rechercher les verres correspondants</button>
-          </div>
-
-          <!-- Section résultats de recherche de verres -->
-          <div id="verresContainer" class="verres-section"></div>
+      <!-- Section dessin -->
+      <div class="drawing-section">
+        <h2>🎨 Dessinez une gravure</h2>
+        <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+        <div class="canvas-controls">
+          <button id="clearBtn" class="btn">🗑️ Effacer le dessin</button>
+          <button id="searchSymbolsBtn" class="btn">🔍 Rechercher les symboles similaires</button>
         </div>
+      </div>
 
-        <!-- Colonne de droite -->
-        <div class="right-column">
-          <div id="verreDetailsContainer" class="verre-details-section">
-            <h2>Détails du verre sélectionné</h2>
-            <p>Sélectionnez un verre pour voir les détails.</p>
-          </div>
+      <!-- Section résultats de recherche de symboles -->
+      <div id="resultsContainer" class="results-section"></div>
+
+      <!-- Section tags sélectionnés -->
+      <div class="tags-section">
+        <h2>🏷️ Tags sélectionnés</h2>
+        <div id="tagList" class="tag-list"></div>
+        <button id="resetTagsBtn" class="btn">🧹 Réinitialiser les tags</button>
+      </div>
+
+      <!-- Section saisie manuelle de tags -->
+      <div class="manual-tags-section">
+        <h2>Ajouter des tags manuellement</h2>
+        <input type="text" id="manualInput" placeholder="Ajouter les lettres ou chiffres de la gravure" class="manual-input">
+        <button id="addManualTagsBtn" class="btn">➕ Ajouter ces tags</button>
+      </div>
+
+      <!-- Section recherche de verres -->
+      <div class="search-section">
+        <button id="searchVerresBtn" class="btn">📦 Rechercher les verres correspondants</button>
+      </div>
+
+      <!-- Section résultats de recherche de verres -->
+      <div id="verresContainer" class="verres-section"></div>
+    </div>
+  </div>
+
+  <!-- Popup Modal pour les détails du verre -->
+  <div id="verreModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Détails du verre</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="verreDetailsContainer">
+          <p>Sélectionnez un verre pour voir les détails.</p>
         </div>
       </div>
     </div>
