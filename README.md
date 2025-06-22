@@ -1,17 +1,68 @@
-# 🎯 EngraveDetect
+# 🔍 EngraveDetect
 
-Système intelligent de gestion et d'analyse de données optiques, spécialisé dans la détection et l'analyse des gravures nasales des verres optiques.
+Application web intelligente pour la détection et l'analyse des gravures nasales sur les verres optiques.
 
-## 📋 Fonctionnalités Principales
+## 📋 Vue d'ensemble
 
-- 🔍 Détection automatique des caractéristiques des verres
-- 📊 Analyse et classification des gravures nasales
-- 💾 Stockage structuré dans Azure SQL
-- 🔄 Pipeline de traitement automatisé
-- 🔒 API REST sécurisée avec FastAPI
-- 📱 Interface utilisateur intuitive
+EngraveDetect est une solution complète qui permet aux professionnels de l'optique d'identifier et d'analyser les verres optiques à partir de leurs gravures nasales. Le système combine une interface utilisateur intuitive avec des modèles d'intelligence artificielle avancés pour une identification précise et rapide.
 
-## 🚀 Démarrage Rapide
+### Architecture du Système
+
+```mermaid
+graph TD
+    A[Frontend] -->|HTTP/REST| B[API Principale]
+    A -->|IA Requests| C[API IA]
+    B -->|SQL| D[(Azure SQL)]
+    C -->|Modèle IA| E[EfficientNet]
+    B -->|Auth| F[JWT Service]
+    B -->|Metrics| G[Prometheus]
+    G -->|Visualisation| H[Grafana]
+```
+
+### Structure du Projet
+
+```mermaid
+graph LR
+    A[EngraveDetect] --> B[src/]
+    B --> C[api/]
+    B --> D[api_ia/]
+    B --> E[front/]
+    B --> F[database/]
+    B --> G[models/]
+    B --> H[utils/]
+    A --> I[data/]
+    I --> J[gravures/]
+    A --> K[docs/]
+    A --> L[tests/]
+```
+
+## 🚀 Fonctionnalités Principales
+
+- 🎨 Interface de dessin intuitive pour reproduire les gravures
+- 🤖 Modèle IA (EfficientNet) pour la reconnaissance des gravures
+- 🏷️ Système de tags pour affiner les recherches
+- 📊 Visualisation des résultats avec scores de confiance
+- 🔒 Authentification sécurisée (JWT)
+- 📈 Monitoring en temps réel (Prometheus/Grafana)
+
+## 🛠️ Technologies Utilisées
+
+### Stack Technique
+
+```mermaid
+graph TD
+    A[Frontend] -->|HTML5/CSS3/JS| B[Interface Utilisateur]
+    C[Backend] -->|FastAPI| D[API REST]
+    C -->|SQLAlchemy| E[ORM]
+    F[IA] -->|PyTorch| G[Deep Learning]
+    F -->|EfficientNet| H[Classification]
+    I[Infrastructure] -->|Docker| J[Conteneurisation]
+    I -->|Azure SQL| K[Base de données]
+    L[Monitoring] -->|Prometheus| M[Métriques]
+    L -->|Grafana| N[Dashboards]
+```
+
+## 🏗️ Installation
 
 ### Prérequis
 
@@ -20,7 +71,7 @@ Système intelligent de gestion et d'analyse de données optiques, spécialisé 
 - Compte Azure (pour la base de données)
 - Git
 
-### Installation
+### Configuration
 
 1. **Cloner le repository**
    ```bash
@@ -28,77 +79,102 @@ Système intelligent de gestion et d'analyse de données optiques, spécialisé 
    cd engravedetect-final
    ```
 
-2. **Configuration de l'environnement**
+2. **Créer l'environnement virtuel**
    ```bash
-   # Créer l'environnement virtuel
-   python -m venv venv
-   
-   # Activer l'environnement
-   # Windows
-   .\venv\Scripts\activate
-   # Linux/Mac
-   source venv/bin/activate
-   
-   # Installer les dépendances
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt
+   python -m venv engravedetect-env
+   source engravedetect-env/bin/activate  # Linux/Mac
+   # ou
+   .\engravedetect-env\Scripts\activate  # Windows
    ```
 
-3. **Configuration des variables d'environnement**
+3. **Installer les dépendances**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configuration des variables d'environnement**
    ```bash
    cp .env.example .env
    # Éditer .env avec vos paramètres
    ```
 
-4. **Lancer avec Docker**
-   ```bash
-   docker-compose up --build
-   ```
+### Démarrage
 
-## 🏗️ Structure du Projet
+```bash
+# Lancer avec Docker Compose
+docker-compose up --build
 
+# Services disponibles sur :
+# - Frontend : http://localhost:80
+# - API : http://localhost:8000
+# - API IA : http://localhost:8001
+# - Prometheus : http://localhost:9090
+# - Grafana : http://localhost:3001
 ```
-engravedetect/
-├── src/                    # Code source principal
-│   ├── api/               # API FastAPI
-│   ├── api_ia/            # Services IA
-│   ├── database/          # Gestion de la base de données
-│   ├── models/            # Modèles de données
-│   ├── orchestrator/      # Orchestration du pipeline
-│   └── utils/             # Utilitaires communs
-├── tests/                 # Tests unitaires et d'intégration
-├── docs/                  # Documentation
-├── scripts/               # Scripts utilitaires
-└── data/                  # Données et ressources
-```
-
-## 🛠️ Technologies Utilisées
-
-- **Backend**: Python, FastAPI
-- **Base de données**: Azure SQL
-- **IA/ML**: TensorFlow, OpenCV
-- **DevOps**: Docker, GitHub Actions
-- **Tests**: Pytest, Coverage
 
 ## 📚 Documentation
 
-- [Documentation API](docs/API.md)
-- [Guide de Contribution](docs/CONTRIBUTING.md)
-- [Architecture Technique](docs/ARCHITECTURE.md)
-- [Guide de Déploiement](docs/DEPLOYMENT.md)
+### Architecture des Services
+
+```mermaid
+flowchart TD
+    A[Client] -->|HTTP| B[Frontend Nginx]
+    B -->|/api| C[API FastAPI]
+    B -->|/api_ia| D[API IA FastAPI]
+    C -->|SQL| E[(Azure SQL)]
+    D -->|PyTorch| F[Modèle IA]
+    C -->|Metrics| G[Prometheus]
+    G -->|Visualization| H[Grafana]
+```
+
+### Flux de Données
+
+```mermaid
+sequenceDiagram
+    participant U as Utilisateur
+    participant F as Frontend
+    participant A as API
+    participant I as API IA
+    participant D as Database
+
+    U->>F: Dessine gravure
+    F->>I: Envoie image
+    I->>I: Analyse IA
+    I->>F: Retourne prédictions
+    F->>A: Recherche verres
+    A->>D: Query SQL
+    D->>A: Résultats
+    A->>F: Liste des verres
+    F->>U: Affiche résultats
+```
 
 ## 🧪 Tests
 
 ```bash
+# Activer l'environnement virtuel
+source engravedetect-env/bin/activate
+
 # Lancer tous les tests
 pytest
 
 # Tests avec couverture
 pytest --cov=src tests/
-
-# Tests spécifiques
-pytest tests/api/
 ```
+
+## 🔒 Sécurité
+
+- Authentification JWT avec refresh tokens
+- Rate limiting sur les endpoints sensibles
+- Validation des entrées utilisateur
+- Protection CORS configurée
+- Logging sécurisé des accès
+
+## 📈 Monitoring
+
+- Métriques système via Prometheus
+- Dashboards Grafana personnalisés
+- Alerting configuré
+- Logs centralisés
 
 ## 🤝 Contribution
 
@@ -116,10 +192,4 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 Pour toute question ou problème :
 - Ouvrir une issue sur GitHub
-- Contacter l'équipe de support : support@engravedetect.com
-
-## 🙏 Remerciements
-
-- Tous les contributeurs
-- La communauté open source
-- Nos partenaires et clients 
+- Contacter l'équipe technique : support@engravedetect.com 
