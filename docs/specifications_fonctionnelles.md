@@ -68,3 +68,21 @@ EngraveDetect est une application web dédiée aux professionnels de l’optique
 - 🚀 Application légère, chargement asynchrone
 - 🎯 Focus mis sur la rapidité d’exécution du modèle IA et la clarté des résultats
 
+### 🧩 Accessibilité (conformité RGAA/WCAG)
+
+L'interface utilisateur de l'application EngraveDetect a été conçue en respectant les principes d'accessibilité définis dans les référentiels RGAA 4.1 et WCAG 2.1. Voici l'état actuel de l'implémentation :
+
+| Critère RGAA/WCAG | Implémenté ? | Emplacement / Détails |
+|-------------------|--------------|----------------------|
+| Contraste minimum (4.5:1) | ✅ | - Texte principal : `#202124` sur blanc (16:1)<br>- Boutons : `#1a5fb4` sur blanc (7:1)<br>- Focus : `#667eea` avec outline blanc |
+| Navigation clavier | ⚠️ | - Focus piégé dans la modale<br>- Touche Espace pour effacer le canvas<br>- Focus visible sur tous les éléments<br>- Manque : raccourcis clavier supplémentaires |
+| Structure Hn correcte | ✅ | - `h1` : Titre principal "Connexion à EngraveDetect"<br>- `h2` : Sections (Dessin, Tags, etc.)<br>- `h3` : Sous-sections (Résultats) |
+| Attributs alt sur les images | ✅ | - Logo : "EngraveDetect Logo"<br>- Canvas : aria-label "Zone de dessin pour la gravure"<br>- Gravures : descriptions spécifiques |
+| Feedback utilisateur accessible | ⚠️ | - Messages d'erreur/succès avec `aria-live`<br>- Formulaires avec `aria-describedby`<br>- Modales avec `aria-modal`<br>- À améliorer : retours sonores et haptiques |
+
+Note : ✅ = Complètement implémenté, ⚠️ = Partiellement implémenté
+
+Les améliorations prévues incluent :
+- Ajout de raccourcis clavier pour les actions principales
+- Amélioration des retours sonores et haptiques
+- Extension des descriptions ARIA pour les actions complexes

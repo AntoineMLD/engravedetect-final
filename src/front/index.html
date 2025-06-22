@@ -59,21 +59,36 @@
 </head>
 <body>
   <!-- Section de connexion -->
-  <div id="loginSection" class="login-section">
+  <div id="loginSection" class="login-section" role="main">
     <div class="login-container">
       <div class="logo-container">
         <img src="./logo_engravedetect.png" alt="EngraveDetect Logo" class="logo">
       </div>
-      <form id="loginForm" class="login-form">
+      <form id="loginForm" class="login-form" aria-labelledby="login-title">
+        <h1 id="login-title">Connexion à EngraveDetect</h1>
         <div class="form-group">
-          <label for="username">Nom d'utilisateur:</label>
-          <input type="text" id="username" name="username" required>
+          <label for="username" id="username-label">Nom d'utilisateur :</label>
+          <input type="text" 
+                 id="username" 
+                 name="username" 
+                 required 
+                 aria-required="true"
+                 aria-labelledby="username-label"
+                 aria-describedby="username-desc">
+          <div id="username-desc" class="visually-hidden">Entrez votre nom d'utilisateur pour vous connecter</div>
         </div>
         <div class="form-group">
-          <label for="password">Mot de passe:</label>
-          <input type="password" id="password" name="password" required>
+          <label for="password" id="password-label">Mot de passe :</label>
+          <input type="password" 
+                 id="password" 
+                 name="password" 
+                 required 
+                 aria-required="true"
+                 aria-labelledby="password-label"
+                 aria-describedby="password-desc">
+          <div id="password-desc" class="visually-hidden">Entrez votre mot de passe pour vous connecter</div>
         </div>
-        <button type="submit" class="login-btn">Se connecter</button>
+        <button type="submit" class="login-btn" aria-label="Se connecter">Se connecter</button>
       </form>
     </div>
   </div>
@@ -100,10 +115,17 @@
       <!-- Section dessin -->
       <div class="drawing-section">
         <h2>🎨 Dessiner une gravure</h2>
-        <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+        <canvas id="drawingCanvas" class="drawing-canvas" 
+          aria-label="Zone de dessin pour la gravure"
+          role="img"
+          tabindex="0"
+          aria-describedby="canvas-instructions"></canvas>
+        <div id="canvas-instructions" class="visually-hidden">
+          Utilisez votre souris ou votre doigt pour dessiner la gravure. Appuyez sur Espace pour effacer le dessin.
+        </div>
         <div class="canvas-controls">
-          <button id="clearBtn" class="btn">🗑️ Effacer le dessin</button>
-          <button id="searchSymbolsBtn" class="btn">🔍 Rechercher les symboles similaires</button>
+          <button id="clearBtn" class="btn" aria-label="Effacer le dessin">🗑️ Effacer le dessin</button>
+          <button id="searchSymbolsBtn" class="btn" aria-label="Rechercher les symboles similaires">🔍 Rechercher les symboles similaires</button>
         </div>
       </div>
 
@@ -135,14 +157,21 @@
   </div>
 
   <!-- Popup Modal pour les détails du verre -->
-  <div id="verreModal" class="modal">
+  <div id="verreModal" 
+       class="modal" 
+       role="dialog" 
+       aria-labelledby="modal-title" 
+       aria-modal="true" 
+       aria-hidden="true">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Détails du verre</h2>
-        <span class="close">&times;</span>
+        <h2 id="modal-title">Détails du verre</h2>
+        <button class="close" 
+                aria-label="Fermer la fenêtre" 
+                data-dismiss="modal">×</button>
       </div>
       <div class="modal-body">
-        <div id="verreDetailsContainer">
+        <div id="verreDetailsContainer" role="region" aria-live="polite">
           <p>Sélectionnez un verre pour voir les détails.</p>
         </div>
       </div>

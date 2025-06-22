@@ -131,6 +131,14 @@ function setupCanvas() {
     canvas.addEventListener('touchstart', handleTouch);
     canvas.addEventListener('touchmove', handleTouch);
     canvas.addEventListener('touchend', stopDrawing);
+
+    // Support clavier
+    canvas.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            clearCanvas();
+        }
+    });
 }
 
 function handleTouch(e) {
@@ -614,6 +622,42 @@ function openModal() {
     const modal = document.getElementById('verreModal');
     if (modal) {
         modal.style.display = 'block';
+        modal.setAttribute('aria-hidden', 'false');
+        
+        // Focus trap pour la modale
+        const focusableElements = modal.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+        
+        // Stocker l'élément qui avait le focus avant l'ouverture
+        const previousActiveElement = document.activeElement;
+        
+        // Focus sur le premier élément
+        firstFocusable.focus();
+        
+        function trapTabKey(e) {
+            if (e.key === 'Tab') {
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusable) {
+                        e.preventDefault();
+                        lastFocusable.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusable) {
+                        e.preventDefault();
+                        firstFocusable.focus();
+                    }
+                }
+            }
+            
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        }
+        
+        modal.addEventListener('keydown', trapTabKey);
     }
 }
 
@@ -621,6 +665,15 @@ function closeModal() {
     const modal = document.getElementById('verreModal');
     if (modal) {
         modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        
+        // Retourner le focus à l'élément précédent
+        if (previousActiveElement) {
+            previousActiveElement.focus();
+        }
+        
+        // Supprimer l'event listener du piège à focus
+        modal.removeEventListener('keydown', trapTabKey);
     }
 }
 

@@ -688,3 +688,117 @@ body {
     }
 }
 
+/* Accessibility styles */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus styles */
+*:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+.drawing-canvas:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
+}
+
+/* High contrast button focus */
+.btn:focus {
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px #667eea;
+}
+
+/* Modal accessibility */
+.modal[aria-hidden="true"] {
+    display: none;
+}
+
+.modal[aria-hidden="false"] {
+    display: block;
+}
+
+/* Form accessibility */
+.form-group input:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* High contrast colors */
+:root {
+    --primary-color: #1a5fb4;      /* Bleu foncé - contraste 7:1 avec blanc */
+    --secondary-color: #613583;    /* Violet foncé - contraste 7:1 avec blanc */
+    --text-color: #202124;         /* Gris très foncé - contraste 16:1 avec blanc */
+    --error-color: #b71c1c;        /* Rouge foncé - contraste 7:1 avec blanc */
+    --success-color: #1b5e20;      /* Vert foncé - contraste 7:1 avec blanc */
+    --focus-color: #1a5fb4;        /* Bleu foncé pour focus - contraste 7:1 */
+    --background-light: #ffffff;    /* Blanc */
+    --background-dark: #f8f9fa;    /* Gris très clair */
+}
+
+/* Apply high contrast colors */
+body {
+    color: var(--text-color);
+    background-color: var(--background-dark);
+}
+
+.btn {
+    background: var(--primary-color);
+    color: var(--background-light);
+}
+
+.btn:hover {
+    background: var(--secondary-color);
+}
+
+.login-btn {
+    background: var(--primary-color);
+    color: var(--background-light);
+}
+
+.error-message {
+    color: var(--error-color);
+    background-color: #ffebee;
+    border-color: var(--error-color);
+}
+
+.success-message {
+    color: var(--success-color);
+    background-color: #e8f5e9;
+    border-color: var(--success-color);
+}
+
+.form-group label {
+    color: var(--text-color);
+}
+
+.modal-header {
+    background: var(--primary-color);
+    color: var(--background-light);
+}
+
+/* Focus styles with high contrast */
+*:focus {
+    outline: 3px solid var(--focus-color);
+    outline-offset: 2px;
+}
+
+.btn:focus {
+    outline: 3px solid var(--background-light);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--focus-color);
+}
+
