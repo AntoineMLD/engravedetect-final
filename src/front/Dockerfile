@@ -20,5 +20,5 @@ COPY logo_engravedetect.png /app/
 # Exposer le port 80
 EXPOSE 80
 
-# Lancer le serveur avec un lien symbolique pour les images
-CMD ln -s /app/data/oversampled_gravures /app/oversampled_gravures && serve -p 80 -s . 
+# Lancer le serveur avec un lien symbolique pour les images (tolérant à l'existence du lien)
+CMD rm -rf /app/oversampled_gravures && ln -s /app/data/oversampled_gravures /app/oversampled_gravures && serve -p 80 -s .

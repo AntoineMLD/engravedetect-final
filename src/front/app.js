@@ -46,62 +46,145 @@ function initializeElements() {
 }
 
 function setupEventListeners() {
-    // Login form
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    // Logout button
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
-    
-    // Clear canvas button
+    // Effacer le dessin
     const clearBtn = document.getElementById('clearBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', clearCanvas);
     }
-    
-    // Search similar symbols button
-    const searchSymbolsBtn = document.getElementById('searchSymbolsBtn');
-    if (searchSymbolsBtn) {
-        searchSymbolsBtn.addEventListener('click', searchSimilarSymbols);
-    }
-    
-    // Reset tags button
+
+    // Réinitialiser les tags
     const resetTagsBtn = document.getElementById('resetTagsBtn');
     if (resetTagsBtn) {
         resetTagsBtn.addEventListener('click', resetTags);
     }
-    
-    // Add manual tags button
+
+    // Ajouter des tags manuellement
     const addManualTagsBtn = document.getElementById('addManualTagsBtn');
     if (addManualTagsBtn) {
         addManualTagsBtn.addEventListener('click', addManualTags);
     }
-    
-    // Search verres button
+
+    // Rechercher les verres correspondants
     const searchVerresBtn = document.getElementById('searchVerresBtn');
     if (searchVerresBtn) {
         searchVerresBtn.addEventListener('click', searchVerres);
     }
-    
-    // Modal close button
-    const closeModalBtn = document.querySelector('.close');
+
+    // Fermer la modale (bouton X)
+    const closeModalBtn = document.querySelector('#verreModal .close');
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeModal);
     }
-    
-    // Close modal when clicking outside
-    const modal = document.getElementById('verreModal');
-    if (modal) {
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
+
+    // Actualiser les données (dans le template, à gérer dynamiquement si besoin)
+    // document.querySelectorAll('.btn-refresh').forEach(btn => {
+    //     btn.addEventListener('click', refreshVerreData);
+    // });
+    // (À activer si la fonctionnalité est implémentée)
+    // Bouton "Rechercher les symboles similaires"
+    const searchSymbolsBtn = document.getElementById('searchSymbolsBtn');
+    if (searchSymbolsBtn) {
+        searchSymbolsBtn.addEventListener('click', searchSimilarSymbols);
+    }
+    // Formulaire de connexion
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    // Inscription : afficher le formulaire
+    const showRegisterLink = document.getElementById('showRegisterLink');
+    if (showRegisterLink) {
+        showRegisterLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            clearAuthMessages();
+            document.getElementById('register-username').focus();
         });
+    }
+
+    // Connexion : afficher le formulaire
+    const showLoginLink = document.getElementById('showLoginLink');
+    if (showLoginLink) {
+        showLoginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            clearAuthMessages();
+            document.getElementById('username').focus();
+        });
+    }
+
+    // Formulaire d'inscription
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
+    }
+
+    // Bouton de déconnexion
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+function clearAuthMessages() {
+    const loginError = document.getElementById('loginError');
+    const loginSuccess = document.getElementById('loginSuccess');
+    const registerError = document.getElementById('registerError');
+    const registerSuccess = document.getElementById('registerSuccess');
+    if (loginError) loginError.style.display = 'none';
+    if (loginSuccess) loginSuccess.style.display = 'none';
+    if (registerError) registerError.style.display = 'none';
+    if (registerSuccess) registerSuccess.style.display = 'none';
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    clearAuthMessages();
+    const email = document.getElementById('register-email').value.trim();
+    const username = document.getElementById('register-username').value.trim();
+    const password = document.getElementById('register-password').value;
+    const errorDiv = document.getElementById('registerError');
+    const successDiv = document.getElementById('registerSuccess');
+
+    if (!email || !username || !password) {
+        errorDiv.textContent = 'Veuillez remplir tous les champs.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    // Validation simple email
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        errorDiv.textContent = "Adresse email invalide.";
+        errorDiv.style.display = 'block';
+        return;
+    }
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, username, password })
+        });
+        if (response.ok) {
+            successDiv.textContent = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
+            successDiv.style.display = 'block';
+            // Optionnel : basculer automatiquement sur le login après 2s
+            setTimeout(() => {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+                clearAuthMessages();
+                document.getElementById('loginSuccess').textContent = "Compte créé, connectez-vous.";
+                document.getElementById('loginSuccess').style.display = 'block';
+                document.getElementById('username').focus();
+            }, 2000);
+        } else {
+            const data = await response.json();
+            errorDiv.textContent = data.detail || "Erreur lors de l'inscription.";
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        errorDiv.textContent = "Erreur réseau ou serveur.";
+        errorDiv.style.display = 'block';
     }
 }
 
