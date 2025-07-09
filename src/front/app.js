@@ -136,7 +136,26 @@ function clearAuthMessages() {
     if (loginError) loginError.style.display = 'none';
     if (loginSuccess) loginSuccess.style.display = 'none';
     if (registerError) registerError.style.display = 'none';
-    if (registerSuccess) registerSuccess.style.display = 'none';
+    function updateTagsDisplay() {
+        if (!tagList) return;
+        tagList.innerHTML = '';
+        if (selectedTags.length === 0) {
+            tagList.innerHTML = '<p>Aucun tag sélectionné.</p>';
+            return;
+        }
+        selectedTags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag';
+            tagElement.textContent = tag;
+            // Ajout du bouton suppression sans inline
+            const btn = document.createElement('button');
+            btn.className = 'remove-tag';
+            btn.textContent = '×';
+            btn.addEventListener('click', () => removeTag(tag));
+            tagElement.appendChild(btn);
+            tagList.appendChild(tagElement);
+        });
+    }    if (registerSuccess) registerSuccess.style.display = 'none';
 }
 
 async function handleRegister(e) {
@@ -554,20 +573,21 @@ function updateUI() {
 
 function updateTagsDisplay() {
     if (!tagList) return;
-    
     tagList.innerHTML = '';
     if (selectedTags.length === 0) {
         tagList.innerHTML = '<p>Aucun tag sélectionné.</p>';
         return;
     }
-    
     selectedTags.forEach(tag => {
         const tagElement = document.createElement('span');
         tagElement.className = 'tag';
-        tagElement.innerHTML = `
-            ${tag}
-            <button onclick="removeTag('${tag}')" class="remove-tag">×</button>
-        `;
+        tagElement.textContent = tag;
+        // Ajout du bouton suppression sans inline
+        const btn = document.createElement('button');
+        btn.className = 'remove-tag';
+        btn.textContent = '×';
+        btn.addEventListener('click', () => removeTag(tag));
+        tagElement.appendChild(btn);
         tagList.appendChild(tagElement);
     });
 }
@@ -575,81 +595,92 @@ function updateTagsDisplay() {
 function updateResultsDisplay() {
     const resultsContainer = document.getElementById('resultsContainer');
     if (!resultsContainer) return;
-    
+
     if (!results) {
         resultsContainer.innerHTML = '';
         return;
     }
-    
+
     const NUM_RESULTS = 10;
     let html = `<h3>Top ${NUM_RESULTS} symboles similaires trouvés</h3>`;
     html += '<div class="results-grid">';
-    
+
     results.slice(0, NUM_RESULTS).forEach((res, idx) => {
         const className = res.class_ || res.class || 'inconnu';
         const similarity = res.similarity || 0.0;
-        
-        // Nouveau chemin d'accès aux images
         const imagePath = `/oversampled_gravures/${className}/${className}.png`;
-        
         html += `
             <div class="result-item">
                 <div class="symbol-image">
-                    <img src="${imagePath}" alt="${className}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <div class="no-image" style="display: none; color: #999; font-size: 12px;">Image non trouvée</div>
+                    <img src="${imagePath}" alt="${className}" class="result-img">
+                    <div class="no-image hidden">Image non trouvée</div>
                 </div>
                 <div class="symbol-info">
                     <p><strong>Tag :</strong> ${className}</p>
                     <p><strong>Similarité :</strong> ${(similarity * 100).toFixed(1)}%</p>
-                    <button onclick="addTag('${className}')" class="add-tag-btn">Ajouter</button>
+                    <button class="add-tag-btn" data-class="${className}">Ajouter</button>
                 </div>
             </div>
         `;
     });
-    
+
     html += '</div>';
     resultsContainer.innerHTML = html;
+
+    // Ajout listeners pour les boutons "Ajouter"
+    resultsContainer.querySelectorAll('.add-tag-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const className = btn.getAttribute('data-class');
+            addTag(className);
+        });
+    });
+    // Gestion erreur image sans onerror inline
+    resultsContainer.querySelectorAll('.result-img').forEach(img => {
+        img.addEventListener('error', function() {
+            this.style.display = 'none';
+            const noImg = this.parentElement.querySelector('.no-image');
+            if (noImg) noImg.classList.remove('hidden');
+        });
+    });
 }
 
 function updateVerresDisplay() {
     const verresContainer = document.getElementById('verresContainer');
     if (!verresContainer) return;
-    
+
     if (!searchPerformed) {
         verresContainer.innerHTML = '<p>Recherchez des verres pour afficher les résultats.</p>';
         return;
     }
-    
+
     if (matchedVerres.length === 0) {
         verresContainer.innerHTML = '<p>Aucun verre ne correspond aux tags.</p>';
         return;
     }
-    
+
     // Filtrer les doublons basés sur le nom et le lien de gravure
     const uniqueVerres = [];
     const seen = new Set();
-    
+
     matchedVerres.forEach(verre => {
         const nom = verre.nom || 'Non spécifié';
         const gravure = verre.gravure || '';
         const key = `${nom}|${gravure}`;
-        
         if (!seen.has(key)) {
             seen.add(key);
             uniqueVerres.push(verre);
         }
     });
-    
+
     let html = `<h3>${uniqueVerres.length} verres trouvés (doublons supprimés)</h3>`;
     html += '<div class="verres-list">';
-    
+
     uniqueVerres.forEach(verre => {
         const nom = verre.nom || 'Non spécifié';
         const fournisseur = verre.fournisseur || 'Non spécifié';
         const variante = verre.variante || '';
         const tags = verre.tags ? verre.tags.join(', ') : '';
         const gravure = verre.gravure || '';
-        
         html += `
             <div class="verre-item">
                 <div class="verre-content">
@@ -657,20 +688,36 @@ function updateVerresDisplay() {
                         <h4>${nom} ${variante}</h4>
                         <p><strong>Fournisseur:</strong> ${fournisseur}</p>
                         <p><strong>Tags:</strong> ${tags}</p>
-                        <button onclick="selectVerre(${verre.id})" class="select-verre-btn">Voir détails</button>
+                        <button class="select-verre-btn" data-id="${verre.id}">Voir détails</button>
                     </div>
                     <div class="verre-gravure">
-                        ${gravure ? `<img src="${gravure}" alt="Gravure" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="no-gravure" style="display: none; color: #999; font-size: 12px;">Gravure non disponible</div>` : 
-                        '<div class="no-gravure" style="color: #999; font-size: 12px;">Aucune gravure</div>'}
+                        ${gravure ? `<img src="${gravure}" alt="Gravure" class="verre-img">
+                        <div class="no-gravure hidden">Gravure non disponible</div>` :
+                        '<div class="no-gravure">Aucune gravure</div>'}
                     </div>
                 </div>
             </div>
         `;
     });
-    
+
     html += '</div>';
     verresContainer.innerHTML = html;
+
+    // Ajout listeners pour les boutons "Voir détails"
+    verresContainer.querySelectorAll('.select-verre-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const id = btn.getAttribute('data-id');
+            selectVerre(id);
+        });
+    });
+    // Gestion erreur image sans onerror inline
+    verresContainer.querySelectorAll('.verre-img').forEach(img => {
+        img.addEventListener('error', function() {
+            this.style.display = 'none';
+            const noImg = this.parentElement.querySelector('.no-gravure');
+            if (noImg) noImg.classList.remove('hidden');
+        });
+    });
 }
 
 async function selectVerre(verreId) {
