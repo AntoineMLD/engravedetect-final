@@ -89,6 +89,54 @@
           <div id="password-desc" class="visually-hidden">Entrez votre mot de passe pour vous connecter</div>
         </div>
         <button type="submit" class="login-btn" aria-label="Se connecter">Se connecter</button>
+        <p class="switch-auth">
+          <a href="#" id="showRegisterLink">Créer un compte</a>
+        </p>
+        <div id="loginError" class="error-message" aria-live="polite"></div>
+        <div id="loginSuccess" class="success-message" aria-live="polite"></div>
+      </form>
+      <!-- Formulaire d'inscription (caché par défaut) -->
+      <form id="registerForm" class="login-form hidden" aria-labelledby="register-title">
+        <h1 id="register-title">Créer un compte</h1>
+        <div class="form-group">
+          <label for="register-email" id="register-email-label">Adresse email :</label>
+          <input type="email"
+                 id="register-email"
+                 name="email"
+                 required
+                 aria-required="true"
+                 aria-labelledby="register-email-label"
+                 aria-describedby="register-email-desc">
+          <div id="register-email-desc" class="visually-hidden">Entrez votre adresse email</div>
+        </div>
+        <div class="form-group">
+          <label for="register-username" id="register-username-label">Nom d'utilisateur :</label>
+          <input type="text"
+                 id="register-username"
+                 name="username"
+                 required
+                 aria-required="true"
+                 aria-labelledby="register-username-label"
+                 aria-describedby="register-username-desc">
+          <div id="register-username-desc" class="visually-hidden">Choisissez un nom d'utilisateur</div>
+        </div>
+        <div class="form-group">
+          <label for="register-password" id="register-password-label">Mot de passe :</label>
+          <input type="password"
+                 id="register-password"
+                 name="password"
+                 required
+                 aria-required="true"
+                 aria-labelledby="register-password-label"
+                 aria-describedby="register-password-desc">
+          <div id="register-password-desc" class="visually-hidden">Choisissez un mot de passe sécurisé</div>
+        </div>
+        <button type="submit" class="login-btn" aria-label="S'inscrire">S'inscrire</button>
+        <p class="switch-auth">
+          <a href="#" id="showLoginLink">Déjà inscrit ? Se connecter</a>
+        </p>
+        <div id="registerError" class="error-message" aria-live="polite"></div>
+        <div id="registerSuccess" class="success-message" aria-live="polite"></div>
       </form>
     </div>
   </div>

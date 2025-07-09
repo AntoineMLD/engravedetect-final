@@ -1,7 +1,6 @@
 # Utiliser une image Python officielle comme image de base
 FROM python:3.10-slim
 
-# Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 
 # Installer les dépendances système nécessaires
@@ -29,18 +28,15 @@ ARG SECRET_KEY
 ENV DATABASE_URL=$DATABASE_URL
 ENV SECRET_KEY=$SECRET_KEY
 
-# Copier les fichiers de dépendances
+# Installer pip et les dépendances Python en profitant du cache Docker
 COPY requirements.txt .
-
-# Installer les dépendances Python
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir pyodbc==4.0.39
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir pyodbc==4.0.39
 
 # Copier le reste du code de l'application
 COPY src/ ./src/
 
-# Exposer le port sur lequel l'application s'exécute
 EXPOSE 8000
 
-# Commande pour démarrer l'application
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"] 
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

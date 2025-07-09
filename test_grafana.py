@@ -5,10 +5,10 @@ TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc1MD
 HOST = "http://localhost:8001"
 
 # Pattern pour vérifier les expressions Prometheus
-prometheus_pattern = re.compile(r"\\o\\-\\s")  # Corrigé: \\o\\-\\s
+prometheus_pattern = re.compile(r"o-\s")  # Pattern simplifié
 
 # Pattern pour vérifier les labels
-label_pattern = re.compile(r"\\o\\-\\s")  # Corrigé: \\o\\-\\s
+label_pattern = re.compile(r"o-\s")  # Pattern simplifié
 
 
 def test_match():

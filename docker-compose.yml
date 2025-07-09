@@ -3,13 +3,24 @@ services:
     build:
       context: ./src/front
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - api
       - api_ia
     volumes:
       - ./data/oversampled_gravures:/app/data/oversampled_gravures
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - front
     networks:
       - app-network
 
