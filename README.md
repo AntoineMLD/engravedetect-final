@@ -10,14 +10,14 @@ EngraveDetect est une solution complète pour l’identification, l’analyse et
 ### Architecture du système
 ```mermaid
 graph TD
-    A[Utilisateur] -->|Navigateur| B[Frontend (HTML/CSS/JS)]
-    B -->|REST| C[API FastAPI]
-    B -->|IA| D[API IA FastAPI]
-    C -->|SQL| E[(Azure SQL)]
-    D -->|Modèle EfficientNet| F[PyTorch]
-    C -->|Auth| G[JWT Service]
-    C -->|Metrics| H[Prometheus]
-    H -->|Dashboards| I[Grafana]
+    A[Utilisateur] --> B[Frontend (HTML/CSS/JS)]
+    B --> C[API FastAPI]
+    B --> D[API IA FastAPI]
+    C --> E[(Azure SQL)]
+    D --> F[PyTorch (EfficientNet)]
+    C --> G[JWT Service]
+    C --> H[Prometheus]
+    H --> I[Grafana]
 ```
 
 ### Flux de données principal
