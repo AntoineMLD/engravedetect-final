@@ -4,7 +4,7 @@ FROM python:3.10-slim
 # Environnement Python propre
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app/api_ia
 
 # Répertoire de travail
 WORKDIR /app
