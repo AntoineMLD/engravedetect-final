@@ -17,8 +17,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.nginx
-    #ports:
-      #- "80:80"
+    ports:
+      - "8080:80"
     depends_on:
       - front
     networks:
