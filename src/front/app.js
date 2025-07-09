@@ -19,6 +19,7 @@ let matchedVerres = [];
 let selectedVerreId = null;
 let selectedVerreDetails = null;
 let searchPerformed = false;
+let previousActiveElement = null;
 
 // Éléments DOM
 let loginSection, mainSection, canvasElement, tagInput, tagList, searchResultsContainer;
