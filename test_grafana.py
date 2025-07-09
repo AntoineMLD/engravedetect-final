@@ -8,7 +8,7 @@ HOST = "http://localhost:8001"
 prometheus_pattern = re.compile(r"o-\s")  # Pattern simplifié
 
 # Pattern pour vérifier les labels
-label_pattern = re.compile(r"o-\s")      # Pattern simplifié
+label_pattern = re.compile(r"o-\s")  # Pattern simplifié
 
 
 def test_match():
