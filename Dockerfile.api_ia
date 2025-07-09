@@ -1,11 +1,15 @@
+# Utiliser une image Python officielle slim (sans CUDA ici, à adapter si GPU nécessaire)
 FROM python:3.10-slim
 
+# Environnement Python propre
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app/api_ia
 
+# Répertoire de travail
 WORKDIR /app
 
+# Dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
     build-essential \
     libgl1-mesa-glx \
@@ -18,22 +22,25 @@ RUN apt-get update && apt-get install -y \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copier les dépendances Python
 COPY src/api_ia/requirements.txt .
 
+# Installer les paquets Python
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Créer un utilisateur non-root sécurisé
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
 # Copier le code source de l'API IA
 COPY --chown=appuser:appuser src/api_ia /app/api_ia
 
-# Copier le dossier models pour les imports from models.*
-COPY --chown=appuser:appuser src/models /app/models
+# Copier les poids et modèles dans l'image Docker
+COPY --chown=appuser:appuser src/api_ia/weights /app/api_ia/weights
+COPY --chown=appuser:appuser src/api_ia/models /app/api_ia/models
 
 # Exposer le port HTTP
 EXPOSE 8000
 
-CMD ["uvicorn", "api_ia.app.main:app",
-     "--host", "0.0.0.0", "--port", "8000",
-     "--proxy-headers", "--forwarded-allow-ips=*"]
+# Commande de lancement de l'API IA
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
