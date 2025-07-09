@@ -14,11 +14,11 @@ services:
       - app-network
 
   nginx:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
     ports:
       - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - front
     networks:
@@ -49,15 +49,14 @@ services:
       - .env
     environment:
       - ENVIRONMENT=production
-    volumes:
-      - ./src/api_ia/weights:/app/api_ia/weights
-      - ./src/api_ia/models:/app/api_ia/models
     restart: unless-stopped
     networks:
       - app-network
 
   prometheus:
-    image: prom/prometheus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
     ports:
       - "9090:9090"
     command:
