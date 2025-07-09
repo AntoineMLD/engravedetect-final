@@ -43,4 +43,4 @@ COPY --chown=appuser:appuser src/api_ia/models /app/api_ia/models
 EXPOSE 8000
 
 # Commande de lancement de l'API IA
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
+CMD ["uvicorn", "api_ia.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
