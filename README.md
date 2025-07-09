@@ -14,7 +14,7 @@ graph TD
     B --> C[API FastAPI]
     B --> D[API IA FastAPI]
     C --> E[(Azure SQL)]
-    D --> F[PyTorch (EfficientNet)]
+    D --> F[PyTorch EfficientNet]
     C --> G[JWT Service]
     C --> H[Prometheus]
     H --> I[Grafana]
