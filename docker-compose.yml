@@ -8,8 +8,6 @@ services:
     depends_on:
       - api
       - api_ia
-    volumes:
-      - ./data/oversampled_gravures:/app/oversampled_gravures
     networks:
       - app-network
 
