@@ -20,6 +20,7 @@ let selectedVerreId = null;
 let selectedVerreDetails = null;
 let searchPerformed = false;
 let previousActiveElement = null;
+let trapTabKey = null;
 
 // Éléments DOM
 let loginSection, mainSection, canvasElement, tagInput, tagList, searchResultsContainer;
@@ -757,21 +758,18 @@ function openModal() {
     if (modal) {
         modal.style.display = 'block';
         modal.setAttribute('aria-hidden', 'false');
-        
-        // Focus trap pour la modale
+
         const focusableElements = modal.querySelectorAll(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
         const firstFocusable = focusableElements[0];
         const lastFocusable = focusableElements[focusableElements.length - 1];
-        
-        // Stocker l'élément qui avait le focus avant l'ouverture
-        const previousActiveElement = document.activeElement;
-        
-        // Focus sur le premier élément
+
+        previousActiveElement = document.activeElement;
+
         firstFocusable.focus();
-        
-        function trapTabKey(e) {
+
+        trapTabKey = function(e) {
             if (e.key === 'Tab') {
                 if (e.shiftKey) {
                     if (document.activeElement === firstFocusable) {
@@ -785,12 +783,12 @@ function openModal() {
                     }
                 }
             }
-            
+
             if (e.key === 'Escape') {
                 closeModal();
             }
-        }
-        
+        };
+
         modal.addEventListener('keydown', trapTabKey);
     }
 }
@@ -800,36 +798,11 @@ function closeModal() {
     if (modal) {
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
-        
-        // Retourner le focus à l'élément précédent
+
         if (previousActiveElement) {
             previousActiveElement.focus();
         }
-        
-        // Supprimer l'event listener du piège à focus
+
         modal.removeEventListener('keydown', trapTabKey);
     }
 }
-
-function updateVerreDetails() {
-    const detailsContainer = document.getElementById('verreDetailsContainer');
-    if (!detailsContainer || !selectedVerreDetails) return;
-    
-    const verre = selectedVerreDetails;
-    let html = '<h3>Détails du verre sélectionné</h3>';
-    
-    html += `
-        <div class="verre-details">
-            <h4>${verre.nom || 'Non spécifié'} ${verre.variante || ''}</h4>
-            <p><strong>ID:</strong> ${verre.id}</p>
-            <p><strong>Fournisseur:</strong> ${verre.fournisseur || 'Non spécifié'}</p>
-            <p><strong>Indice:</strong> ${verre.indice || 'Non spécifié'}</p>
-            <p><strong>Hauteur min:</strong> ${verre.min_hauteur || verre.hauteur_min || 'Non spécifié'}</p>
-            <p><strong>Hauteur max:</strong> ${verre.max_hauteur || verre.hauteur_max || 'Non spécifié'}</p>
-            <p><strong>Tags:</strong> ${verre.tags ? verre.tags.join(', ') : 'Aucun'}</p>
-            ${verre.url_source ? `<p><strong>URL source:</strong> <a href="${verre.url_source}" target="_blank" rel="noopener noreferrer">${verre.url_source}</a></p>` : ''}
-        </div>
-    `;
-    
-    detailsContainer.innerHTML = html;
-} 
