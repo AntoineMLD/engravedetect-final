@@ -1,3 +1,5 @@
+version: "3.7"
+
 services:
   front:
     build:
@@ -9,7 +11,7 @@ services:
       - api
       - api_ia
     volumes:
-      - /root/engravedetect/data/oversampled_gravures:/app/oversampled_gravures
+      - ./data/oversampled_gravures:/app/oversampled_gravures
     networks:
       - app-network
 
@@ -18,11 +20,25 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - front
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     networks:
       - app-network
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: >
+      sh -c "certbot certonly --webroot --webroot-path=/var/www/certbot
+             --email ton@email.com --agree-tos --no-eff-email
+             -d 37.27.217.233"
 
   api:
     build:
