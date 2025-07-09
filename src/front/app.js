@@ -609,7 +609,7 @@ function updateResultsDisplay() {
     results.slice(0, NUM_RESULTS).forEach((res, idx) => {
         const className = res.class_ || res.class || 'inconnu';
         const similarity = res.similarity || 0.0;
-        const imagePath = `/oversampled_gravures/${className}/${className}.png`;
+        const imagePath = `/data/oversampled_gravures/${className}/${className}.png`;
         html += `
             <div class="result-item">
                 <div class="symbol-image">
