@@ -9,7 +9,7 @@ services:
       - api
       - api_ia
     volumes:
-      - ./data/oversampled_gravures:/app/oversampled_gravures
+      - /root/engravedetect/data/oversampled_gravures:/app/oversampled_gravures
     networks:
       - app-network
 
