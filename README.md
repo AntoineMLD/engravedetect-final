@@ -7,19 +7,6 @@ Application web intelligente pour la détection et l'analyse des gravures nasale
 
 EngraveDetect est une solution complète pour l’identification, l’analyse et la gestion des verres optiques à partir de leurs gravures. Elle combine une interface web moderne, une API sécurisée, des modèles IA performants et une infrastructure cloud robuste.
 
-### Architecture du système
-```mermaid
-graph TD
-    A[Utilisateur] --> B[Frontend (HTML/CSS/JS)]
-    B --> C[API FastAPI]
-    B --> D[API IA FastAPI]
-    C --> E[(Azure SQL)]
-    D --> F[PyTorch EfficientNet]
-    C --> G[JWT Service]
-    C --> H[Prometheus]
-    H --> I[Grafana]
-```
-
 ### Flux de données principal
 ```mermaid
 sequenceDiagram
