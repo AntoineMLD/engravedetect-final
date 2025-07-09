@@ -58,14 +58,13 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-      ports:
+    ports:
       - "9090:9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-  restart: unless-stopped
-  networks:
-    - app-network
-
+    restart: unless-stopped
+    networks:
+      - app-network
 
   grafana:
     image: grafana/grafana:latest
@@ -84,4 +83,4 @@ networks:
     driver: bridge
 
 volumes:
-  grafana_data: 
+  grafana_data:
