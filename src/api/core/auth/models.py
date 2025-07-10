@@ -14,6 +14,7 @@ class User(Base):
     hashed_password = Column(String(255))
     is_active = Column(Boolean, default=True)
     email_confirmed = Column(Boolean, default=False)
+    confirmation_token = Column(String(255), nullable=True, unique=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -21,3 +22,16 @@ class User(Base):
 
     tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
 
+
+class Token(Base):
+    __tablename__ = "tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String(500), unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    device_info = Column(String(200), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)
+
+    user = relationship("User", back_populates="tokens")
