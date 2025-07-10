@@ -1,6 +1,6 @@
 import smtplib
 from email.mime.text import MIMEText
-from ...config import settings
+from ..config import settings
 
 def send_confirmation_email(email: str, token: str) -> None:
     """

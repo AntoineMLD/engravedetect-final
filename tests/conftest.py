@@ -1,31 +1,30 @@
 import os
 import sys
 import pytest
+
+# --- AJOUT PYTHONPATH en premier ---
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from src.api.main import app
 from src.api.core.database.database import Base, get_db
-from src.api.core.auth.jwt import create_access_token
+from src.api.core.security import create_access_token 
 from src.api.core.auth.jwt import get_current_user
 
-# Ajouter le répertoire src au PYTHONPATH pour les tests du modèle
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-# Configuration de la base SQLite pour les tests
+# --- Config base SQLite pour tests ---
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# ========================================
-# 1. Configuration des variables d'env
-# ========================================
-
-
+# --- 1. Configuration variables d'env pour tests ---
 @pytest.fixture(autouse=True, scope="session")
 def setup_test_environment():
-    """Configure les variables d'environnement pour les tests."""
     original_env = dict(os.environ)
     test_env = {
         "DATABASE_URL": SQLALCHEMY_TEST_DATABASE_URL,
@@ -41,24 +40,16 @@ def setup_test_environment():
     os.environ.clear()
     os.environ.update(original_env)
 
-
-# ========================================
-# 2. Setup de la base de test
-# ========================================
+# --- 2. Création / destruction de la base ---
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
-    """Crée les tables une fois pour tous les tests."""
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
 
-
-# ========================================
-# 3. Session DB propre à chaque test
-# ========================================
+# --- 3. Session DB isolée par test ---
 @pytest.fixture
 def db_session():
-    """Fournit une session SQLAlchemy pour les tests."""
     db = TestingSessionLocal()
     try:
         yield db
@@ -66,29 +57,20 @@ def db_session():
         db.rollback()
         db.close()
 
-
-# ========================================
-# 4. Utilisateur de test
-# ========================================
+# --- 4. Utilisateur simulé ---
 @pytest.fixture
 def mock_current_user():
-    """Utilisateur simulé pour l'authentification."""
     return {"sub": "test@example.com", "id": 1}
 
-
+# --- 5. Headers d'authentification ---
 @pytest.fixture
 def auth_headers(mock_current_user):
-    """Crée les headers avec JWT valide."""
     token = create_access_token(mock_current_user)
     return {"Authorization": f"Bearer {token}"}
 
-
-# ========================================
-# 5. Client FastAPI avec dépendances injectées
-# ========================================
+# --- 6. Client FastAPI avec overrides ---
 @pytest.fixture
 def client(db_session, mock_current_user):
-    """Fournit un client de test FastAPI avec dépendances surchargées."""
 
     def override_get_db():
         yield db_session

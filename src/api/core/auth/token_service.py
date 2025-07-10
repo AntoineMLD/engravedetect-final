@@ -1,10 +1,8 @@
-# src/api/core/auth/token_service.py
-
 from datetime import datetime, timedelta
 from fastapi import Request
 from sqlalchemy.orm import Session
-from .models import Token
-from ...config import settings
+from src.api.core.auth.models import Token
+from src.api.core.config import settings  # import absolu
 
 def create_db_token(db: Session, user_id: int, token: str, request: Request = None) -> Token:
     expires_at = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

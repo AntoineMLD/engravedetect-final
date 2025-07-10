@@ -2,16 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Dict
-from ...core.database.database import get_db
-from ...core.security import decode_access_token
-from ...core.auth.jwt import get_current_user
-from ...schemas.auth import UserCreate, User, Token
-from ...services import auth as auth_service
-from ...core.auth.service import authenticate_user
-from ...core.auth.models import User as UserModel
+from src.api.core.database.database import get_db
+from src.api.core.security import decode_access_token
+from src.api.core.auth.jwt import get_current_user
+from src.api.schemas.auth import UserCreate, User, Token
+from src.api.services import auth as auth_service
+from src.api.core.auth.service import authenticate_user
+from src.api.core.auth.models import User as UserModel
 
 router = APIRouter(tags=["auth"])
-
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -19,7 +18,6 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     Inscription d'un nouvel utilisateur.
     """
     return auth_service.create_user(db, user)
-
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
@@ -40,7 +38,6 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-
 @router.post("/logout")
 async def logout(db: Session = Depends(get_db), token: str = Depends(get_current_user)):
     """
@@ -49,14 +46,12 @@ async def logout(db: Session = Depends(get_db), token: str = Depends(get_current
     auth_service.revoke_token(db, token)
     return {"message": "Déconnexion réussie"}
 
-
 @router.get("/me", response_model=dict)
 async def read_users_me(current_user: dict = Depends(get_current_user)) -> dict:
     """
     Retourne les informations de l'utilisateur connecté.
     """
     return current_user
-
 
 @router.get("/confirm")
 def confirm_email(token: str, db: Session = Depends(get_db)):

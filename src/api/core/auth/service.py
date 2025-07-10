@@ -1,17 +1,15 @@
-# src/api/core/auth/service.py
-
 from datetime import datetime
 from fastapi import HTTPException, status, Request
 from sqlalchemy.orm import Session
-from .models import User
-from ..security import (
+from src.api.core.auth.models import User
+from src.api.core.security import (
     verify_password,
     get_password_hash,
     create_access_token,
     create_confirmation_token
 )
-from .token_service import create_db_token
-from .email_service import send_confirmation_email
+from src.api.core.auth.token_service import create_db_token
+from src.api.core.auth.email_service import send_confirmation_email
 
 def authenticate_user(db: Session, username: str, password: str, request: Request = None) -> tuple[User, str]:
     user = db.query(User).filter(User.username == username).first()
@@ -30,12 +28,14 @@ def authenticate_user(db: Session, username: str, password: str, request: Reques
         )
 
     user.last_login = datetime.utcnow()
+
     access_token = create_access_token({"sub": user.username})
+
     create_db_token(db, user.id, access_token, request)
+
     db.commit()
 
     return user, access_token
-
 
 def create_user(db: Session, user_data) -> User:
     if db.query(User).filter(User.email == user_data.email).first():
@@ -57,6 +57,7 @@ def create_user(db: Session, user_data) -> User:
 
     confirmation_token = create_confirmation_token(db_user.id)
     db_user.confirmation_token = confirmation_token
+
     db.commit()
     db.refresh(db_user)
 
