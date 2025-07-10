@@ -10,6 +10,7 @@ from src.api.core.security import (
 )
 from src.api.core.auth.token_service import create_db_token
 from src.api.core.auth.email_service import send_confirmation_email
+import logging
 
 def authenticate_user(db: Session, username: str, password: str, request: Request = None) -> tuple[User, str]:
     user = db.query(User).filter(User.username == username).first()
@@ -64,8 +65,14 @@ def create_user(db: Session, user_data) -> User:
     db.commit()
     db.refresh(db_user)
 
-    # Étape 4 : envoi du mail de confirmation
-    send_confirmation_email(db_user.email, confirmation_token)
+    try:
+        # Étape 4 : envoi du mail de confirmation
+        send_confirmation_email(db_user.email, confirmation_token)
+    except Exception as e:
+        # Log l'erreur mais ne pas faire échouer la création du compte
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erreur lors de l'envoi de l'email de confirmation: {e}")
+        # Ne pas faire de rollback, l'utilisateur pourra demander un nouveau mail de confirmation plus tard
 
     return db_user
 
