@@ -65,12 +65,14 @@ def confirm_email(token: str, db: Session = Depends(get_db)):
         if not user:
             raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
 
-        print("Dirty avant modif:", db.dirty)
         if user.email_confirmed:
             return {"message": "Votre email est déjà confirmé."}
 
         user.email_confirmed = True
-        print("Dirty après modif:", db.dirty)
+        db.add(user)              
+        print("Dirty avant flush:", db.dirty)
+        db.flush()                 
+        print("Dirty après flush:", db.dirty)
 
         db.commit()
 
