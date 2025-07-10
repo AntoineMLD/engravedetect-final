@@ -186,7 +186,7 @@ async function handleRegister(e) {
             body: JSON.stringify({ email, username, password })
         });
         if (response.ok) {
-            successDiv.textContent = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
+            successDiv.textContent = "Inscription réussie ! Un email de confirmation vous a été envoyé. Veuillez confirmer votre adresse avant de vous connecter.";
             successDiv.style.display = 'block';
             // Optionnel : basculer automatiquement sur le login après 2s
             setTimeout(() => {
@@ -267,8 +267,6 @@ function stopTouchDrawing(e) {
   isDrawing = false;
   ctx.beginPath();
 }
-
-
 
 
 function startDrawing(e) {

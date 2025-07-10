@@ -19,6 +19,7 @@ class UserResponse(UserBase):
 
     id: int
     is_active: bool
+    email_confirmed: bool
 
     model_config = ConfigDict(from_attributes=True)
 

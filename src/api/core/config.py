@@ -98,3 +98,10 @@ openapi_config = {
     "openapi_url": settings.OPENAPI_URL,
     "redoc_url": settings.REDOC_URL,
 }
+
+# Configuration SMTP
+SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.example.com")
+SMTP_PORT: int = int(os.getenv("SMTP_PORT", "465"))  # 465 pour SSL, 587 pour STARTTLS
+SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "user@example.com")
+SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "password")
+SMTP_SENDER: str = os.getenv("SMTP_SENDER", "noreply@example.com")

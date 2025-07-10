@@ -74,3 +74,16 @@ def decode_access_token(token: str) -> Dict:
     """
     decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     return decoded_token
+
+def create_confirmation_token(user_id: int, expires_minutes: int = 1440) -> str:
+    """
+    Crée un token JWT spécifique pour confirmation email.
+    """
+    expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+    to_encode = {
+        "sub": str(user_id),
+        "purpose": "email_confirmation",
+        "exp": expire
+    }
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
