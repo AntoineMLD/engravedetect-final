@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from fastapi import Request
 from sqlalchemy.orm import Session
 from .models import Token
-from ...config import settings
+from ..config import settings
 
 def create_db_token(db: Session, user_id: int, token: str, request: Request = None) -> Token:
     """Crée un nouveau token en base de données."""

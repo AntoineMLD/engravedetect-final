@@ -2,7 +2,7 @@ from datetime import datetime
 from fastapi import HTTPException, status, Request
 from sqlalchemy.orm import Session
 from .models import User
-from ...core.security import (
+from ..core.security import (
     verify_password,
     get_password_hash,
     create_access_token,
