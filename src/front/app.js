@@ -231,8 +231,8 @@ function setupCanvas() {
     canvas.addEventListener('mouseout', stopDrawing);
     
     // Support tactile
-    canvas.addEventListener('touchstart', handleTouch);
-    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('touchstart', handleTouch, { passive: false });
+    canvas.addEventListener('touchmove', handleTouch, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
 
     // Support clavier
