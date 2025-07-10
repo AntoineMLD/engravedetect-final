@@ -15,6 +15,13 @@ class Settings(BaseSettings):
     APP_NAME: str = "EngraveDetect API"
     APP_VERSION: str = "1.0.0"
 
+    # Configuration SMTP
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.example.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "465"))  # 465 pour SSL, 587 pour STARTTLS
+    SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "user@example.com")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "password")
+    SMTP_SENDER: str = os.getenv("SMTP_SENDER", "noreply@example.com")
+    
     # Configuration de l'API
     API_V1_STR: str = "/api/v1"
 
@@ -99,9 +106,4 @@ openapi_config = {
     "redoc_url": settings.REDOC_URL,
 }
 
-# Configuration SMTP
-SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.example.com")
-SMTP_PORT: int = int(os.getenv("SMTP_PORT", "465"))  # 465 pour SSL, 587 pour STARTTLS
-SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "user@example.com")
-SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "password")
-SMTP_SENDER: str = os.getenv("SMTP_SENDER", "noreply@example.com")
+
