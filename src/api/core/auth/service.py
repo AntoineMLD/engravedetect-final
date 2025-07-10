@@ -39,28 +39,26 @@ def authenticate_user(db: Session, username: str, password: str, request: Reques
 
 def create_user(db: Session, user_data) -> User:
     if db.query(User).filter(User.email == user_data.email).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email déjà utilisé")
+        raise HTTPException(status_code=400, detail="Email déjà utilisé")
 
     if db.query(User).filter(User.username == user_data.username).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nom d'utilisateur déjà utilisé")
+        raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà utilisé")
+
+    confirmation_token = create_confirmation_token(user_data.email)  # ou user_id après création, mais ici c’est un challenge (voir note ci-dessous)
 
     db_user = User(
         email=user_data.email,
         username=user_data.username,
         hashed_password=get_password_hash(user_data.password),
-        email_confirmed=False
+        email_confirmed=False,
+        confirmation_token=confirmation_token
     )
 
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
 
-    confirmation_token = create_confirmation_token(db_user.id)
-    db_user.confirmation_token = confirmation_token
-
-    db.commit()
-    db.refresh(db_user)
-
     send_confirmation_email(db_user.email, confirmation_token)
 
     return db_user
+
