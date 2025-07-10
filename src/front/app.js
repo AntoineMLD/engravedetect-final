@@ -210,30 +210,31 @@ async function handleRegister(e) {
 
 function setupCanvas() {
     if (!canvas || !ctx) return;
-    
-    // Définir la taille du canvas (équivalent IMAGE_SIZE = 224)
+
+    // Définir la taille du canvas
     canvas.width = 224;
     canvas.height = 224;
-    
-    // Configuration du contexte (équivalent STROKE_WIDTH = 3)
+
+    // Config contexte
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
-    
-    // Ajouter un fond blanc
+
+    // Fond blanc
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Événements de dessin
+
+    // Events souris
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('mouseout', stopDrawing);
-    
-    // Support tactile
+
+    // Events tactiles
     canvas.addEventListener('touchstart', handleTouch, { passive: false });
     canvas.addEventListener('touchmove', handleTouch, { passive: false });
-    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchend', handleTouch);
+    canvas.addEventListener('touchcancel', handleTouch);
 
     // Support clavier
     canvas.addEventListener('keydown', function(e) {
@@ -246,19 +247,26 @@ function setupCanvas() {
 
 function handleTouch(e) {
     e.preventDefault();
-    const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    
-    const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
-                                     e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
-        clientX: x,
-        clientY: y
-    });
-    
-    canvas.dispatchEvent(mouseEvent);
+
+    if (e.type === 'touchstart' || e.type === 'touchmove') {
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            const mouseEvent = new MouseEvent(
+                e.type === 'touchstart' ? 'mousedown' : 'mousemove',
+                { clientX: x, clientY: y }
+            );
+            canvas.dispatchEvent(mouseEvent);
+        }
+    } else if (e.type === 'touchend' || e.type === 'touchcancel') {
+        const mouseEvent = new MouseEvent('mouseup', {});
+        canvas.dispatchEvent(mouseEvent);
+    }
 }
+
 
 function startDrawing(e) {
     isDrawing = true;
