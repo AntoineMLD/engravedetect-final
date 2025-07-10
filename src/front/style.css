@@ -805,3 +805,45 @@ body {
     box-shadow: 0 0 0 3px var(--focus-color);
 }
 
+.confirmation-status {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.loading {
+    padding: 20px;
+    color: #666;
+}
+
+.success {
+    padding: 20px;
+    color: #2c974b;
+}
+
+.error {
+    padding: 20px;
+    color: #cf222e;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Animation de chargement */
+.loading::after {
+    content: "...";
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ""; }
+    40% { content: "."; }
+    60% { content: ".."; }
+    80%, 100% { content: "..."; }
+}
+
