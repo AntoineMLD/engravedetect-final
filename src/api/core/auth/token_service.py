@@ -1,11 +1,12 @@
+# src/api/core/auth/token_service.py
+
 from datetime import datetime, timedelta
 from fastapi import Request
 from sqlalchemy.orm import Session
 from .models import Token
-from ..config import settings
+from ...config import settings
 
 def create_db_token(db: Session, user_id: int, token: str, request: Request = None) -> Token:
-    """Crée un nouveau token en base de données."""
     expires_at = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     device_info = None
@@ -27,7 +28,5 @@ def create_db_token(db: Session, user_id: int, token: str, request: Request = No
     return db_token
 
 def verify_token_valid(db: Session, token: str) -> bool:
-    """Vérifie si le token est actif en base de données."""
-    from .models import Token
     db_token = db.query(Token).filter(Token.token == token, Token.is_active == True).first()
     return db_token is not None
