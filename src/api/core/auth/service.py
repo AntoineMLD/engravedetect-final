@@ -44,21 +44,29 @@ def create_user(db: Session, user_data) -> User:
     if db.query(User).filter(User.username == user_data.username).first():
         raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà utilisé")
 
-    confirmation_token = create_confirmation_token(user_data.email)  # ou user_id après création, mais ici c’est un challenge (voir note ci-dessous)
-
+    # Étape 1 : création initiale sans token
     db_user = User(
         email=user_data.email,
         username=user_data.username,
         hashed_password=get_password_hash(user_data.password),
         email_confirmed=False,
-        confirmation_token=confirmation_token
+        confirmation_token=None
     )
-
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
 
+    # Étape 2 : création du token avec user_id
+    confirmation_token = create_confirmation_token(db_user.id)
+
+    # Étape 3 : mise à jour du token dans la BDD
+    db_user.confirmation_token = confirmation_token
+    db.commit()
+    db.refresh(db_user)
+
+    # Étape 4 : envoi du mail de confirmation
     send_confirmation_email(db_user.email, confirmation_token)
 
     return db_user
+
 
