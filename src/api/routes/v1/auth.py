@@ -76,12 +76,23 @@ def confirm_email(token: str, db: Session = Depends(get_db)):
             logger.warning(f"Utilisateur {user_id} non trouvé")
             raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
 
+        logger.info(f"Token stocké en DB pour user {user_id}: {user.confirmation_token[:10] if user.confirmation_token else 'None'}")
+        logger.info(f"Token reçu: {token[:10]}")
+
         if user.email_confirmed:
             logger.info(f"Email déjà confirmé pour l'utilisateur {user_id}")
             return {"message": "Votre email est déjà confirmé."}
 
+        # Vérifier que le token correspond à celui stocké en base
+        if user.confirmation_token != token:
+            logger.warning(f"Token ne correspond pas pour l'utilisateur {user_id}")
+            logger.warning(f"Token en DB: {user.confirmation_token}")
+            logger.warning(f"Token reçu: {token}")
+            raise HTTPException(status_code=400, detail="Token de confirmation invalide ou expiré.")
+
         try:
             user.email_confirmed = True
+            user.confirmation_token = None  # Effacer le token après confirmation
             db.add(user)              
             logger.info(f"Dirty avant flush pour user {user_id}: {db.dirty}")
             db.flush()                 

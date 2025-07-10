@@ -4,71 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirmation d'email - EngraveDetect</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .message {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #28a745;
+            display: none;
+        }
+        .error {
+            color: #dc3545;
+            display: none;
+        }
+        .login-form {
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .redirect-message {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div id="confirmationStatus" class="confirmation-status">
-            <div class="loading">Confirmation de votre email en cours...</div>
-            <div class="success hidden">
-                <h2>✅ Email confirmé avec succès !</h2>
-                <p>Vous allez être redirigé vers la page de connexion...</p>
-            </div>
-            <div class="error hidden">
-                <h2>❌ Erreur de confirmation</h2>
-                <p id="errorMessage">Une erreur est survenue lors de la confirmation de votre email.</p>
-            </div>
+        <div id="loading" class="loading">
+            <p>Confirmation de votre email en cours...</p>
+        </div>
+        <div id="success" class="message success">
+            <h2>✅ Email confirmé avec succès !</h2>
+            <p>Vous allez être redirigé vers la page de connexion dans quelques secondes...</p>
+        </div>
+        <div id="error" class="message error">
+            <h2>❌ Erreur de confirmation</h2>
+            <p id="errorMessage">Une erreur est survenue lors de la confirmation de votre email.</p>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             
             if (!token) {
-                showError("Token de confirmation manquant.");
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Token manquant dans l\'URL.';
                 return;
             }
 
-            try {
-                // Utiliser le bon chemin d'API
-                const response = await fetch('/api/v1/auth/confirm?token=' + encodeURIComponent(token), {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showSuccess();
-                    // Redirection après 3 secondes
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 3000);
-                } else {
-                    showError(data.detail || "Erreur lors de la confirmation de l'email.");
+            fetch('/api/v1/auth/confirm?token=' + encodeURIComponent(token), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            } catch (error) {
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la confirmation');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+                
+                // Redirection après 3 secondes
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 3000);
+            })
+            .catch(error => {
                 console.error('Erreur:', error);
-                showError("Erreur de connexion au serveur.");
-            }
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Une erreur est survenue lors de la confirmation de votre email. Veuillez réessayer plus tard.';
+            });
         });
-
-        function showSuccess() {
-            document.querySelector('.loading').classList.add('hidden');
-            document.querySelector('.success').classList.remove('hidden');
-            document.querySelector('.error').classList.add('hidden');
-        }
-
-        function showError(message) {
-            document.querySelector('.loading').classList.add('hidden');
-            document.querySelector('.success').classList.add('hidden');
-            document.querySelector('.error').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
-        }
     </script>
 </body>
 </html> 
