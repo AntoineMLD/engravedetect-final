@@ -1,2 +1,10 @@
 FROM nginx:alpine
+
+# Copier la configuration NGINX
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copier les fichiers statiques
+COPY src/front/ /usr/share/nginx/html/
+
+# Permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html
