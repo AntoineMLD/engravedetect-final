@@ -2,26 +2,22 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Dict
-from ...core.database.database import get_db
-from ...core.auth.jwt import get_current_user
-from ...schemas.auth import UserCreate, User, Token
-from ...services import auth as auth_service
-from ...core.auth.service import authenticate_user
+from src.api.core.database.database import get_db
+from src.api.core.security import decode_access_token
+from src.api.core.auth.jwt import get_current_user
+from src.api.schemas.auth import UserCreate, User, Token
+from src.api.services import auth as auth_service
+from src.api.core.auth.service import authenticate_user
+from src.api.core.auth.models import User as UserModel
 
 router = APIRouter(tags=["auth"])
-
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """
     Inscription d'un nouvel utilisateur.
-
-    - **email**: Email unique de l'utilisateur
-    - **username**: Nom d'utilisateur unique
-    - **password**: Mot de passe (sera haché)
     """
     return auth_service.create_user(db, user)
-
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
@@ -29,21 +25,6 @@ async def login_for_access_token(
 ) -> Dict[str, str]:
     """
     Obtient un token d'accès JWT en échange des identifiants.
-
-    Cette route permet d'obtenir un token JWT qui sera nécessaire pour accéder
-    aux autres endpoints de l'API. Le token a une durée de validité limitée
-    définie dans la configuration.
-
-    Args:
-        form_data: Formulaire contenant username et password
-
-    Returns:
-        Dict contenant :
-        - access_token: Le token JWT
-        - token_type: Type du token (toujours "bearer")
-
-    Raises:
-        HTTPException 401: Si les identifiants sont invalides
     """
     try:
         user, access_token = authenticate_user(db, form_data.username, form_data.password)
@@ -57,30 +38,43 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-
 @router.post("/logout")
 async def logout(db: Session = Depends(get_db), token: str = Depends(get_current_user)):
     """
     Déconnexion utilisateur.
-    Révoque le token actuel.
     """
     auth_service.revoke_token(db, token)
     return {"message": "Déconnexion réussie"}
-
 
 @router.get("/me", response_model=dict)
 async def read_users_me(current_user: dict = Depends(get_current_user)) -> dict:
     """
     Retourne les informations de l'utilisateur connecté.
-
-    Cette route permet de vérifier que le token JWT est valide et de récupérer
-    les informations de l'utilisateur associé.
-
-    Returns:
-        Dict contenant les informations de l'utilisateur :
-        - sub: L'identifiant de l'utilisateur (email)
-
-    Raises:
-        HTTPException 401: Si le token est invalide ou expiré
     """
     return current_user
+
+@router.get("/confirm")
+def confirm_email(token: str, db: Session = Depends(get_db)):
+    """
+    Confirme l'adresse email d'un utilisateur en utilisant le token reçu par email.
+    """
+    try:
+        payload = decode_access_token(token)
+        if payload.get("purpose") != "email_confirmation":
+            raise HTTPException(status_code=400, detail="Token de confirmation invalide.")
+
+        user_id = int(payload.get("sub"))
+        user = db.query(UserModel).filter(UserModel.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
+
+        if user.email_confirmed:
+            return {"message": "Votre email est déjà confirmé."}
+
+        user.email_confirmed = True
+        db.commit()
+
+        return {"message": "Votre email a été confirmé avec succès."}
+
+    except Exception:
+        raise HTTPException(status_code=400, detail="Token invalide ou expiré.")
