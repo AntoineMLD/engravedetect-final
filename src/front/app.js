@@ -611,7 +611,7 @@ function updateResultsDisplay() {
         return;
     }
 
-    const NUM_RESULTS = 10;
+    const NUM_RESULTS = 20;
     let html = `<h3>Top ${NUM_RESULTS} symboles similaires trouvés</h3>`;
     html += '<div class="results-grid">';
 
