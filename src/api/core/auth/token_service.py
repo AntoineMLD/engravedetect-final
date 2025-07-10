@@ -25,3 +25,9 @@ def create_db_token(db: Session, user_id: int, token: str, request: Request = No
     db.refresh(db_token)
 
     return db_token
+
+def verify_token_valid(db: Session, token: str) -> bool:
+    """Vérifie si le token est actif en base de données."""
+    from .models import Token
+    db_token = db.query(Token).filter(Token.token == token, Token.is_active == True).first()
+    return db_token is not None
