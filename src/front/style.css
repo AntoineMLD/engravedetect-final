@@ -1,4 +1,7 @@
 /* src/front/style.css */
+#drawingCanvas {
+  touch-action: none;
+}
 
 /* Reset et styles de base */
 * {
