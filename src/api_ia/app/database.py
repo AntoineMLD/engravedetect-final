@@ -105,13 +105,13 @@ def create_verre_dict(row: tuple, columns: List[str]) -> Dict[str, Any]:
 
 def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
     """
-    Trouve les verres qui ont exactement les tags spécifiés, dans n'importe quel ordre.
+    Trouve les verres qui ont au moins un des tags spécifiés.
 
     Args:
         tags (list): Liste de tags à rechercher.
 
     Returns:
-        list: Liste des verres qui ont exactement ces tags.
+        list: Liste des verres qui ont au moins un des tags recherchés.
     """
     try:
         if not tags:
@@ -128,7 +128,7 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
         results = execute_query(query)
         logger.info(f"Nombre total de verres trouvés: {len(results)}")
 
-        # Filtrer les verres qui ont exactement les tags recherchés
+        # Filtrer les verres qui ont au moins un des tags recherchés
         verres = []
         for row in results:
             verre_id, nom, variante, hauteur_min, hauteur_max, indice, gravure, url_source, fournisseur, tags_json = row
@@ -140,8 +140,8 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
                 verre_tags_lower = [vt.strip().lower() for vt in verre_tags]
                 search_tags_lower = [tag.strip().lower() for tag in tags]
 
-                # Vérifier que les verres ont exactement les mêmes tags (même nombre et mêmes tags)
-                if set(verre_tags_lower) == set(search_tags_lower):
+                # Vérifier si au moins un des tags recherchés est présent
+                if any(tag in verre_tags_lower for tag in search_tags_lower):
                     verres.append(
                         {
                             "id": verre_id,
@@ -151,13 +151,14 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
                             "url_source": url_source,
                             "fournisseur": fournisseur,
                             "tags": verre_tags,  # Garder les tags originaux dans la réponse
+                            "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]  # Liste des tags correspondants
                         }
                     )
             except Exception as e:
                 logger.error(f"Erreur lors du traitement des tags pour le verre {verre_id}: {e}")
                 continue
 
-        logger.info(f"Nombre de verres correspondant exactement aux tags: {len(verres)}")
+        logger.info(f"Nombre de verres ayant au moins un tag correspondant: {len(verres)}")
         return verres
 
     except Exception as e:

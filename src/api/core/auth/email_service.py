@@ -14,7 +14,7 @@ def send_confirmation_email(email: str, token: str) -> None:
         token (str): Token JWT de confirmation
     """
     # S'assurer que le lien pointe vers la route de confirmation du frontend
-    confirmation_link = f"{settings.FRONTEND_URL}/auth/confirm?token={token}"
+    confirmation_link = f"https://engravedetect.fr/confirm.html?token={token}"
     logger.info(f"Génération du lien de confirmation: {confirmation_link[:50]}...")
 
     body = f"""Bonjour,
