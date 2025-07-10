@@ -193,7 +193,7 @@ async function handleRegister(e) {
                 document.getElementById('registerForm').classList.add('hidden');
                 document.getElementById('loginForm').classList.remove('hidden');
                 clearAuthMessages();
-                document.getElementById('loginSuccess').textContent = "Compte créé, connectez-vous.";
+                document.getElementById('loginSuccess').textContent = "Compte créé ! Veuillez vérifier votre boîte mail pour confirmer votre compte.";
                 document.getElementById('loginSuccess').style.display = 'block';
                 document.getElementById('username').focus();
             }, 2000);
