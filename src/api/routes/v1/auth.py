@@ -72,9 +72,13 @@ def confirm_email(token: str, db: Session = Depends(get_db)):
             return {"message": "Votre email est déjà confirmé."}
 
         user.email_confirmed = True
+        db.add(user)          # Ajoute l'instance modifiée explicitement
+        db.flush()            # Force l’envoi des modifications à la BDD
         db.commit()
 
         return {"message": "Votre email a été confirmé avec succès."}
 
-    except Exception:
+    except Exception as e:
+        # Optionnel : print ou logger l’erreur pour debug
+        print(f"[ERROR confirm_email] {e}")
         raise HTTPException(status_code=400, detail="Token invalide ou expiré.")
