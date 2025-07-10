@@ -246,26 +246,32 @@ function setupCanvas() {
 }
 
 function handleTouch(e) {
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
 
-    if (e.type === 'touchstart' || e.type === 'touchmove') {
-        if (e.touches.length > 0) {
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-
-            const mouseEvent = new MouseEvent(
-                e.type === 'touchstart' ? 'mousedown' : 'mousemove',
-                { clientX: x, clientY: y }
-            );
-            canvas.dispatchEvent(mouseEvent);
-        }
-    } else if (e.type === 'touchend' || e.type === 'touchcancel') {
-        const mouseEvent = new MouseEvent('mouseup', {});
-        canvas.dispatchEvent(mouseEvent);
-    }
+  if (e.type === 'touchstart') {
+    isDrawing = true;
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  } 
+  else if (e.type === 'touchmove' && isDrawing) {
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  } 
+  else if (e.type === 'touchend' || e.type === 'touchcancel') {
+    isDrawing = false;
+    ctx.beginPath();
+  }
 }
+
 
 
 function startDrawing(e) {
