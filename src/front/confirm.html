@@ -32,7 +32,14 @@
             }
 
             try {
-                const response = await fetch('/api/v1/auth/confirm?token=' + token);
+                // Utiliser le bon chemin d'API
+                const response = await fetch('/api/v1/auth/confirm?token=' + encodeURIComponent(token), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -45,6 +52,7 @@
                     showError(data.detail || "Erreur lors de la confirmation de l'email.");
                 }
             } catch (error) {
+                console.error('Erreur:', error);
                 showError("Erreur de connexion au serveur.");
             }
         });
