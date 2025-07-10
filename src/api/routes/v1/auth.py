@@ -55,6 +55,7 @@ async def read_users_me(current_user: dict = Depends(get_current_user)) -> dict:
 
 @router.get("/confirm")
 def confirm_email(token: str, db: Session = Depends(get_db)):
+    """Confirme l'adresse email d'un utilisateur."""
     try:
         payload = decode_access_token(token)
         if payload.get("purpose") != "email_confirmation":
@@ -68,17 +69,23 @@ def confirm_email(token: str, db: Session = Depends(get_db)):
         if user.email_confirmed:
             return {"message": "Votre email est déjà confirmé."}
 
-        user.email_confirmed = True
-        db.add(user)              
-        print("Dirty avant flush:", db.dirty)
-        db.flush()                 
-        print("Dirty après flush:", db.dirty)
+        try:
+            user.email_confirmed = True
+            db.add(user)              
+            print("Dirty avant flush:", db.dirty)
+            db.flush()                 
+            print("Dirty après flush:", db.dirty)
+            db.commit()
+            db.refresh(user)
+            print("Email confirmé après commit:", user.email_confirmed)
+            return {"message": "Votre email a été confirmé avec succès."}
+        except Exception as db_error:
+            db.rollback()
+            print(f"[ERROR DB] {db_error}")
+            raise HTTPException(status_code=500, detail="Erreur lors de la confirmation de l'email.")
 
-        db.commit()
-        db.refresh(user)
-        print("Email confirmé après commit:", user.email_confirmed)
-        return {"message": "Votre email a été confirmé avec succès."}
-
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"[ERROR confirm_email] {e}")
         raise HTTPException(status_code=400, detail="Token invalide ou expiré.")
