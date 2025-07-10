@@ -209,68 +209,65 @@ async function handleRegister(e) {
 }
 
 function setupCanvas() {
-    if (!canvas || !ctx) return;
+  if (!canvas || !ctx) return;
 
-    // Définir la taille du canvas
-    canvas.width = 224;
-    canvas.height = 224;
+  // Adapter la taille au device (avec max)
+  const size = Math.min(window.innerWidth * 0.8, 400);
+  canvas.width = size;
+  canvas.height = size;
 
-    // Config contexte
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
 
-    // Fond blanc
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Fond blanc
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Events souris
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
+  // Événements souris
+  canvas.addEventListener('mousedown', startDrawing);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDrawing);
+  canvas.addEventListener('mouseout', stopDrawing);
 
-    // Events tactiles
-    canvas.addEventListener('touchstart', handleTouch, { passive: false });
-    canvas.addEventListener('touchmove', handleTouch, { passive: false });
-    canvas.addEventListener('touchend', handleTouch);
-    canvas.addEventListener('touchcancel', handleTouch);
-
-    // Support clavier
-    canvas.addEventListener('keydown', function(e) {
-        if (e.code === 'Space') {
-            e.preventDefault();
-            clearCanvas();
-        }
-    });
+  // Événements tactiles
+  canvas.addEventListener('touchstart', startTouchDrawing, { passive: false });
+  canvas.addEventListener('touchmove', moveTouchDrawing, { passive: false });
+  canvas.addEventListener('touchend', stopTouchDrawing);
 }
 
-function handleTouch(e) {
+
+function startTouchDrawing(e) {
   e.preventDefault();
+  isDrawing = true;
+  const touch = e.touches[0];
   const rect = canvas.getBoundingClientRect();
-
-  if (e.type === 'touchstart') {
-    isDrawing = true;
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  } 
-  else if (e.type === 'touchmove' && isDrawing) {
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  } 
-  else if (e.type === 'touchend' || e.type === 'touchcancel') {
-    isDrawing = false;
-    ctx.beginPath();
-  }
+  lastX = touch.clientX - rect.left;
+  lastY = touch.clientY - rect.top;
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
 }
+
+function moveTouchDrawing(e) {
+  if (!isDrawing) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+}
+
+function stopTouchDrawing(e) {
+  e.preventDefault();
+  isDrawing = false;
+  ctx.beginPath();
+}
+
 
 
 
