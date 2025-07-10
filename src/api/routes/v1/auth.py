@@ -75,7 +75,8 @@ def confirm_email(token: str, db: Session = Depends(get_db)):
         print("Dirty après flush:", db.dirty)
 
         db.commit()
-
+        db.refresh(user)
+        print("Email confirmé après commit:", user.email_confirmed)
         return {"message": "Votre email a été confirmé avec succès."}
 
     except Exception as e:
