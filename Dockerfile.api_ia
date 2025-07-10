@@ -1,15 +1,19 @@
-# Utiliser une image Python officielle slim (sans CUDA ici, à adapter si GPU nécessaire)
+# -------------------------------------------------------
+# Base image: Python slim (lightweight, no CUDA)
 FROM python:3.10-slim
 
-# Environnement Python propre
+# -------------------------------------------------------
+# Environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app/api_ia
+    PYTHONPATH=/app
 
-# Répertoire de travail
+# -------------------------------------------------------
+# Set working directory
 WORKDIR /app
 
-# Dépendances système nécessaires
+# -------------------------------------------------------
+# Install OS-level dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libgl1-mesa-glx \
@@ -22,25 +26,30 @@ RUN apt-get update && apt-get install -y \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier les dépendances Python
+# -------------------------------------------------------
+# Copy and install Python dependencies
 COPY src/api_ia/requirements.txt .
-
-# Installer les paquets Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Créer un utilisateur non-root sécurisé
+# -------------------------------------------------------
+# Create non-root user
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Copier le code source de l'API IA
+# -------------------------------------------------------
+# Copy API source code
 COPY --chown=appuser:appuser src/api_ia /app/api_ia
 
-# Copier les poids et modèles dans l'image Docker
-COPY --chown=appuser:appuser src/api_ia/weights /app/api_ia/weights
-COPY --chown=appuser:appuser src/api_ia/models /app/api_ia/models
+# Copy shared models code
+COPY --chown=appuser:appuser src/models /app/models
 
-# Exposer le port HTTP
+# (Optional) Copy weights if they exist
+COPY --chown=appuser:appuser src/api_ia/weights /app/api_ia/weights
+
+# -------------------------------------------------------
+# Expose port
 EXPOSE 8000
 
-# Commande de lancement de l'API IA
+# -------------------------------------------------------
+# Command to run the API
 CMD ["uvicorn", "api_ia.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
