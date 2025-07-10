@@ -682,7 +682,7 @@ function updateVerresDisplay() {
         }
     });
 
-    let html = `<h3>${uniqueVerres.length} verres trouvés (affichage des 20 premiers résultats)</h3>`;
+    let html = `<h3>${uniqueVerres.length} verres trouvés</h3>`;
     html += '<div class="verres-list">';
 
     uniqueVerres.forEach(verre => {
