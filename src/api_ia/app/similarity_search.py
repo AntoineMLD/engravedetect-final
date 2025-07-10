@@ -46,7 +46,7 @@ def load_references(model):
     logger.info(f"Total des références chargées: {len(reference_embeddings)}")
 
 
-def get_top_matches(query_emb, k=10):
+def get_top_matches(query_emb, k=20):
     """
     Cette fonction permet de trouver les k images de référence les plus similaires
     à l'image inconnue.
