@@ -1,8 +1,8 @@
 console.log("App.js chargé");
 
 // Configuration des URLs API
-const API_BASE_URL = 'http://37.27.217.233:8000/api/v1';
-const API_IA_BASE_URL = 'http://37.27.217.233:8001';
+const API_BASE_URL = '/api/v1';
+const API_IA_BASE_URL = '/api_ia';
 
 
 // État global de l'application (équivalent session_state de Streamlit)
