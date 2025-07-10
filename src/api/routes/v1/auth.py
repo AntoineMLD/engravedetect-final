@@ -55,9 +55,6 @@ async def read_users_me(current_user: dict = Depends(get_current_user)) -> dict:
 
 @router.get("/confirm")
 def confirm_email(token: str, db: Session = Depends(get_db)):
-    """
-    Confirme l'adresse email d'un utilisateur en utilisant le token reçu par email.
-    """
     try:
         payload = decode_access_token(token)
         if payload.get("purpose") != "email_confirmation":
@@ -68,17 +65,17 @@ def confirm_email(token: str, db: Session = Depends(get_db)):
         if not user:
             raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
 
+        print("Dirty avant modif:", db.dirty)
         if user.email_confirmed:
             return {"message": "Votre email est déjà confirmé."}
 
         user.email_confirmed = True
-        db.add(user)          # Ajoute l'instance modifiée explicitement
-        db.flush()            # Force l’envoi des modifications à la BDD
+        print("Dirty après modif:", db.dirty)
+
         db.commit()
 
         return {"message": "Votre email a été confirmé avec succès."}
 
     except Exception as e:
-        # Optionnel : print ou logger l’erreur pour debug
         print(f"[ERROR confirm_email] {e}")
         raise HTTPException(status_code=400, detail="Token invalide ou expiré.")
