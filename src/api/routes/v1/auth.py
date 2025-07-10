@@ -9,6 +9,7 @@ from src.api.schemas.auth import UserCreate, User, Token
 from src.api.services import auth as auth_service
 from src.api.core.auth.service import authenticate_user
 from src.api.core.auth.models import User as UserModel
+import logging
 
 router = APIRouter(tags=["auth"])
 
@@ -56,36 +57,46 @@ async def read_users_me(current_user: dict = Depends(get_current_user)) -> dict:
 @router.get("/confirm")
 def confirm_email(token: str, db: Session = Depends(get_db)):
     """Confirme l'adresse email d'un utilisateur."""
+    logger = logging.getLogger(__name__)
+    logger.info(f"Tentative de confirmation d'email avec token: {token[:10]}...")
+    
     try:
         payload = decode_access_token(token)
+        logger.info(f"Token décodé avec succès. Purpose: {payload.get('purpose')}")
+        
         if payload.get("purpose") != "email_confirmation":
+            logger.warning(f"Token invalide - mauvais purpose: {payload.get('purpose')}")
             raise HTTPException(status_code=400, detail="Token de confirmation invalide.")
 
         user_id = int(payload.get("sub"))
+        logger.info(f"Recherche de l'utilisateur {user_id}")
+        
         user = db.query(UserModel).filter(UserModel.id == user_id).first()
         if not user:
+            logger.warning(f"Utilisateur {user_id} non trouvé")
             raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
 
         if user.email_confirmed:
+            logger.info(f"Email déjà confirmé pour l'utilisateur {user_id}")
             return {"message": "Votre email est déjà confirmé."}
 
         try:
             user.email_confirmed = True
             db.add(user)              
-            print("Dirty avant flush:", db.dirty)
+            logger.info(f"Dirty avant flush pour user {user_id}: {db.dirty}")
             db.flush()                 
-            print("Dirty après flush:", db.dirty)
+            logger.info(f"Dirty après flush pour user {user_id}: {db.dirty}")
             db.commit()
             db.refresh(user)
-            print("Email confirmé après commit:", user.email_confirmed)
+            logger.info(f"Email confirmé après commit pour user {user_id}: {user.email_confirmed}")
             return {"message": "Votre email a été confirmé avec succès."}
         except Exception as db_error:
             db.rollback()
-            print(f"[ERROR DB] {db_error}")
+            logger.error(f"Erreur DB pour user {user_id}: {db_error}")
             raise HTTPException(status_code=500, detail="Erreur lors de la confirmation de l'email.")
 
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR confirm_email] {e}")
+        logger.error(f"Erreur confirmation email: {e}")
         raise HTTPException(status_code=400, detail="Token invalide ou expiré.")

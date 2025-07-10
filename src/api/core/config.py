@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://engravedetect.fr")  # URL du frontend en production
 
     # Configuration OpenAPI/Swagger
     OPENAPI_URL: str = "/openapi.json"

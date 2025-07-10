@@ -4,8 +4,16 @@ from src.api.routes.v1 import auth, verres
 from src.api.core.config import settings
 import logging
 
-logging.basicConfig()
+# Configuration détaillée du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+# Loggers spécifiques
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('src.api').setLevel(logging.INFO)
+logging.getLogger('fastapi').setLevel(logging.INFO)
 
 # Création de l'application FastAPI
 app = FastAPI(
@@ -17,7 +25,7 @@ app = FastAPI(
 # Configuration CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En production, spécifier les origines exactes
+    allow_origins=settings.cors_origins.split(","),  # Utiliser la configuration
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

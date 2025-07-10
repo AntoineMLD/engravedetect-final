@@ -1,6 +1,9 @@
 import smtplib
 from email.mime.text import MIMEText
 from ..config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_confirmation_email(email: str, token: str) -> None:
     """
@@ -10,7 +13,9 @@ def send_confirmation_email(email: str, token: str) -> None:
         email (str): Adresse email du destinataire
         token (str): Token JWT de confirmation
     """
-    confirmation_link = f"https://engravedetect.fr/confirm?token={token}"
+    # S'assurer que le lien pointe vers la route de confirmation du frontend
+    confirmation_link = f"{settings.FRONTEND_URL}/auth/confirm?token={token}"
+    logger.info(f"Génération du lien de confirmation: {confirmation_link[:50]}...")
 
     body = f"""Bonjour,
 
@@ -33,7 +38,7 @@ L'équipe EngraveDetect"""
         with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
             server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
             server.sendmail(settings.SMTP_SENDER, [email], msg.as_string())
-        print(f"[EMAIL ENVOYÉ] Confirmation envoyée à {email}")
+        logger.info(f"Email de confirmation envoyé à {email}")
     except Exception as e:
-        print(f"[ERREUR EMAIL] Impossible d'envoyer l'email à {email}: {e}")
+        logger.error(f"Impossible d'envoyer l'email à {email}: {e}")
         raise
