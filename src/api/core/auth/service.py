@@ -2,13 +2,14 @@ from datetime import datetime
 from fastapi import HTTPException, status, Request
 from sqlalchemy.orm import Session
 from .models import User, Token
-from .jwt import create_access_token
 from .utils import verify_password, get_password_hash, create_db_token
 
 def authenticate_user(db: Session, username: str, password: str, request: Request = None) -> tuple[User, str]:
     """
     Authentifie un utilisateur et crée un token s'il a confirmé son email.
     """
+    from .jwt import create_access_token
+
     user = db.query(User).filter(User.username == username).first()
 
     if not user or not verify_password(password, user.hashed_password):
