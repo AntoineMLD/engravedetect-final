@@ -1,235 +1,148 @@
 # C3. Agrégation des Données
 
 ## Contexte
-Ce document analyse l'implémentation des scripts d'agrégation et de nettoyage des données dans le projet EngraveDetect. Le projet utilise un pipeline de traitement pour agréger, nettoyer et normaliser les données provenant de différentes sources avant leur stockage final.
+Ce document décrit l’architecture réelle et le pipeline d’agrégation, de nettoyage, d’enrichissement et d’import des données dans le projet EngraveDetect. Il s’appuie strictement sur les scripts et dépendances présents dans le code.
 
-## 1. Fonctionnalité du Script d'Agrégation
+---
 
-### 1.1 Pipeline Principal
-```python
-class DataPipelineManager:
-    def clean_and_enhance_data(self) -> bool:
-        """
-        Nettoie les données et les insère dans la table enhanced.
-        
-        Returns:
-            bool: True si le processus a réussi, False sinon
-        """
-        try:
-            # Charger et nettoyer les données
-            df_raw = self.cleaner.load_data_from_staging()
-            if df_raw.empty:
-                self.logger.error("❌ Aucune donnée à nettoyer dans la table staging")
-                return False
+## 1. Vue d’ensemble du pipeline
 
-            df_clean = self.cleaner.clean_dataframe(df_raw)
-            if df_clean.empty:
-                self.logger.error("❌ Aucune donnée valide après nettoyage")
-                return False
+Le pipeline de données EngraveDetect suit les étapes suivantes :
 
-            # Créer la table enhanced et insérer les données
-            self.cleaner.create_enhanced_table()
-            self.cleaner.insert_to_enhanced(df_clean)
+1. **Scraping** (Scrapy) → insertion en base `staging`
+2. **Nettoyage** (`OpticalDataCleaner`) → création de la table `enhanced` et export CSV
+3. **Enrichissement** (`DataEnricher`) → ajout de tags, variantes, propriétés, etc.
+4. **Corrections post-nettoyage** (`fix_enhanced_table.py`) → gestion des clés étrangères, valeurs par défaut
+5. **Import final** (`import_enhanced.py`) → insertion du CSV enhanced en base
+6. **Extraction/Insertion de tags** (`extract_tags.py`, `insert_tags.py`)
+7. **Orchestration** (`DataPipelineManager`) → exécution séquentielle de toutes les étapes
 
-            return True
-        except Exception as e:
-            self.logger.error(f"❌ Erreur lors du nettoyage des données : {e}")
-            return False
-```
+---
 
-### 1.2 Nettoyage des Données
-```python
-class OpticalDataCleaner:
-    def clean_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Nettoie et normalise les données du DataFrame.
-        
-        Args:
-            df: DataFrame contenant les données brutes
-            
-        Returns:
-            DataFrame nettoyé et normalisé
-        """
-        try:
-            # Vérification des colonnes requises
-            if "indice" not in df.columns:
-                raise ValueError("La colonne 'indice' est manquante")
+## 2. Scripts et modules principaux
 
-            # Conversion des colonnes en string
-            string_columns = ["nom_verre", "materiaux", "fournisseur", "gravure_nasale"]
-            for col in string_columns:
-                if col in df.columns:
-                    df[col] = df[col].astype(str)
-                    df[col] = df[col].str.strip()
-                    df[col] = df[col].str.replace(r"\s+", " ", regex=True)
+### a) Scraping et pipelines
+- **Fichier** : `src/data/scraping/france_optique/pipelines.py`
+- **Rôle** : Pipeline Scrapy pour insérer les données brutes dans la table `staging` (Azure SQL), nettoyage HTML, téléchargement d’images.
+- **Dépendances** : `pyodbc`, `requests`, `BeautifulSoup`, `sqlalchemy`, `dotenv`, `logging`
 
-            # Normalisation des indices
-            df["indice"] = df["indice"].astype(str).str.replace(",", ".").astype(float)
+### b) Nettoyage et préparation
+- **Fichier** : `src/data/processing/cleaner.py`
+- **Classe** : `OpticalDataCleaner`
+- **Rôle** : Chargement depuis `staging`, nettoyage, création de la table `enhanced`, export CSV, insertion en base, statistiques, gestion des références (fournisseurs, matériaux).
+- **Dépendances** : `pandas`, `pyodbc`, `dotenv`, `logging`, `os`, `csv`, `datetime`
 
-            # Suppression des données corrompues
-            df = df.dropna(subset=["nom_verre", "materiaux", "fournisseur"])
-            df = df.drop_duplicates()
+### c) Enrichissement
+- **Fichier** : `src/data/processing/enricher.py`
+- **Classe** : `DataEnricher`
+- **Rôle** : Ajout de tags, variantes, détection de propriétés (protection, photochromique), gestion des fournisseurs, etc. Passage de `enhanced` à `verres`.
+- **Dépendances** : `pandas`, `sqlalchemy`, `re`, `json`, `logging`
 
-            return df
-        except Exception as e:
-            self.logger.error(f"❌ Erreur lors du nettoyage des données : {e}")
-            raise
-```
+### d) Corrections post-nettoyage
+- **Fichier** : `src/data/processing/fix_enhanced_table.py`
+- **Rôle** : Corrige les valeurs par défaut, lie les IDs manquants (fournisseur, matériau) dans `enhanced`.
+- **Dépendances** : `pyodbc`, `logging`
 
-### 1.3 Préparation des Données pour le Stockage
-```python
-def _prepare_data_for_verres(self, df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Prépare les données pour la table verres.
-    
-    Args:
-        df: DataFrame contenant les données nettoyées
-        
-    Returns:
-        DataFrame prêt pour l'insertion dans la table verres
-    """
-    try:
-        df_prep = df.copy()
-        
-        # Renommage des colonnes
-        column_mapping = {
-            "nom_verre": "nom",
-            "materiaux": "materiau",
-            "indice": "indice",
-            "fournisseur": "fournisseur",
-            "gravure_nasale": "gravure",
-        }
-        df_prep = df_prep.rename(columns=column_mapping)
+### e) Import final
+- **Fichier** : `src/data/processing/import_enhanced.py`
+- **Rôle** : Importe le dernier CSV enhanced en base via `OpticalDataCleaner`.
+- **Dépendances** : `logging`, `os`, `pathlib`
 
-        # Normalisation des indices
-        df_prep["indice"] = df_prep["indice"].astype(str).str.strip()
-        df_prep["indice"] = df_prep["indice"].str.replace(",", ".")
-        df_prep["indice"] = df_prep["indice"].str.extract(r"(\d+[.,]?\d*)").iloc[:, 0]
-        df_prep["indice"] = pd.to_numeric(df_prep["indice"], errors="coerce").fillna(1.5)
-        
-        # Correction des valeurs hors plage
-        df_prep.loc[df_prep["indice"] < 1.0, "indice"] = 1.5
-        df_prep.loc[df_prep["indice"] > 2.0, "indice"] = 1.5
-        
-        # Arrondi et conversion finale
-        df_prep["indice"] = df_prep["indice"].round(2).astype("float64")
+### f) Extraction/Insertion de tags
+- **Fichiers** : `src/scripts/extract_tags.py`, `src/scripts/insert_tags.py`
+- **Rôle** : Extraction des tags des gravures, sauvegarde en JSON, puis insertion en base.
+- **Dépendances** : `pyodbc`, `dotenv`, `re`, `json`, `os`, `pathlib`, `logging`
 
-        return df_prep
-    except Exception as e:
-        self.logger.error(f"❌ Erreur lors de la préparation des données : {e}")
-        raise
-```
+### g) Orchestration
+- **Fichier** : `src/orchestrator/pipeline_manager.py`
+- **Classe** : `DataPipelineManager`
+- **Rôle** : Orchestration du pipeline complet (scraping, nettoyage, enrichissement, corrections, import, etc.).
+- **Dépendances** : `logging`, `pathlib`, `scrapy`, `src.data.processing.cleaner`, etc.
 
-## 2. Versionnement et Accessibilité
+---
 
-### 2.1 Structure Git
-Le script d'agrégation est versionné dans le dépôt Git avec la structure suivante :
-```
-src/
-├── data/
-│   ├── processing/
-│   │   └── cleaner.py
-│   └── scraping/
-│       └── france_optique/
-│           └── pipelines.py
-├── orchestrator/
-│   └── pipeline_manager.py
-└── scripts/
-    └── process_data.py
-```
+## 3. Enchaînement logique du pipeline
 
-### 2.2 Commandes d'Exécution
+1. **Lancement du scraping**
+   - Exécution des spiders Scrapy (via `DataPipelineManager` ou Scrapy CLI)
+   - Insertion des données brutes dans la table `staging`
+2. **Nettoyage**
+   - Chargement des données de `staging` (`OpticalDataCleaner`)
+   - Nettoyage, normalisation, suppression des doublons, gestion des valeurs manquantes
+   - Création de la table `enhanced` et insertion des données nettoyées
+   - Export CSV des données nettoyées
+3. **Enrichissement**
+   - Passage de `enhanced` à `verres` via `DataEnricher` (ajout de tags, variantes, propriétés, gestion des clés étrangères)
+4. **Corrections post-nettoyage**
+   - Script `fix_enhanced_table.py` : correction des valeurs par défaut, liaison des IDs manquants (fournisseur, matériau)
+5. **Import final**
+   - Script `import_enhanced.py` : import du dernier CSV enhanced en base
+6. **Extraction/Insertion de tags**
+   - `extract_tags.py` : extraction des tags des gravures, sauvegarde en JSON
+   - `insert_tags.py` : insertion des tags extraits dans la base
+7. **Orchestration**
+   - `DataPipelineManager` : exécution séquentielle de toutes les étapes, gestion des logs et des erreurs
+
+---
+
+## 4. Dépendances Python utilisées
+
+- pandas
+- numpy
+- pyodbc
+- sqlalchemy
+- python-dotenv
+- beautifulsoup4
+- requests
+- scrapy
+- logging
+- os, pathlib, csv, re, json, datetime
+
+---
+
+## 5. Commandes d’exécution principales
+
 ```bash
-# Activation de l'environnement virtuel
-source venv/bin/activate
+# 1. Lancer le scraping (exemple)
+scrapy crawl glass_spider
 
-# Exécution du script de traitement
-python src/scripts/process_data.py
+# 2. Nettoyer et créer la table enhanced
+python -m src.data.processing.cleaner
+
+# 3. Enrichir les données
+enricher_main()  # ou python -m src.data.processing.enricher
+
+# 4. Corriger la table enhanced
+python src/data/processing/fix_enhanced_table.py
+
+# 5. Importer le CSV enhanced en base
+python src/data/processing/import_enhanced.py
+
+# 6. Extraire et insérer les tags
+python src/scripts/extract_tags.py
+python src/scripts/insert_tags.py
+
+# 7. Orchestration complète (optionnel)
+python -m src.orchestrator.pipeline_manager
 ```
 
-## 3. Documentation du Script
+---
 
-### 3.1 Dépendances
-```python
-# Dépendances principales
-pandas==2.0.0
-numpy==1.24.0
-pyodbc==4.0.39
-python-dotenv==1.0.0
-beautifulsoup4==4.12.0
-```
+## 6. Gestion des logs et des erreurs
 
-### 3.2 Enchaînements Logiques
-1. **Chargement des Données**
-   - Lecture depuis la table staging
-   - Vérification de la présence des données
-   - Conversion en DataFrame pandas
+- Tous les scripts utilisent le module `logging` pour tracer les étapes, erreurs, et statistiques.
+- Les erreurs critiques sont loguées et lèvent des exceptions explicites.
+- Les scripts de correction et d’import vérifient l’intégrité des données après chaque étape.
 
-2. **Nettoyage des Données**
-   - Suppression des balises HTML
-   - Normalisation des formats de texte
-   - Conversion des types de données
-   - Suppression des doublons
+---
 
-3. **Préparation pour le Stockage**
-   - Renommage des colonnes
-   - Normalisation des indices
-   - Validation des plages de valeurs
-   - Conversion finale des types
+## 7. Gestion des clés étrangères et corrections post-nettoyage
 
-4. **Insertion dans la Base**
-   - Création de la table si nécessaire
-   - Insertion des données nettoyées
-   - Vérification de l'intégrité
+- Les scripts de correction (`fix_enhanced_table.py`) lient les IDs manquants (fournisseur, matériau) dans la table `enhanced`.
+- Les scripts d’enrichissement et d’import vérifient la cohérence des clés étrangères avant insertion dans la table finale `verres`.
 
-### 3.3 Choix de Nettoyage
-1. **Suppression des Données Corrompues**
-   ```python
-   # Suppression des lignes avec valeurs manquantes essentielles
-   df = df.dropna(subset=["nom_verre", "materiaux", "fournisseur"])
-   
-   # Suppression des doublons
-   df = df.drop_duplicates()
-   ```
-
-2. **Normalisation des Textes**
-   ```python
-   # Nettoyage des balises HTML
-   def clean_html_tags(self, text):
-       if not text:
-           return None
-       text = re.sub(r"<br\s*/?>", " ", str(text), flags=re.IGNORECASE)
-       soup = BeautifulSoup(text, "html.parser")
-       return " ".join(soup.get_text().split())
-   ```
-
-3. **Normalisation des Indices**
-   ```python
-   # Conversion et validation des indices
-   df["indice"] = df["indice"].astype(str).str.replace(",", ".")
-   df["indice"] = pd.to_numeric(df["indice"], errors="coerce").fillna(1.5)
-   df.loc[df["indice"] < 1.0, "indice"] = 1.5
-   df.loc[df["indice"] > 2.0, "indice"] = 1.5
-   ```
-
-### 3.4 Homogénéisation des Formats
-1. **Format des Textes**
-   - Suppression des espaces multiples
-   - Normalisation des caractères spéciaux
-   - Conversion en minuscules pour les recherches
-
-2. **Format des Nombres**
-   - Conversion des virgules en points
-   - Arrondi à 2 décimales
-   - Validation des plages de valeurs
+---
 
 ## Conclusion
 
-Le script d'agrégation des données du projet EngraveDetect est fonctionnel, versionné et bien documenté. Il implémente un pipeline robuste pour le nettoyage et la normalisation des données, avec une gestion appropriée des erreurs et des logs détaillés.
-
-### Points Forts
-1. Pipeline de traitement complet et fonctionnel
-2. Gestion robuste des erreurs et des cas limites
-3. Documentation détaillée des choix de nettoyage
-4. Versionnement clair dans Git
-5. Logs détaillés pour le suivi du processus 
+Le pipeline d’agrégation de données EngraveDetect est modulaire, robuste, et documenté. Il couvre toutes les étapes : scraping, nettoyage, enrichissement, corrections, import, extraction/insertion de tags, avec gestion des logs et des erreurs à chaque étape. Toutes les dépendances et scripts sont explicitement listés et documentés. 

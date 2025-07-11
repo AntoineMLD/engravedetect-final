@@ -1,228 +1,171 @@
-# C2. Requêtes SQL d'Extraction de Données
+# C2. Requêtes SQL d’Extraction des Données — Liste réelle du projet
 
-## Contexte
-Ce document analyse l'implémentation des requêtes SQL pour l'extraction de données dans le projet EngraveDetect. Le projet utilise Azure SQL comme système de gestion de base de données principal pour stocker et extraire les données des verres optiques.
+## 1. Table `staging`
 
-## 1. Fonctionnalité des Requêtes SQL
-
-### 1.1 Extraction des Données des Verres
-```python
-def get_verres_by_fournisseur(fournisseur: str):
-    """
-    Extrait les données des verres pour un fournisseur spécifique.
-    
-    Args:
-        fournisseur (str): Nom du fournisseur à rechercher
-        
-    Returns:
-        List[tuple]: Liste des verres avec leurs caractéristiques
-    """
-    query = """
-    SELECT 
-        nom,
-        materiaux,
-        indice,
-        gravure,
-        protection,
-        photochromic
-    FROM verres
-    WHERE fournisseur = ?
-    """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, (fournisseur,))
-        return cursor.fetchall()
+### a) Extraction complète (nettoyage, export, stats)
+```sql
+SELECT
+    id,
+    source_url,
+    nom_verre,
+    gravure_nasale,
+    indice,
+    materiaux,
+    fournisseur
+FROM staging
+ORDER BY id
 ```
+- **Utilisation** : Chargement des données brutes pour nettoyage (`OpticalDataCleaner`, exports CSV, stats).
+- **Scripts** : `src/data/processing/cleaner.py`, `src/data/export/csv_export.py`, `src/data/export/quick_export.py`
 
-### 1.2 Extraction des Données Enhanced
-```python
-def get_enhanced_data():
-    """
-    Extrait les données enrichies des verres avec leurs métadonnées.
-    
-    Returns:
-        List[tuple]: Liste des verres enrichis avec leurs métadonnées
-    """
-    query = """
-    SELECT 
-        e.nom_verre,
-        e.materiaux,
-        e.indice,
-        e.fournisseur,
-        e.gravure_nasale,
-        e.source_url,
-        e.created_at
-    FROM enhanced e
-    WHERE e.created_at >= DATEADD(day, -30, GETDATE())
-    """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        return cursor.fetchall()
+### b) Statistiques sur `staging`
+```sql
+SELECT COUNT(*) FROM staging
+SELECT COUNT(DISTINCT fournisseur) FROM staging
+SELECT fournisseur, COUNT(*) as nb_verres FROM staging GROUP BY fournisseur ORDER BY nb_verres DESC
 ```
+- **Utilisation** : Statistiques sur le volume et la répartition des données.
+- **Script** : `src/data/export/csv_export.py`
 
-### 1.3 Extraction des Données avec Filtres Multiples
-```python
-def get_verres_by_criteria(materiaux: str, indice_min: float, indice_max: float):
-    """
-    Extrait les verres selon plusieurs critères.
-    
-    Args:
-        materiaux (str): Type de matériau
-        indice_min (float): Indice minimum
-        indice_max (float): Indice maximum
-        
-    Returns:
-        List[tuple]: Liste des verres correspondant aux critères
-    """
-    query = """
-    SELECT 
-        nom,
-        materiaux,
-        indice,
-        fournisseur,
-        gravure
-    FROM verres
-    WHERE materiaux = ?
-    AND indice BETWEEN ? AND ?
-    """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, (materiaux, indice_min, indice_max))
-        return cursor.fetchall()
+---
+
+## 2. Table `enhanced`
+
+### a) Extraction complète (nettoyage, enrichissement, export)
+```sql
+SELECT
+    id,
+    nom_verre,
+    materiaux,
+    indice,
+    fournisseur,
+    gravure_nasale,
+    source_url,
+    created_at
+FROM enhanced
+ORDER BY id
 ```
+- **Utilisation** : Nettoyage, enrichissement, export CSV, migration vers `verres`.
+- **Scripts** : `src/data/processing/cleaner.py`, `src/data/processing/enricher.py`
 
-## 2. Documentation des Requêtes
-
-### 2.1 Choix de Sélection
-Les requêtes sont conçues pour extraire des données spécifiques selon les besoins :
-
-1. **Sélection des Champs Essentiels**
-   - Utilisation de `SELECT` explicite plutôt que `SELECT *`
-   - Sélection des champs nécessaires pour optimiser les performances
-   - Exemple :
-   ```sql
-   SELECT 
-       nom,
-       materiaux,
-       indice,
-       gravure
-   FROM verres
-   ```
-
-2. **Filtrage des Données**
-   - Utilisation de `WHERE` pour filtrer les données pertinentes
-   - Conditions multiples avec `AND` et `OR`
-   - Exemple :
-   ```sql
-   WHERE materiaux = ?
-   AND indice BETWEEN ? AND ?
-   AND protection = 1
-   ```
-
-### 2.2 Jointures et Relations
-```python
-def get_verres_with_enhanced_data():
-    """
-    Extrait les verres avec leurs données enrichies.
-    
-    Returns:
-        List[tuple]: Liste des verres avec leurs données enrichies
-    """
-    query = """
-    SELECT 
-        v.nom,
-        v.materiaux,
-        v.indice,
-        e.gravure_nasale,
-        e.source_url
-    FROM verres v
-    LEFT JOIN enhanced e ON v.nom = e.nom_verre
-    WHERE e.created_at IS NOT NULL
-    """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        return cursor.fetchall()
+### b) Extraction filtrée (ex : données récentes)
+```sql
+SELECT
+    e.nom_verre,
+    e.materiaux,
+    e.indice,
+    e.fournisseur,
+    e.gravure_nasale,
+    e.source_url,
+    e.created_at
+FROM enhanced e
+WHERE e.created_at >= DATEADD(day, -30, GETDATE())
 ```
+- **Utilisation** : Extraction des verres enrichis récents.
+- **Script** : (exemple dans doc, possible dans pipeline)
 
-### 2.3 Conditions et Filtres
-1. **Filtres Temporels**
-   ```sql
-   WHERE created_at >= DATEADD(day, -30, GETDATE())
-   ```
-
-2. **Filtres sur les Caractéristiques**
-   ```sql
-   WHERE protection = 1
-   AND photochromic = 1
-   AND indice BETWEEN 1.5 AND 1.67
-   ```
-
-3. **Filtres sur les Textes**
-   ```sql
-   WHERE gravure LIKE '%BBGR%'
-   AND materiaux IN ('CR-39', 'Polycarbonate')
-   ```
-
-## 3. Optimisations des Requêtes
-
-### 3.1 Index et Performance
-1. **Index sur les Colonnes de Recherche**
-   ```sql
-   CREATE INDEX idx_verres_fournisseur ON verres (fournisseur)
-   CREATE INDEX idx_verres_materiaux ON verres (materiaux)
-   CREATE INDEX idx_verres_indice ON verres (indice)
-   ```
-
-2. **Index Composés**
-   ```sql
-   CREATE INDEX idx_verres_fournisseur_materiaux 
-   ON verres (fournisseur, materiaux)
-   ```
-
-### 3.2 Optimisation des Requêtes
-1. **Utilisation de Paramètres**
-   ```python
-   def execute_parameterized_query(query: str, params: tuple):
-       """Exécute une requête paramétrée pour éviter les injections SQL."""
-       with get_connection() as conn:
-           cursor = conn.cursor()
-           cursor.execute(query, params)
-           return cursor.fetchall()
-   ```
-
-2. **Gestion de la Mémoire**
-   ```python
-   def get_large_dataset():
-       """Récupère un grand ensemble de données par lots."""
-       query = "SELECT * FROM verres"
-       with get_connection() as conn:
-           cursor = conn.cursor()
-           cursor.execute(query)
-           while True:
-               rows = cursor.fetchmany(1000)
-               if not rows:
-                   break
-               yield rows
-   ```
-
-### 3.3 Monitoring des Performances
-```python
-def log_query_execution(query: str, execution_time: float):
-    """Enregistre les performances des requêtes."""
-    logger.info(f"Requête: {query}")
-    logger.info(f"Temps d'exécution: {execution_time:.2f} secondes")
+### c) Recherche de valeurs problématiques (corrections)
+```sql
+SELECT hauteur_max, hauteur_min, fournisseur_id, materiau_id
+FROM enhanced
+WHERE hauteur_max = 35 OR hauteur_min = 14
+   OR fournisseur_id IS NULL OR materiau_id IS NULL
 ```
+- **Utilisation** : Correction des valeurs par défaut et des clés étrangères.
+- **Script** : `src/data/processing/fix_enhanced_table.py`
 
-## Conclusion
+---
 
-Les requêtes SQL implémentées dans le projet EngraveDetect sont fonctionnelles et optimisées pour l'extraction efficace des données. La documentation détaillée des requêtes, incluant les choix de sélection, filtrage et jointures, permet une maintenance et une évolution aisée du système.
+## 3. Table `verres`
 
-### Points Forts
-1. Requêtes SQL fonctionnelles et testées
-2. Documentation claire des choix de conception
-3. Optimisations de performance documentées
-4. Gestion robuste des erreurs
+### a) Extraction complète ou filtrée (API, scripts)
+- **Via SQLAlchemy (API)** : Filtres dynamiques sur tous les champs (fournisseur, materiaux, indice, protection, photochromic, etc.)
+- **Via SQL direct (scripts)** :
+```sql
+SELECT
+    nom,
+    materiaux,
+    indice,
+    fournisseur,
+    gravure
+FROM verres
+WHERE materiaux = ?
+  AND indice BETWEEN ? AND ?
+```
+- **Utilisation** : Extraction pour l’API, pour analyse, pour export, pour enrichissement.
+- **Scripts** : `src/api/services/verres.py`, `src/data/processing/enricher.py`, `src/scripts/extract_tags.py`
+
+### b) Extraction de gravures pour analyse de tags
+```sql
+SELECT DISTINCT gravure FROM verres WHERE gravure LIKE '%https%'
+```
+- **Utilisation** : Extraction des gravures contenant des URLs pour analyse de tags.
+- **Script** : `src/scripts/extract_tags.py`
+
+### c) Extraction par ID (détail)
+```sql
+SELECT * FROM verres WHERE id = ?
+```
+- **Utilisation** : Détail d’un verre (API, IA).
+- **Scripts** : `src/api_ia/app/database.py`, API IA `/verre/{id}`
+
+### d) Extraction avec tags non nuls (recherche IA)
+```sql
+SELECT v.id, v.nom, v.variante, v.hauteur_min, v.hauteur_max,
+       v.indice, v.gravure, v.url_source, v.fournisseur, v.tags
+FROM verres v
+WHERE v.tags IS NOT NULL
+```
+- **Utilisation** : Recherche IA par tags (API IA).
+- **Script** : `src/api_ia/app/database.py`
+
+---
+
+## 4. Table `fournisseurs` et `materiaux` (références)
+
+### a) Extraction des fournisseurs uniques
+```sql
+SELECT fournisseur, COUNT(*) as nb_verres FROM staging GROUP BY fournisseur
+SELECT DISTINCT fournisseur FROM verres
+```
+- **Utilisation** : Statistiques, filtres API, correction des clés étrangères.
+- **Scripts** : `src/data/export/csv_export.py`, `src/api/services/verres.py`
+
+---
+
+## 5. Table `verres_staging` (rare, migration/correction)
+
+### a) Extraction par ID
+```sql
+SELECT * FROM verres_staging WHERE id = @verre_id
+```
+- **Utilisation** : Correction ou migration ponctuelle.
+- **Script** : `src/api_ia/app/database.py`
+
+---
+
+## 6. Requêtes de migration
+
+### a) Migration de `enhanced` vers `verres`
+```sql
+INSERT INTO verres (nom, materiau, indice, fournisseur, gravure_nasale, source_url)
+SELECT nom_verre, materiaux, indice, fournisseur, gravure_nasale, source_url
+FROM enhanced
+```
+- **Utilisation** : Migration de données lors de changements de structure.
+- **Script** : `src/database/migrate_to_verres.py`
+
+---
+
+# Explications
+
+- **Toutes les requêtes d’extraction sont utilisées pour le nettoyage, l’enrichissement, l’export, l’analyse, l’API, ou la migration.**
+- **Les requêtes sont soit exécutées directement via pyodbc/pandas, soit via SQLAlchemy (API).**
+- **Les filtres dynamiques de l’API sont traduits en requêtes SQL par SQLAlchemy.**
+- **Les scripts d’export et de stats utilisent des requêtes explicites pour extraire et analyser les données.**
+- **Les corrections et migrations utilisent des requêtes ciblées pour garantir l’intégrité des données.**
+
+---
+
 
 

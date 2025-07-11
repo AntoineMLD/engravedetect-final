@@ -24,9 +24,25 @@ Ce document présente la modélisation et l'implémentation de la base de donné
   - tags (String) : Tags extraits du nom
   - image_gravure (String) : Chemin vers l'image
 
+#### Entité Utilisateur : USERS
+- Identifiant : id (PK)
+- Propriétés :
+  - username (String) : Nom d'utilisateur unique
+  - email (String) : Email unique
+  - hashed_password (String) : Mot de passe hashé
+  - is_active (Boolean) : Statut du compte
+
 ### 1.2 Modèle Logique de Données (MLD)
 
 ```sql
+CREATE TABLE users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    username NVARCHAR(150) NOT NULL UNIQUE,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    hashed_password NVARCHAR(255) NOT NULL,
+    is_active BIT DEFAULT 1
+);
+
 CREATE TABLE verres (
     id INT IDENTITY(1,1) PRIMARY KEY,
     nom NVARCHAR(500) NOT NULL,
@@ -49,18 +65,16 @@ CREATE TABLE verres (
 
 #### Index
 ```sql
--- Index sur les colonnes fréquemment utilisées pour la recherche
 CREATE INDEX idx_verres_fournisseur ON verres(fournisseur);
 CREATE INDEX idx_verres_materiaux ON verres(materiaux);
 CREATE INDEX idx_verres_indice ON verres(indice);
+CREATE INDEX idx_users_email ON users(email);
 ```
 
 #### Contraintes
 ```sql
--- Contraintes de validation
 ALTER TABLE verres
 ADD CONSTRAINT chk_indice CHECK (indice >= 1.0 AND indice <= 2.0);
-
 ALTER TABLE verres
 ADD CONSTRAINT chk_hauteur CHECK (hauteur_min <= hauteur_max);
 ```
@@ -69,35 +83,27 @@ ADD CONSTRAINT chk_hauteur CHECK (hauteur_min <= hauteur_max);
 
 ### 2.1 Configuration de la Connexion
 ```python
-# src/api/core/config.py
-class Settings(BaseSettings):
-    # Configuration Azure
-    AZURE_SERVER: str | None = None
-    AZURE_DATABASE: str | None = None
-    AZURE_USERNAME: str | None = None
-    AZURE_PASSWORD: str | None = None
-
-    @computed_field
-    def database_url(self) -> str:
-        """Construit la chaîne de connexion ODBC pour Azure SQL Server."""
-        if all([self.AZURE_SERVER, self.AZURE_DATABASE, self.AZURE_USERNAME, self.AZURE_PASSWORD]):
-            return (
-                f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
-                f"{self.AZURE_SERVER}/{self.AZURE_DATABASE}?"
-                "driver=ODBC+Driver+18+for+SQL+Server&"
-                "TrustServerCertificate=yes&"
-                "Connection Timeout=30"
-            )
-        return "sqlite:///./test.db"  # Base de données de test par défaut
+# src/api_ia/app/config.py
+AZURE_SERVER = os.getenv("AZURE_SERVER", "")
+AZURE_DATABASE = os.getenv("AZURE_DATABASE", "")
+AZURE_USERNAME = os.getenv("AZURE_USERNAME", "")
+AZURE_PASSWORD = os.getenv("AZURE_PASSWORD", "")
+AZURE_DRIVER = "{ODBC Driver 18 for SQL Server}"
 ```
 
 ### 2.2 Modèle SQLAlchemy
 ```python
-# src/api/models/verres.py
-class Verre(Base):
-    """Modèle SQLAlchemy pour la table verres."""
-    __tablename__ = "verres"
+# src/api_ia/app/database.py (exemple simplifié)
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(150), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
 
+class Verre(Base):
+    __tablename__ = "verres"
     id = Column(Integer, primary_key=True, index=True)
     nom = Column(String(500), nullable=False)
     materiaux = Column(String(100))
@@ -118,104 +124,65 @@ class Verre(Base):
 
 ### 3.1 Nature des Données
 
-Le projet EngraveDetect traite principalement des données techniques et non personnelles :
-- Caractéristiques des verres optiques (indice, matériaux, etc.)
-- Images des gravures nasales
-- Informations sur les fournisseurs
-
-Les seules données sensibles sont :
-- Identifiants de connexion (login/mot de passe)
-- Ces données sont gérées de manière sécurisée via :
-  - Stockage des mots de passe hashés
-  - Variables d'environnement pour les identifiants
-  - Connexion chiffrée à la base de données
+Le projet EngraveDetect traite :
+- Données techniques (verres, images, fournisseurs)
+- **Données personnelles** : email, username, mot de passe (hashé) pour la gestion des comptes utilisateurs
 
 ### 3.2 Registre des Traitements
 
-#### Traitements de Données
-1. **Collecte des Données**
-   - Finalité : Identification des verres optiques
-   - Base légale : Intérêt légitime
-   - Données concernées : 
-     - Caractéristiques techniques des verres
-     - Images des gravures
-   - Durée de conservation : 5 ans
+#### 1. Gestion des comptes utilisateurs
+- **Finalité** : Création, gestion et suppression de comptes utilisateurs
+- **Base légale** : Consentement explicite de l'utilisateur
+- **Données concernées** : email, username, mot de passe (hashé)
+- **Durée de conservation** : Jusqu'à suppression du compte par l'utilisateur
+- **Droits** : Accès, rectification, suppression, portabilité
 
-2. **Traitement des Données**
-   - Finalité : Analyse et classification des verres
-   - Base légale : Intérêt légitime
-   - Données concernées : Données techniques des verres
-   - Durée de conservation : 5 ans
+#### 2. Collecte et traitement des données verres
+- **Finalité** : Identification, analyse et classification des verres optiques
+- **Base légale** : Intérêt légitime
+- **Données concernées** : Caractéristiques techniques, images, fournisseurs
+- **Durée de conservation** : 5 ans
 
-### 3.3 Procédures de Conformité
+### 3.3 Procédures de Conformité RGPD
 
-#### 1. Réinitialisation de la Base de Données
-```python
-# src/database/reset_database.py
-def reset_database():
-    """
-    Réinitialise complètement la base de données en :
-    1. Supprimant toutes les tables existantes
-    2. Recréant les tables avec la bonne structure
-    3. Créant les index nécessaires
-    """
-    try:
-        # Créer la connexion
-        engine = create_engine(settings.DATABASE_URL)
+#### Consentement et politique de confidentialité
+- Consentement explicite requis à l'inscription (case à cocher, lien vers la politique de confidentialité)
+- Politique de confidentialité accessible sur le site (`confidentialite.html`)
 
-        with engine.connect() as conn:
-            # 1. Supprimer toutes les tables existantes
-            tables_to_drop = ["verres", "enhanced", "staging"]
-            for table in tables_to_drop:
-                conn.execute(text(f"IF OBJECT_ID('{table}', 'U') IS NOT NULL DROP TABLE {table}"))
+#### Accès et suppression des données personnelles
+- **Accès** : route API `/me` (GET) pour récupérer ses données personnelles (username, email)
+- **Suppression** : route API `/me` (DELETE) pour supprimer son compte (droit à l'oubli)
+- Suppression effective des données utilisateur en base
 
-            # 2. Recréer les tables avec la bonne structure
-            # ... (code de création des tables)
+#### Sécurité des données personnelles
+- Mots de passe stockés hashés (jamais en clair)
+- Emails stockés en clair (pas de hash, car non obligatoire RGPD)
+- Accès à la base restreint, logs de sécurité, sauvegardes
 
-            # 3. Créer les index
-            conn.execute(text("CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)"))
-            conn.execute(text("CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)"))
+#### Procédure de notification
+- En cas de violation de données, notification à la CNIL et aux utilisateurs concernés (procédure à documenter)
 
-    except Exception as e:
-        logger.error(f"Erreur lors de la réinitialisation de la base de données : {e}")
-        raise
-```
-
-### 3.4 Sécurité des Données Sensibles
-
-#### Gestion des Identifiants
-```python
-# src/api/core/config.py
-class Settings(BaseSettings):
-    # Configuration Azure
-    AZURE_SERVER: str | None = None
-    AZURE_DATABASE: str | None = None
-    AZURE_USERNAME: str | None = None
-    AZURE_PASSWORD: str | None = None
-
-    @field_validator('AZURE_SERVER', 'AZURE_DATABASE', 'AZURE_USERNAME', 'AZURE_PASSWORD')
-    @classmethod
-    def validate_azure_config(cls, v: str | None, info) -> str | None:
-        if v is not None and not v:
-            raise ValueError(f"{info.field_name} ne peut pas être vide")
-        return v
-```
-
-Les identifiants sont :
-- Stockés dans des variables d'environnement
-- Validés au démarrage de l'application
-- Utilisés uniquement pour la connexion à la base de données
-- Protégés par le chiffrement de la connexion Azure SQL
+### 3.4 Documentation et registre technique
+- Registre des traitements à jour (voir ci-dessus)
+- Documentation technique sur la gestion des utilisateurs et des droits RGPD
+- Tests automatisés pour les routes RGPD
 
 ## 4. Documentation Technique
 
 ### 4.1 Dépendances
 ```python
-# requirements.txt
-pyodbc==4.0.39
-sqlalchemy==2.0.0
-pydantic==2.0.0
-python-dotenv==1.0.0
+# requirements.txt (extrait)
+fastapi
+pyodbc
+sqlalchemy
+pydantic
+python-dotenv
+passlib
+PyJWT
+slowapi
+prometheus_client
+python-magic
+pillow
 ```
 
 ### 4.2 Commandes d'Exécution
@@ -232,11 +199,11 @@ python src/database/reset_database.py
 
 ## Conclusion
 
-La base de données du projet EngraveDetect est conçue selon la méthode Merise et implémentée avec Azure SQL. Elle respecte les exigences du RGPD grâce à une structure de données claire et des procédures de maintenance documentées.
+La base de données du projet EngraveDetect gère à la fois des données techniques et des données personnelles. Elle respecte les exigences du RGPD grâce à une structure de données claire, des procédures d'accès/suppression, et une politique de confidentialité accessible. Les droits des utilisateurs sont garantis par des routes API dédiées et des tests automatisés.
 
 ### Points Forts
 1. Modélisation Merise claire et cohérente
-2. Implémentation robuste avec Azure SQL et SQLAlchemy
-3. Documentation technique détaillée
-4. Gestion des erreurs et des cas limites
-5. Procédures de maintenance documentées 
+2. Gestion complète des comptes utilisateurs (RGPD)
+3. Procédures d'accès/suppression conformes RGPD
+4. Documentation technique et registre des traitements à jour
+5. Sécurité des accès et des données 

@@ -2,187 +2,128 @@
 
 ## Contexte et Objectifs
 
-Le projet EngraveDetect intègre une API d'intelligence artificielle conçue pour la classification et l'analyse d'images de verres optiques. Cette API constitue un composant central du système, permettant l'interaction entre le modèle d'IA et les autres modules du projet. Développée avec FastAPI, elle offre une interface REST robuste et performante pour l'accès aux fonctionnalités du modèle de deep learning.
+Le projet EngraveDetect intègre une API d'intelligence artificielle conçue pour la classification et l'analyse d'images de verres optiques, la gestion des comptes utilisateurs et la conformité RGPD. L'API, développée avec FastAPI, offre une interface REST robuste et documentée automatiquement.
 
 ## Architecture Technique
 
 ### Stack Technologique
-
-L'API repose sur une architecture moderne et évolutive, utilisant :
-- **FastAPI** comme framework principal, offrant des performances optimales et une documentation automatique
-- **PyTorch** comme moteur de deep learning, permettant l'exécution efficace du modèle
-- **EfficientNet** comme architecture de base du modèle, optimisée pour la classification d'images
-- **JWT** pour la gestion sécurisée de l'authentification
-- **Azure SQL** comme base de données pour le stockage des résultats et des métadonnées
+- **FastAPI** (framework principal, documentation auto)
+- **PyTorch** (moteur de deep learning)
+- **EfficientNet** (modèle de classification)
+- **JWT** (authentification)
+- **Azure SQL** (base de données)
+- **python-magic** (validation MIME images)
+- **slowapi** (rate limiting)
 
 ### Organisation du Code
 
-La structure du projet suit une architecture modulaire et maintenable :
-
 ```
 api_ia/
-├── app/                    # Application principale
+├── app/
 │   ├── main.py            # Point d'entrée et configuration de l'API
-│   ├── model_loader.py    # Gestion du chargement et de l'initialisation du modèle
-│   ├── security.py        # Implémentation des mécanismes de sécurité
-│   ├── config.py          # Configuration centralisée de l'application
-│   └── database.py        # Gestion des interactions avec la base de données
-├── models/                 # Définitions des modèles de deep learning
-│   └── efficientnet_triplet.py  # Architecture du modèle de classification
-└── weights/               # Stockage des poids du modèle entraîné
-    └── efficientnet_triplet.pth # Fichier des poids du modèle
+│   ├── model_loader.py    # Chargement du modèle
+│   ├── security.py        # Sécurité et authentification
+│   ├── config.py          # Configuration
+│   ├── database.py        # Accès base de données
+│   └── ...
+├── models/                # Modèles deep learning
+└── weights/               # Poids du modèle EfficientNet
 ```
+
+## Endpoints de l'API
+
+### Authentification et gestion utilisateur
+- `POST /auth/register` : Inscription (email, username, mot de passe)
+- `POST /token` : Connexion, obtention d'un JWT
+- `GET /me` : Récupération des données personnelles (username, email)
+- `DELETE /me` : Suppression du compte utilisateur (droit à l'oubli RGPD)
+
+### Données verres
+- `GET /verre/{verre_id}` : Détails d'un verre
+- `GET /verres` : Liste des verres avec filtres
+
+### IA (embedding, matching)
+- `POST /embedding` : Calcul d'embedding d'une image (auth requis)
+- `POST /match` : Recherche de correspondances IA pour une image (auth requis)
 
 ## Fonctionnalités de l'API
 
 ### 1. Système d'Authentification
+- JWT généré à la connexion (`/token`), transmis dans l'en-tête `Authorization: Bearer <token>`
+- Clé secrète statique (pas de rotation automatique)
+- Pas de gestion de session côté serveur (stateless)
+- Mots de passe hashés (bcrypt)
+- Expiration des tokens (30 min)
 
-L'API implémente un système d'authentification robuste basé sur JWT :
+### 2. Classification d'Images et Embedding
+- `POST /match` : Analyse d'image, retour des meilleures correspondances
+- `POST /embedding` : Extraction de vecteurs d'embedding
+- Validation des images (taille, format, type MIME)
+- Rate limiting (5 requêtes/minute)
 
-- **Endpoint** : `POST /token`
-- **Fonctionnalités** :
-  - Génération de tokens JWT sécurisés
-  - Validation des identifiants utilisateur
-  - Gestion de l'expiration des sessions
-- **Sécurité** :
-  - Hachage des mots de passe avec bcrypt
-  - Tokens à durée de vie limitée (30 minutes)
-  - Validation systématique des tokens
+### 3. Gestion RGPD et comptes utilisateurs
+- Inscription avec consentement RGPD (case à cocher, lien vers `confidentialite.html`)
+- Accès à ses données personnelles (`/me` GET)
+- Suppression de compte (`/me` DELETE)
+- Politique de confidentialité accessible sur le site
 
-### 2. Classification d'Images
+## Sécurité
+- Authentification JWT obligatoire pour toutes les routes sensibles
+- Middleware de headers de sécurité (CSP, X-Frame-Options, etc.)
+- Pas de CSRF (API REST, pas de cookie/session)
+- Validation rigoureuse des entrées (Pydantic, python-magic)
+- Logging des accès et des erreurs
 
-Le cœur de l'API est le système de classification d'images :
+## Exemples d'utilisation
 
-- **Endpoint** : `POST /match`
-- **Fonctionnalités** :
-  - Analyse d'images de verres optiques
-  - Identification des caractéristiques
-  - Retour des correspondances les plus pertinentes
-- **Limitations** :
-  - Rate limiting : 5 requêtes par minute
-  - Validation des formats d'image
-  - Taille maximale des fichiers
+### Authentification (connexion)
+```bash
+curl -X POST http://localhost:8001/token -d "username=monuser&password=monmdp"
+```
 
-### 3. Calcul d'Embedding
+### Inscription
+```bash
+curl -X POST http://localhost:8001/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "username": "testuser", "password": "monmdp"}'
+```
 
-Pour des analyses plus avancées, l'API propose un endpoint d'embedding :
+### Accès à ses données personnelles
+```bash
+curl -H "Authorization: Bearer <TOKEN>" http://localhost:8001/me
+```
 
-- **Endpoint** : `POST /embedding`
-- **Fonctionnalités** :
-  - Conversion d'images en vecteurs d'embedding
-  - Extraction de caractéristiques
-  - Support pour des analyses ultérieures
-- **Sécurité** :
-  - Mêmes limitations que l'endpoint de classification
-  - Validation des entrées
-  - Logging des opérations
+### Suppression de compte
+```bash
+curl -X DELETE -H "Authorization: Bearer <TOKEN>" http://localhost:8001/me
+```
 
-## Mesures de Sécurité
+### Classification IA
+```bash
+curl -X POST http://localhost:8001/match \
+  -H "Authorization: Bearer <TOKEN>" \
+  -F "file=@monimage.png"
+```
 
-### Authentification et Autorisation
-
-Le système de sécurité est basé sur plusieurs couches :
-
-1. **Gestion des Tokens** :
-   - Génération sécurisée des JWT
-   - Validation systématique
-   - Rotation des clés de sécurité
-
-2. **Protection des Endpoints** :
-   - Rate limiting par IP
-   - Validation des fichiers d'entrée
-   - Journalisation des accès
-
-### Conformité aux Standards de Sécurité
-
-L'API implémente plusieurs recommandations OWASP :
-
-✅ **Mesures Implémentées** :
-- Validation rigoureuse des entrées utilisateur
-- Protection contre les injections SQL
-- Gestion sécurisée des sessions
-- Journalisation des événements de sécurité
-
-❌ **Améliorations à Apporter** :
-- Implémentation de la protection CSRF
-- Ajout de headers de sécurité avancés
-- Renforcement de la validation des types MIME
-
-## Tests et Qualité
-
-### Tests Existant
-
-L'API dispose d'une suite de tests couvrant :
-
-1. **Tests d'Authentification** :
-   - Validation des tokens
-   - Gestion des sessions
-   - Sécurité des endpoints
-
-2. **Tests Fonctionnels** :
-   - Validation des endpoints
-   - Traitement des images
-   - Gestion des erreurs
-
-3. **Tests de Validation** :
-   - Vérification des entrées
-   - Gestion des cas limites
-   - Robustesse du système
-
-### Tests à Développer
-
-Pour une couverture complète, il est nécessaire d'ajouter :
-
-1. **Tests de Performance** :
-   - Mesures de temps de réponse
-   - Tests de charge
-   - Optimisation des requêtes
-
-2. **Tests d'Intégration** :
-   - Interaction avec la base de données
-   - Communication entre services
-   - Scénarios complets
+### Embedding IA
+```bash
+curl -X POST http://localhost:8001/embedding \
+  -H "Authorization: Bearer <TOKEN>" \
+  -F "file=@monimage.png"
+```
 
 ## Documentation
+- Documentation interactive Swagger UI : `/docs`
+- Documentation ReDoc : `/redoc`
+- Schéma OpenAPI : `/openapi.json`
 
-### Documentation Technique
-
-L'API est documentée selon les standards modernes :
-
-1. **Documentation API** :
-   - Interface Swagger UI (`/docs`)
-   - Documentation ReDoc (`/redoc`)
-   - Schéma OpenAPI (`/openapi.json`)
-
-2. **Documentation Développeur** :
-   - Guide d'installation
-   - Configuration de l'environnement
-   - Exemples d'utilisation
-
-## Gestion des Versions
-
-Le projet utilise Git pour le versioning avec une structure de branches claire :
-
-- **Branche `main`** : Version de production
-- **Branches `feature/*`** : Développement de nouvelles fonctionnalités
-
-## Axes d'Amélioration
-
-### 1. Renforcement des Tests
-- Développement de tests de performance
-- Implémentation de tests d'intégration
-- Augmentation de la couverture de code
-
-### 2. Sécurité
-- Mise en place de la protection CSRF
-- Ajout de headers de sécurité
-- Renforcement de la validation des entrées
-
-### 3. Documentation
-- Enrichissement des exemples d'utilisation
-- Documentation des cas d'erreur
-- Ajout de diagrammes de séquence
+## Limitations et TODO
+- Pas de rotation automatique de la clé JWT
+- Pas de gestion de session côté serveur (stateless)
+- Pas de gestion de révocation de token
+- Les headers de sécurité sont gérés par middleware, mais peuvent être renforcés
+- Les tests de performance et d'intégration sont à compléter
 
 ## Conclusion
 
-L'API d'IA d'EngraveDetect offre une solution robuste et sécurisée pour l'analyse d'images de verres optiques. Son architecture modulaire et sa documentation complète en font un composant fiable du système. Les améliorations prioritaires concernent la couverture des tests et le renforcement de la sécurité, tout en maintenant la performance et la maintenabilité du code. 
+L'API IA d'EngraveDetect offre une solution robuste et sécurisée pour l'analyse d'images de verres optiques et la gestion des comptes utilisateurs. La conformité RGPD est assurée par des routes dédiées et une politique de confidentialité accessible. Les axes d'amélioration prioritaires concernent la couverture de tests et le renforcement de la sécurité. 

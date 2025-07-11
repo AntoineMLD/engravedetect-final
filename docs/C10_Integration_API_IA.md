@@ -2,126 +2,120 @@
 
 ## Contexte et Objectifs
 
-L'intégration de l'API d'IA dans l'application EngraveDetect vise à fournir une interface utilisateur intuitive pour l'analyse et la classification des verres optiques. Cette intégration permet aux utilisateurs d'interagir avec le modèle d'IA de manière transparente et sécurisée.
+L’intégration de l’API IA dans EngraveDetect permet l’analyse et la classification d’images de verres optiques via un modèle PyTorch EfficientNet, accessible par une API FastAPI dédiée, sécurisée et conforme RGPD.
 
 ## Environnement de Développement
 
-### Configuration de l'Environnement
-
-L'application est configurée pour fonctionner en environnement de développement avec :
-
-- **API IA** : Port 8001
-- **API Principale** : Port 8000
-- **Base de données** : Azure SQL
+- **API IA** : Port 8001 (`src/api_ia/`)
+- **API Principale** : Port 8000 (`src/api/`)
+- **Base de données** : Azure SQL (paramétrage dans `.env` et `src/api_ia/app/config.py`)
 
 ### Structure du Projet
+
 ```
 src/
-├── api/           # API principale
-├── api_ia/        # API d'IA
-└── frontend/      # Interface utilisateur
+├── api/           # API principale (gestion utilisateurs, verres, auth)
+├── api_ia/        # API IA (classification, embeddings, recherche)
+└── front/         # Interface utilisateur
 ```
 
-## Communication avec l'API
+## Communication avec l’API IA
 
 ### Authentification
 
-L'intégration implémente un système d'authentification complet :
+- **/token** (POST) : Authentification OAuth2 (JWT)
+  - Reçoit : `username`, `password` (form-data)
+  - Retourne : `{ "access_token": "...", "token_type": "bearer", "version": "1" }`
+- **JWT** : Obligatoire pour tous les endpoints IA sauf `/token`, `/`, `/health`, `/metrics`
+- **Vérification** : Décodage, expiration, validation en base, logs de sécurité
 
-1. **Génération du Token** :
-   ```python
-   # Endpoint : POST /token
-   # Retourne un token JWT valide 30 minutes
-   {
-       "access_token": "string",
-       "token_type": "bearer"
-   }
-   ```
+### Endpoints Principaux
 
-2. **Gestion des Tokens** :
-   - Stockage sécurisé des tokens
-   - Renouvellement automatique avant expiration
-   - Validation systématique des tokens
+#### 1. **/embedding** (POST)
+- Authentification : Obligatoire (Bearer)
+- Paramètres : `file` (UploadFile, image JPG/PNG)
+- Limite : 5 requêtes/minute (SlowAPI)
+- Réponse : `{ "embedding": [float, ...] }`
+- Erreurs : 400 (image invalide), 401 (auth), 500 (erreur interne)
 
-### Points de Terminaison Intégrés
+#### 2. **/match** (POST)
+- Authentification : Obligatoire (Bearer)
+- Paramètres : `file` (UploadFile, image JPG/PNG)
+- Limite : 5 requêtes/minute
+- Réponse : `{ "matches": [ { "class": "nom_classe", "similarity": 0.95 }, ... ] }`
+- Fonctionnement : Extraction embedding, recherche des 20 plus proches via similarité cosinus sur embeddings de référence
+- Erreurs : 400, 401, 500
 
-1. **Classification d'Images** :
-   - Endpoint : `POST /match`
-   - Fonctionnalités :
-     - Upload d'images
-     - Analyse et classification
-     - Retour des résultats
-   - Limitations :
-     - 5 requêtes/minute
-     - Formats d'image supportés : JPG, PNG
+#### 3. **/search_tags** (POST)
+- Authentification : Obligatoire (Bearer)
+- Paramètres : `tags` (body JSON, liste de chaînes)
+- Limite : 10 requêtes/minute
+- Réponse : `{ "results": [ { "id": ..., "nom": ..., "tags": [...], ... }, ... ] }`
+- Fonctionnement : Recherche de verres contenant au moins un des tags
 
-2. **Calcul d'Embedding** :
-   - Endpoint : `POST /embedding`
-   - Utilisation :
-     - Extraction de caractéristiques
-     - Analyse comparative
-     - Recherche de similarités
+#### 4. **/verre/{id}** (GET)
+- Authentification : Obligatoire (Bearer)
+- Paramètres : `id` (int, path)
+- Limite : 20 requêtes/minute
+- Réponse : `{ "verre": { ... } }` ou `{ "error": "Verre non trouvé" }`
 
-## Tests d'Intégration
+#### 5. **/me** (GET, DELETE)
+- Authentification : Obligatoire (Bearer)
+- GET : Retourne `{ "username": ..., "email": ... }` (données RGPD)
+- DELETE : Supprime le compte utilisateur (droit à l’oubli RGPD)
 
-### Tests Existant
+#### 6. **Endpoints publics**
+- `/` (GET) : Message d’accueil
+- `/health` (GET) : Statut de santé
+- `/metrics` (GET) : Statistiques Prometheus
 
-1. **Tests d'Authentification** :
-   ```python
-   def test_verres_unauthorized(client):
-       """Test d'accès non autorisé aux routes des verres."""
-       app.dependency_overrides = {}
-       response = client.get("/api/v1/verres/")
-       assert response.status_code == 401
-   ```
+### Sécurité
 
-2. **Tests des Endpoints** :
-   ```python
-   def test_get_verres(client, auth_headers, test_verre):
-       """Test de récupération de la liste des verres."""
-       response = client.get("/api/v1/verres/", headers=auth_headers)
-       assert response.status_code == 200
-       data = response.json()
-       assert "items" in data
-       assert "total" in data
-   ```
+- **Validation stricte** des fichiers images (taille, type MIME, signature)
+- **Logs de sécurité** (création/suppression de comptes, tokens, erreurs)
+- **Rate limiting** sur tous les endpoints critiques
+- **JWT** : Expiration, vérification, logs d’événements
 
-### Tests à Développer
+## Tests d’Intégration
 
-1. **Tests de Performance** :
-   - Temps de réponse
-   - Gestion de la charge
-   - Optimisation des requêtes
+### Couverture réelle
 
-2. **Tests d'Intégration** :
-   - Scénarios complets
-   - Gestion des erreurs
-   - Validation des données
+- **tests/test_main.py** : Teste la route racine de l’API principale (pas l’API IA)
+- **tests/README_TESTS.md** : Documente la structure des tests IA (voir ci-dessous)
+- **tests/test_performance.py** : Placeholders pour tests de performance IA/API/DB (non implémentés)
+- **tests/test_services/test_verres_services.py** : Teste la logique métier des verres (API principale)
+- **tests/test_evaluate_model.py, test_model.py** : Testent le modèle et les embeddings (unitaires, pas d’intégration API IA)
+
+**À ce jour, il n’existe pas de tests automatisés d’intégration pour les endpoints de l’API IA dans le dépôt.**  
+La documentation antérieure mentionnait des tests sur `/embedding`, `/match`, `/search_tags`, `/verre/{id}` mais ils ne sont pas présents dans le code.
+
+### À faire pour une couverture complète
+
+- Ajouter des tests d’intégration pour chaque endpoint IA : upload image, auth, RGPD, erreurs
+- Implémenter les tests de performance (temps de réponse, charge)
+- Ajouter des tests d’erreur et de sécurité (fichiers invalides, tokens expirés, etc.)
 
 ## Versioning
 
-Le code est versionné avec Git :
-
-- **Branche `main`** : Version de production
-- **Branches `feature/*`** : Développement de nouvelles fonctionnalités
+- **Branche `main`** : Production
+- **Branches `feature/*`** : Développement
 
 ## Points à Améliorer
 
-1. **Tests** :
-   - Augmenter la couverture des tests
-   - Ajouter des tests de performance
-   - Implémenter des tests d'intégration complets
-
-2. **Sécurité** :
-   - Renforcer la validation des entrées
-   - Améliorer la gestion des erreurs
-   - Ajouter des logs de sécurité
-
-3. **Documentation** :
-   - Ajouter des exemples d'utilisation
-   - Documenter les cas d'erreur
-   - Améliorer la documentation technique
+1. **Tests**
+   - Ajouter des tests d’intégration réels pour l’API IA
+   - Implémenter les tests de performance
+2. **Sécurité**
+   - Continuer à renforcer la validation des entrées et la gestion des erreurs
+   - Auditer les logs de sécurité
+3. **Documentation**
+   - Ajouter des exemples d’utilisation réels (curl, Python, etc.)
+   - Documenter les cas d’erreur et les réponses attendues
 
 ## Conclusion
 
-L'intégration de l'API d'IA dans l'application EngraveDetect est fonctionnelle et sécurisée. Les points d'amélioration identifiés concernent principalement la couverture des tests et le renforcement de la sécurité. L'architecture modulaire permet une maintenance et une évolution faciles du système. 
+L’API IA EngraveDetect est modulaire, sécurisée, conforme RGPD, et expose des endpoints robustes pour l’analyse d’images.  
+La couverture de tests d’intégration doit être renforcée pour garantir la fiabilité en production.
+
+---
+

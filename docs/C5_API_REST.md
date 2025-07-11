@@ -1,164 +1,111 @@
-# C5. API REST pour l'Accès aux Données
+# C5. API REST pour l'Accès aux Données et l'IA
 
 ## Contexte
-Ce document analyse l'implémentation de l'API REST dans le projet EngraveDetect, qui permet l'accès sécurisé aux données des verres optiques. L'API est développée avec FastAPI et utilise JWT pour l'authentification.
+Ce document décrit l'API REST du projet EngraveDetect, développée avec FastAPI. L'API permet l'accès sécurisé aux données des verres optiques, la gestion des comptes utilisateurs, et l'accès aux fonctionnalités d'IA (embedding, matching). L'authentification se fait par JWT.
 
 ## 1. Documentation Technique de l'API
 
-### 1.1 Points de Terminaison
+### 1.1 Points de Terminaison (Endpoints)
 
-#### Endpoints d'Authentification
+#### Authentification et gestion utilisateur
 ```python
-@router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    """
-    Inscription d'un nouvel utilisateur.
-    - email: Email unique de l'utilisateur
-    - username: Nom d'utilisateur unique
-    - password: Mot de passe (sera haché)
-    """
-    return auth_service.create_user(db, user)
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Obtient un token JWT en échange des identifiants."""
+    ...
 
-@router.post("/token", response_model=Token)
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-) -> Dict[str, str]:
-    """
-    Obtient un token d'accès JWT en échange des identifiants.
-    Returns:
-        Dict contenant :
-        - access_token: Le token JWT
-        - token_type: Type du token (toujours "bearer")
-    """
-    try:
-        user, access_token = authenticate_user(db, form_data.username, form_data.password)
-        return {"access_token": access_token, "token_type": "bearer"}
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiants invalides",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+@app.post("/auth/register")
+async def register(user: UserCreate):
+    """Inscription d'un nouvel utilisateur (email, username, mot de passe)."""
+    ...
+
+@app.get("/me")
+async def get_me(current_user: str = Depends(get_current_user)):
+    """Retourne les données personnelles de l'utilisateur authentifié (username, email)."""
+    ...
+
+@app.delete("/me")
+async def delete_me(current_user: str = Depends(get_current_user)):
+    """Supprime le compte de l'utilisateur authentifié (droit à l'oubli RGPD)."""
+    ...
 ```
 
-#### Endpoints de Données
+#### Endpoints Données Verres
 ```python
-@router.get("/", response_model=VerreList)
-async def read_verres(
-    skip: int = 0,
-    limit: int = 100,
-    fournisseur: Optional[str] = None,
-    materiaux: Optional[str] = None,
-    indice_min: Optional[float] = None,
-    indice_max: Optional[float] = None,
-    protection: Optional[bool] = None,
-    photochromic: Optional[bool] = None,
-    db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user),
-):
-    """Liste des verres avec filtres optionnels."""
-    filters = VerreFilters(
-        fournisseur=fournisseur,
-        materiaux=materiaux,
-        indice_min=indice_min,
-        indice_max=indice_max,
-        protection=protection,
-        photochromic=photochromic,
-    )
-    return verres_service.get_verres(db, skip=skip, limit=limit, filters=filters)
-
-@router.get("/{verre_id}", response_model=VerreResponse)
-async def read_verre(
-    verre_id: int,
-    db: Session = Depends(get_db),
-    _: dict = Depends(get_current_user)
-):
+@app.get("/verre/{verre_id}")
+async def get_verre(verre_id: int, current_user: str = Depends(get_current_user)):
     """Détails d'un verre par son ID."""
-    verre = verres_service.get_verre(db, verre_id)
-    if not verre:
-        raise HTTPException(status_code=404, detail="Verre non trouvé")
-    return verre
+    ...
+
+@app.get("/verres")
+async def get_verres(...):
+    """Liste des verres avec filtres optionnels."""
+    ...
 ```
 
-### 1.2 Règles d'Authentification
-
-#### Système JWT
+#### Endpoints IA (Embedding, Matching)
 ```python
-def create_access_token(data: Dict) -> str:
-    """
-    Crée un token JWT d'accès.
-    Args:
-        data: Données à encoder dans le token
-    Returns:
-        str: Token JWT encodé
-    """
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+@app.post("/embedding")
+async def get_image_embedding(file: UploadFile = File(...), token: str = Depends(oauth2_scheme)):
+    """Retourne l'embedding d'une image de gravure (auth requis)."""
+    ...
 
-def verify_token(token: str, db: Session) -> dict:
-    """Vérifie un token JWT et sa validité en base de données."""
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        if not verify_token_valid(db, token):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token révoqué ou expiré",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return payload
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalide",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+@app.post("/match")
+async def get_best_match(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    """Retourne les meilleures correspondances IA pour une image (auth requis)."""
+    ...
 ```
+
+### 1.2 Authentification JWT
+- Authentification obligatoire pour toutes les routes sensibles.
+- Le token JWT est généré à la connexion et doit être envoyé dans l'en-tête `Authorization: Bearer <token>`.
+- **Note** : Il n'y a pas de gestion de révocation de token en base, seule la validité (signature, expiration) est vérifiée.
 
 ### 1.3 Standards OpenAPI
-L'API suit les standards OpenAPI avec :
-- Documentation automatique via FastAPI
+- Documentation automatique générée par FastAPI (`/docs`)
 - Schémas de validation avec Pydantic
-- Réponses typées et documentées
-- Gestion des erreurs standardisée
+- Réponses typées et gestion des erreurs standardisée
 
-## 2. Fonctionnalité de l'API
+## 2. Fonctionnalités de l'API
 
 ### 2.1 Accès aux Données
-L'API permet :
-- La récupération de la liste des verres avec filtres
-- L'accès aux détails d'un verre spécifique
-- La pagination des résultats
-- Le filtrage par différents critères
+- Récupération de la liste des verres avec filtres
+- Accès aux détails d'un verre spécifique
+- Pagination et filtrage
 
-### 2.2 Sécurité
+### 2.2 Gestion des Comptes Utilisateurs et RGPD
+- Inscription, connexion, récupération/suppression de ses données personnelles
+- Consentement RGPD obligatoire à l'inscription (géré côté frontend)
+- Suppression effective du compte à la demande de l'utilisateur
+
+### 2.3 Fonctionnalités IA
+- Calcul d'embedding d'image de gravure (`/embedding`)
+- Recherche de correspondances IA (`/match`)
+
+### 2.4 Sécurité
 - Authentification JWT obligatoire
-- Validation des tokens
-- Protection contre les attaques courantes
-- Gestion des erreurs sécurisée
+- Validation des tokens (signature, expiration)
+- Protection contre les accès non autorisés
 
-### 2.3 Tests
+### 2.5 Tests
 ```python
-def test_get_verres(client, auth_headers, test_verre):
-    """Test de récupération de la liste des verres."""
-    response = client.get("/api/v1/verres/", headers=auth_headers)
-    assert response.status_code == 200
-    data = response.json()
-    assert "items" in data
-    assert "total" in data
+def test_get_me_ok(client, user_token):
+    token, username, email = user_token
+    resp = client.get("/me", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["username"] == username
+    assert data["email"] == email
 
-def test_get_verres_with_filters(client, auth_headers, test_verre):
-    """Test de récupération des verres avec filtres."""
-    filters = {
-        "fournisseur": "Test Fournisseur",
-        "indice_min": 1.0,
-        "indice_max": 2.0,
-        "protection": True
-    }
-    response = client.get("/api/v1/verres/", params=filters, headers=auth_headers)
+def test_delete_me_ok(client, user_token):
+    token, username, _ = user_token
+    resp = client.delete("/me", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    resp2 = client.get("/me", headers={"Authorization": f"Bearer {token}"})
+    assert resp2.status_code in (401, 404)
+
+def test_get_verres(client, auth_headers, test_verre):
+    response = client.get("/verres", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert "items" in data
@@ -167,11 +114,12 @@ def test_get_verres_with_filters(client, auth_headers, test_verre):
 
 ## Conclusion
 
-L'API REST du projet EngraveDetect est fonctionnelle et sécurisée, permettant un accès contrôlé aux données des verres optiques. La documentation technique est complète et suit les standards OpenAPI, tandis que l'authentification JWT assure la sécurité des accès.
+L'API REST du projet EngraveDetect permet un accès sécurisé et contrôlé aux données des verres optiques, à la gestion des comptes utilisateurs, et aux fonctionnalités d'IA. La documentation suit les standards FastAPI/OpenAPI, et la sécurité est assurée par JWT. Les routes RGPD et IA sont bien présentes et testées.
 
 ### Points Forts
-1. API REST complète et documentée
+1. API REST et IA complète et documentée
 2. Authentification JWT robuste
-3. Filtrage et pagination des données
-4. Tests automatisés
-5. Documentation OpenAPI 
+3. Gestion RGPD utilisateur (accès/suppression)
+4. Filtrage et pagination des données
+5. Documentation automatique FastAPI
+6. Tests automatisés couvrant les routes critiques 
