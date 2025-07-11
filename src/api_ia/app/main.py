@@ -21,7 +21,7 @@ from starlette.responses import Response
 
 from api_ia.app.model_loader import load_model, preprocess_image, get_embedding
 from api_ia.app.similarity_search import get_top_matches, load_references
-from api_ia.app.database import find_matching_verres, get_verre_details
+from api_ia.app.database import find_matching_verres, get_verre_details, delete_user_by_username
 from api_ia.app.security import (
     authenticate_user,
     create_access_token,
@@ -254,6 +254,36 @@ async def get_verre(
 
     finally:
         VERRE_DETAIL_LATENCY.observe(time.time() - start_time)  # Enregistrer la latence
+
+
+# -------------------- RGPD Endpoints --------------------
+
+from fastapi.responses import JSONResponse
+
+@app.get("/me")
+async def get_me(current_user: str = Depends(get_current_user)):
+    """
+    Retourne les données personnelles de l'utilisateur authentifié (username, email).
+    """
+    user = get_user(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    # On ne retourne que les infos RGPD pertinentes
+    return {"username": user["username"], "email": user["email"]}
+
+@app.delete("/me", response_class=JSONResponse)
+async def delete_me(current_user: str = Depends(get_current_user)):
+    """
+    Supprime le compte de l'utilisateur authentifié (droit à l'oubli RGPD).
+    """
+    user = get_user(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    success = delete_user_by_username(current_user)
+    if not success:
+        raise HTTPException(status_code=500, detail="Erreur lors de la suppression du compte")
+    log_security_event("USER_DELETED", f"Suppression du compte pour {current_user}")
+    return {"detail": "Compte supprimé avec succès"}
 
 
 @app.get("/")

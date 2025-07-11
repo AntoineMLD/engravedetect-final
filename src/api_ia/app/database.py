@@ -235,3 +235,22 @@ def get_verre_staging_details(verre_id: int) -> Optional[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des détails du verre staging: {e}")
         return None
+
+
+def delete_user_by_username(username: str) -> bool:
+    """
+    Supprime un utilisateur de la table users par son username.
+    Args:
+        username (str): Nom d'utilisateur à supprimer.
+    Returns:
+        bool: True si un utilisateur a été supprimé, False sinon.
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM users WHERE username = ?", (username,))
+            conn.commit()
+            return cursor.rowcount > 0
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression de l'utilisateur {username}: {e}")
+        return False

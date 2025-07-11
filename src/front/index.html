@@ -131,6 +131,13 @@
                  aria-describedby="register-password-desc">
           <div id="register-password-desc" class="visually-hidden">Choisissez un mot de passe sécurisé</div>
         </div>
+        <!-- Consentement RGPD -->
+        <div class="form-group">
+          <input type="checkbox" id="register-consent" name="consent" required aria-required="true">
+          <label for="register-consent">
+            J'accepte la <a href="confidentialite.html" target="_blank">politique de confidentialité</a> et le traitement de mes données personnelles.
+          </label>
+        </div>
         <button type="submit" class="login-btn" aria-label="S'inscrire">S'inscrire</button>
         <p class="switch-auth">
           <a href="#" id="showLoginLink">Déjà inscrit ? Se connecter</a>
