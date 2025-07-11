@@ -90,27 +90,18 @@ body {
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--background-dark);
-    z-index: 10;
+    overflow-y: auto;
 }
 
 .login-container {
     background: white;
-    padding: 40px 30px 30px 30px;
+    padding: 40px;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 400px;
     text-align: center;
     margin: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .login-container h1 {
@@ -123,7 +114,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 100%;
 }
 
 .form-group {
@@ -131,23 +121,6 @@ body {
     flex-direction: column;
     gap: 8px;
     text-align: left;
-    width: 100%;
-}
-
-.form-group input[type='checkbox'] {
-    width: 18px;
-    height: 18px;
-    margin-right: 10px;
-    accent-color: var(--primary-color);
-}
-
-.form-group label[for='register-consent'] {
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-    color: #444;
-    font-size: 0.98rem;
-    margin-top: 2px;
 }
 
 .form-group label {
@@ -681,9 +654,8 @@ body {
 
 @media (max-width: 480px) {
     .login-container {
-        padding: 20px 5px 15px 5px;
-        margin: 10px;
-        max-width: 98vw;
+        padding: 30px 20px;
+        margin: 20px;
     }
     
     .drawing-canvas {
@@ -712,12 +684,6 @@ body {
     
     .modal-body {
         padding: 15px;
-    }
-    .login-form {
-        gap: 14px;
-    }
-    .form-group label[for='register-consent'] {
-        font-size: 0.95rem;
     }
 }
 
