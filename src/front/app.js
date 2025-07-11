@@ -165,11 +165,18 @@ async function handleRegister(e) {
     const email = document.getElementById('register-email').value.trim();
     const username = document.getElementById('register-username').value.trim();
     const password = document.getElementById('register-password').value;
+    const consent = document.getElementById('register-consent').checked;
     const errorDiv = document.getElementById('registerError');
     const successDiv = document.getElementById('registerSuccess');
 
     if (!email || !username || !password) {
         errorDiv.textContent = 'Veuillez remplir tous les champs.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    // Vérification consentement RGPD
+    if (!consent) {
+        errorDiv.textContent = "Vous devez accepter la politique de confidentialité pour vous inscrire.";
         errorDiv.style.display = 'block';
         return;
     }
