@@ -210,13 +210,26 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
 
 @app.post("/search_tags")
 @limiter.limit("10/minute")
-async def search_tags(request: Request, tags: List[str] = Body(...), current_user: str = Depends(get_current_user)):
+async def search_tags(
+    request: Request, 
+    tags: List[str] = Body(default=[]), 
+    top20_tags: List[str] = Body(default=[]),
+    current_user: str = Depends(get_current_user)
+):
     SEARCH_TAGS_COUNT.inc()
     start_time = time.time()
     try:
-        if not tags:
+        if not tags and not top20_tags:
             raise HTTPException(status_code=400, detail="Empty tag list")
-        results = find_matching_verres(tags)
+        
+        # Logique simple avec conditions
+        if top20_tags:
+            # Si on a des tags Top 20 : recherche OR parmi Top 20 + filtre par tags manuels
+            results = find_matching_verres(tags, top20_tags)
+        else:
+            # Sinon : recherche AND classique
+            results = find_matching_verres(tags)
+            
         return {"results": results}
     except Exception as e:
         SEARCH_TAGS_ERRORS.inc()
