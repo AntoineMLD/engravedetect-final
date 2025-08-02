@@ -1,8 +1,8 @@
-import pyodbc
 import csv
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
 
 # Chargement des variables d'environnement
 load_dotenv()
@@ -12,31 +12,25 @@ def quick_export():
     """Export rapide des données staging vers CSV."""
 
     # Connexion
-    conn_str = (
-        "DRIVER={ODBC Driver 18 for SQL Server};"
-        f'SERVER={os.getenv("AZURE_SERVER")};'
-        f'DATABASE={os.getenv("AZURE_DATABASE")};'
-        f'UID={os.getenv("AZURE_USERNAME")};'
-        f'PWD={os.getenv("AZURE_PASSWORD")};'
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "Connection Timeout=30;"
-    )
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL must be defined in the .env file")
+    
+    engine = create_engine(database_url, pool_pre_ping=True)
 
     # Nom du fichier
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     csv_file = f"data/verres_optiques_{timestamp}.csv"
 
-    with pyodbc.connect(conn_str) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM staging ORDER BY id")
-            columns = [column[0] for column in cursor.description]
-            rows = cursor.fetchall()
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT * FROM staging ORDER BY id"))
+        columns = result.keys()
+        rows = result.fetchall()
 
-            with open(csv_file, "w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f, delimiter=";")
-                writer.writerow(columns)
-                writer.writerows(rows)
+        with open(csv_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f, delimiter=";")
+            writer.writerow(columns)
+            writer.writerows(rows)
 
     print(f"✅ Export terminé: {csv_file}")
     print(f"📊 {len(rows)} lignes exportées")

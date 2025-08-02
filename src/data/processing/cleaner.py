@@ -2,15 +2,16 @@
 import logging
 import os
 import pandas as pd
-import pyodbc
 from datetime import datetime
 from dotenv import load_dotenv
 import csv
+from sqlalchemy import create_engine, text
+import psycopg2
 
 
 class OpticalDataCleaner:
     """
-    Classe pour nettoyer les données de la table staging Azure SQL et les exporter en CSV.
+    Classe pour nettoyer les données de la table staging PostgreSQL et les exporter en CSV.
     """
 
     def __init__(self):
@@ -20,17 +21,13 @@ class OpticalDataCleaner:
         # Chargement des variables d'environnement
         load_dotenv()
 
-        # Configuration de la connexion Azure SQL
-        self.conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f'SERVER={os.getenv("AZURE_SERVER")};'
-            f'DATABASE={os.getenv("AZURE_DATABASE")};'
-            f'UID={os.getenv("AZURE_USERNAME")};'
-            f'PWD={os.getenv("AZURE_PASSWORD")};'
-            "Encrypt=yes;"
-            "TrustServerCertificate=no;"
-            "Connection Timeout=30;"
-        )
+        # Configuration de la connexion PostgreSQL
+        self.database_url = os.getenv("DATABASE_URL")
+        if not self.database_url:
+            raise ValueError("DATABASE_URL must be defined in the .env file")
+        
+        # Création de l'engine SQLAlchemy
+        self.engine = create_engine(self.database_url, pool_pre_ping=True)
 
         # Valeurs par défaut pour le nettoyage
         self.DEFAULT_VALUES = {
@@ -42,11 +39,11 @@ class OpticalDataCleaner:
         }
 
     def get_connection(self):
-        """Retourne une connexion à la base de données Azure SQL."""
+        """Retourne une connexion à la base de données PostgreSQL."""
         try:
-            return pyodbc.connect(self.conn_str)
+            return self.engine.connect()
         except Exception as error:
-            self.logger.error(f"❌ Erreur de connexion Azure SQL: {error}")
+            self.logger.error(f"❌ Erreur de connexion PostgreSQL: {error}")
             raise
 
     def load_data_from_staging(self):
@@ -66,7 +63,7 @@ class OpticalDataCleaner:
             """
 
             with self.get_connection() as conn:
-                df = pd.read_sql(query, conn)
+                df = pd.read_sql(text(query), conn)
 
             self.logger.info(f"🔍 {len(df)} lignes chargées depuis la table staging")
             return df
@@ -113,42 +110,33 @@ class OpticalDataCleaner:
             raise
 
     def create_enhanced_table(self):
-        """Crée la table enhanced dans Azure SQL."""
+        """Crée la table enhanced dans PostgreSQL."""
         try:
             with self.get_connection() as conn:
-                with conn.cursor() as cursor:
-                    # Supprimer la table si elle existe
-                    cursor.execute("IF OBJECT_ID('enhanced', 'U') IS NOT NULL DROP TABLE enhanced")
+                # Supprimer la table si elle existe
+                conn.execute(text("DROP TABLE IF EXISTS enhanced"))
 
-                    # Créer la nouvelle table enhanced avec des longueurs fixes pour les colonnes indexées
-                    create_sql = """
-                        CREATE TABLE enhanced (
-                            id INT IDENTITY(1,1) PRIMARY KEY,
-                            nom_verre NVARCHAR(MAX),
-                            materiaux NVARCHAR(100),
-                            indice FLOAT,
-                            fournisseur NVARCHAR(100),
-                            gravure_nasale NVARCHAR(MAX),
-                            source_url NVARCHAR(MAX),
-                            created_at DATETIME2 DEFAULT GETDATE()
-                        )
-                    """
-                    cursor.execute(create_sql)
-
-                    # Créer les index avec les colonnes de longueur fixe
-                    cursor.execute(
-                        """
-                        CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)
-                    """
+                # Créer la nouvelle table enhanced
+                create_sql = """
+                    CREATE TABLE enhanced (
+                        id SERIAL PRIMARY KEY,
+                        nom_verre TEXT,
+                        materiaux VARCHAR(100),
+                        indice FLOAT,
+                        fournisseur VARCHAR(100),
+                        gravure_nasale TEXT,
+                        source_url TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                    cursor.execute(
-                        """
-                        CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)
-                    """
-                    )
+                """
+                conn.execute(text(create_sql))
 
-                    conn.commit()
-                    self.logger.info("✅ Table enhanced créée avec succès dans Azure SQL")
+                # Créer les index
+                conn.execute(text("CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)"))
+                conn.execute(text("CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)"))
+
+                conn.commit()
+                self.logger.info("✅ Table enhanced créée avec succès dans PostgreSQL")
 
         except Exception as e:
             self.logger.error(f"❌ Erreur lors de la création de la table enhanced : {e}")
@@ -196,29 +184,9 @@ class OpticalDataCleaner:
             # 4. Création et insertion dans la table enhanced (optionnel)
             csv_enhanced_file = None
             if create_enhanced_table:
-                with self.get_connection() as conn:
-                    with conn.cursor() as cursor:
-                        # Création de la table enhanced avec contraintes
-                        cursor.execute(
-                            """
-                            IF OBJECT_ID('enhanced', 'U') IS NOT NULL DROP TABLE enhanced;
-                            CREATE TABLE enhanced (
-                                id INT IDENTITY(1,1) PRIMARY KEY,
-                                nom_verre NVARCHAR(MAX) NOT NULL,
-                                materiaux NVARCHAR(100) NOT NULL,
-                                indice FLOAT,
-                                fournisseur NVARCHAR(100) NOT NULL,
-                                gravure_nasale NVARCHAR(MAX),
-                                source_url NVARCHAR(MAX),
-                                created_at DATETIME2 DEFAULT GETDATE()
-                            );
-                            CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur);
-                            CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux);
-                        """
-                        )
-
-                        conn.commit()
-                        self.logger.info("✅ Table enhanced créée avec succès")
+                # Création de la table enhanced
+                self.create_enhanced_table()
+                self.logger.info("✅ Table enhanced créée avec succès")
 
                         # Insertion des données nettoyées
                         self.insert_to_enhanced(df_clean)
@@ -474,7 +442,7 @@ class OpticalDataCleaner:
                 ORDER BY id
             """
             with self.get_connection() as conn:
-                df = pd.read_sql(query, conn)
+                df = pd.read_sql(text(query), conn)
             self.logger.info(f"🔍 {len(df)} lignes chargées depuis la table enhanced")
             return df
         except Exception as e:
@@ -487,25 +455,24 @@ class OpticalDataCleaner:
             with open(csv_path, "r", encoding="utf-8") as file:
                 reader = csv.DictReader(file, delimiter=";")
                 with self.get_connection() as conn:
-                    with conn.cursor() as cursor:
-                        for row in reader:
-                            cursor.execute(
-                                """
+                    for row in reader:
+                        conn.execute(
+                            text("""
                                 INSERT INTO staging (
                                     source_url, nom_verre, gravure_nasale,
                                     indice, materiaux, fournisseur
-                                ) VALUES (?, ?, ?, ?, ?, ?)
-                            """,
-                                (
-                                    row["source_url"],
-                                    row["nom_verre"],
-                                    row["gravure_nasale"],
-                                    row["indice"],
-                                    row["materiaux"],
-                                    row["fournisseur"],
-                                ),
-                            )
-                        conn.commit()
+                                ) VALUES (:source_url, :nom_verre, :gravure_nasale, :indice, :materiaux, :fournisseur)
+                            """),
+                            {
+                                "source_url": row["source_url"],
+                                "nom_verre": row["nom_verre"],
+                                "gravure_nasale": row["gravure_nasale"],
+                                "indice": row["indice"],
+                                "materiaux": row["materiaux"],
+                                "fournisseur": row["fournisseur"],
+                            },
+                        )
+                    conn.commit()
             self.logger.info("✅ Données importées avec succès")
             return True
         except Exception as e:
@@ -530,12 +497,11 @@ class OpticalDataCleaner:
 
             # Vérifier que la table est vide
             with self.get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM verres")
-                count = cursor.fetchone()[0]
+                result = conn.execute(text("SELECT COUNT(*) FROM verres"))
+                count = result.fetchone()[0]
                 if count > 0:
                     self.logger.warning(f"⚠️ La table verres contient déjà {count} lignes")
-                    cursor.execute("TRUNCATE TABLE verres")
+                    conn.execute(text("TRUNCATE TABLE verres"))
                     self.logger.info("✅ Table verres vidée")
 
                 inserted_count = 0
@@ -550,19 +516,19 @@ class OpticalDataCleaner:
                             continue
 
                         # Insertion dans la table verres
-                        cursor.execute(
-                            """
-                            INSERT INTO verres (
-                                nom, materiau, indice, fournisseur, gravure
-                            ) VALUES (?, ?, ?, ?, ?)
-                        """,
-                            (
-                                row["nom"],
-                                row["materiau"],
-                                row["indice"],
-                                row["fournisseur"],
-                                row["gravure"],
-                            ),
+                        conn.execute(
+                            text("""
+                                INSERT INTO verres (
+                                    nom, materiau, indice, fournisseur, gravure
+                                ) VALUES (:nom, :materiau, :indice, :fournisseur, :gravure)
+                            """),
+                            {
+                                "nom": row["nom"],
+                                "materiau": row["materiau"],
+                                "indice": row["indice"],
+                                "fournisseur": row["fournisseur"],
+                                "gravure": row["gravure"],
+                            },
                         )
 
                         inserted_count += 1
@@ -582,8 +548,8 @@ class OpticalDataCleaner:
                 self.logger.info(f"- {error_count} lignes ignorées ou en erreur")
 
                 # Vérification finale
-                cursor.execute("SELECT COUNT(*) FROM verres")
-                final_count = cursor.fetchone()[0]
+                result = conn.execute(text("SELECT COUNT(*) FROM verres"))
+                final_count = result.fetchone()[0]
                 self.logger.info(f"Nombre final de lignes dans verres: {final_count}")
 
                 return final_count == inserted_count

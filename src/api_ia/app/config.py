@@ -77,10 +77,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 # Vérification des variables d'environnement requises uniquement en production
 if os.getenv("ENVIRONMENT") == "production":
     required_vars = [
-        "AZURE_SERVER",
-        "AZURE_DATABASE",
-        "AZURE_USERNAME",
-        "AZURE_PASSWORD",
+        "DATABASE_URL",
         "SECRET_KEY",
         "ADMIN_EMAIL",
         "ADMIN_PASSWORD",
