@@ -151,9 +151,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
-    access_token, version = create_access_token(user["username"])
-    log_security_event("TOKEN_CREATED", f"Token v{version} for {user['username']}")
-    return {"access_token": access_token, "token_type": "bearer", "version": str(version)}
+    access_token = create_access_token(user["username"])
+    log_security_event("TOKEN_CREATED", f"Token for {user['username']}")
+    return {"access_token": access_token, "token_type": "bearer", "version": "1"}
 
 
 @app.post("/embedding")

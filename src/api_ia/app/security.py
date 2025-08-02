@@ -12,14 +12,14 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 from passlib.context import CryptContext
-from api_ia.app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, ROTATION_THRESHOLD_MINUTES, LOG_DIR
-from .database import get_db_session
+from sqlalchemy import create_engine, text
+from api_ia.app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, DATABASE_URL
 import magic
 
 
 # Logger sécurité
 def setup_security_logging():
-    log_path = os.path.join(LOG_DIR, "security")
+    log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "security")
     os.makedirs(log_path, exist_ok=True)
 
     logger = logging.getLogger("security")
@@ -40,7 +40,6 @@ security_logger = setup_security_logging()
 class TokenData(BaseModel):
     username: str
     exp: datetime
-    token_version: Optional[int] = 0
 
 
 class UserCredentials(BaseModel):
@@ -53,54 +52,66 @@ TOKEN_SETTINGS = {
     "SECRET_KEY": SECRET_KEY,
     "ALGORITHM": ALGORITHM,
     "ACCESS_TOKEN_EXPIRE_MINUTES": ACCESS_TOKEN_EXPIRE_MINUTES,
-    "ROTATION_THRESHOLD_MINUTES": ROTATION_THRESHOLD_MINUTES,
 }
 
-# Token versions (en mémoire)
-token_versions = {}
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-# Auth
+# Auth - Utilise la même logique que l'API principale
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
 def get_user(username: str):
+    """Récupère un utilisateur depuis la base PostgreSQL (même logique que l'API principale)"""
     try:
-        with get_db_session() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, username, email, hashed_password, is_active FROM users WHERE username = ?", (username,))
-            row = cursor.fetchone()
+        engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+        with engine.connect() as conn:
+            result = conn.execute(
+                text("SELECT id, username, email, hashed_password, is_active, email_confirmed FROM users WHERE username = :username"),
+                {"username": username}
+            )
+            row = result.fetchone()
             if row:
-                return {"id": row[0], "username": row[1], "email": row[2], "hashed_password": row[3], "is_active": row[4]}
+                return {
+                    "id": row[0], 
+                    "username": row[1], 
+                    "email": row[2], 
+                    "hashed_password": row[3], 
+                    "is_active": row[4],
+                    "email_confirmed": row[5]
+                }
     except Exception as e:
         security_logger.error(f"Erreur lors de la récupération de l'utilisateur : {e}")
     return None
 
 
 def authenticate_user(username: str, password: str):
+    """Authentifie un utilisateur (même logique que l'API principale)"""
     user = get_user(username)
     if not user:
         return False
     if not verify_password(password, user["hashed_password"]):
         return False
+    if not user["email_confirmed"]:
+        return False
     return user
 
 
-# Tokens
-def create_access_token(username: str) -> Tuple[str, int]:
+# Tokens - Utilise la même logique que l'API principale
+def create_access_token(username: str) -> str:
+    """Crée un token d'accès (même logique que l'API principale)"""
     expire = datetime.utcnow() + timedelta(minutes=TOKEN_SETTINGS["ACCESS_TOKEN_EXPIRE_MINUTES"])
     payload = {"sub": username, "exp": expire}
 
     token = jwt.encode(payload, TOKEN_SETTINGS["SECRET_KEY"], algorithm=TOKEN_SETTINGS["ALGORITHM"])
 
     log_security_event("TOKEN_CREATED", f"Token généré pour {username}")
-    return token, 1  # Version fixe à 1 pour compatibilité
+    return token
 
 
 def verify_token(token: str) -> TokenData:
+    """Vérifie un token (même logique que l'API principale)"""
     try:
         payload = jwt.decode(token, TOKEN_SETTINGS["SECRET_KEY"], algorithms=[TOKEN_SETTINGS["ALGORITHM"]])
         username = payload.get("sub")

@@ -24,11 +24,10 @@ API pour la classification des verres utilisant un modèle d'IA.
 Fournit des endpoints pour l'analyse d'images et la recherche de correspondances.
 """
 
-# Configuration de la sécurité
+# Configuration de la sécurité (utilise les mêmes paramètres que l'API principale)
 SECRET_KEY = os.getenv("SECRET_KEY", "test-secret-key-for-testing-only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-ROTATION_THRESHOLD_MINUTES = 5
 
 # Configuration du modèle
 MODEL_WEIGHTS_PATH = "/app/api_ia/weights/efficientnet_triplet.pth"
@@ -38,35 +37,18 @@ IMAGE_SIZE = 224
 REFERENCES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "references")
 os.makedirs(REFERENCES_DIR, exist_ok=True)
 
-# Configuration des utilisateurs
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
-
 # Configuration du serveur
 HOST = "0.0.0.0"
 PORT = 8001  # Port pour l'API IA
 
-# Configuration de sécurité
-SECRET_KEY = os.getenv("SECRET_KEY", "test-secret-key-for-testing-only")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-ROTATION_THRESHOLD_MINUTES = int(os.getenv("ROTATION_THRESHOLD_MINUTES", "25"))
-
-# Configuration d'authentification
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
-
-
 # Configuration de la base PostgreSQL (Coolify)
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 # Configuration des chemins
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEIGHTS_DIR = os.path.join(BASE_DIR, "weights")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 REFERENCE_DIR = os.path.join(DATA_DIR, "oversampled_gravures")
-
 
 # Configuration du monitoring
 REPORTS_DIR = os.path.join(LOG_DIR, "reports")
@@ -79,8 +61,6 @@ if os.getenv("ENVIRONMENT") == "production":
     required_vars = [
         "DATABASE_URL",
         "SECRET_KEY",
-        "ADMIN_EMAIL",
-        "ADMIN_PASSWORD",
     ]
 
     missing_vars = [var for var in required_vars if not os.getenv(var)]
