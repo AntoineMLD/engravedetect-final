@@ -13,7 +13,7 @@ import os
 from logging.handlers import RotatingFileHandler
 from passlib.context import CryptContext
 from api_ia.app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, ROTATION_THRESHOLD_MINUTES, LOG_DIR
-from .database import get_db_connection
+from .database import get_db_session
 import magic
 
 
@@ -69,7 +69,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def get_user(username: str):
     try:
-        with get_db_connection() as conn:
+        with get_db_session() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id, username, email, hashed_password, is_active FROM users WHERE username = ?", (username,))
             row = cursor.fetchone()
