@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Configuration base de données
-    DATABASE_URL: str | None = None
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
 
     @computed_field
     @property
