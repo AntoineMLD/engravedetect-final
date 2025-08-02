@@ -11,17 +11,6 @@ RUN apt-get update && apt-get install -y \
     libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer le pilote ODBC pour SQL Server
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && apt-get remove -y unixodbc unixodbc-dev \
-    && apt-get purge -y unixodbc* \
-    && ACCEPT_EULA=Y DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        unixodbc-dev \
-        msodbcsql18 \
-    && rm -rf /var/lib/apt/lists/*
-
 # Variables d'environnement
 ARG DATABASE_URL
 ARG SECRET_KEY
@@ -31,8 +20,7 @@ ENV SECRET_KEY=$SECRET_KEY
 # Installer pip et les dépendances Python en profitant du cache Docker
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir pyodbc==4.0.39
+    pip install --no-cache-dir -r requirements.txt
 
 # Copier le reste du code de l'application
 COPY src/ ./src/
