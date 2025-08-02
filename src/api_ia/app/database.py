@@ -57,14 +57,10 @@ def create_verre_dict(row: Any, columns: List[str]) -> Dict[str, Any]:
         verre["tags"] = parse_verre_tags(verre["tags"])
     return verre
 
-def find_matching_verres(tags: List[str], top20_tags: List[str] = None) -> List[Dict[str, Any]]:
-    """
-    Trouve les verres selon la logique :
-    - Si top20_tags fourni : recherche OR parmi Top 20 + filtre par tags manuels
-    - Sinon : recherche AND classique
-    """
+def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
+    """Trouve les verres correspondant à au moins un tag."""
     try:
-        if not tags and not top20_tags:
+        if not tags:
             return []
 
         query = """
@@ -81,53 +77,23 @@ def find_matching_verres(tags: List[str], top20_tags: List[str] = None) -> List[
                 verre_tags = parse_verre_tags(row[9])
                 verre_tags_lower = [vt.strip().lower() for vt in verre_tags]
                 search_tags_lower = [tag.strip().lower() for tag in tags]
-                
-                # Logique avec conditions simples
-                if top20_tags:
-                    # Mode Top 20 : OR parmi Top 20 + AND pour tags manuels
-                    top20_tags_lower = [tag.strip().lower() for tag in top20_tags]
-                    
-                    # Condition 1 : Le verre doit avoir au moins un tag du Top 20
-                    has_top20_tag = any(tag in verre_tags_lower for tag in top20_tags_lower)
-                    
-                    # Condition 2 : Le verre doit avoir tous les tags manuels (si il y en a)
-                    has_all_manual_tags = True
-                    if search_tags_lower:
-                        has_all_manual_tags = all(tag in verre_tags_lower for tag in search_tags_lower)
-                    
-                    # Les deux conditions doivent être vraies
-                    if has_top20_tag and has_all_manual_tags:
-                        verres.append({
-                            "id": row[0],
-                            "nom": row[1],
-                            "indice": row[5],
-                            "gravure": row[6],
-                            "url_source": row[7],
-                            "fournisseur": row[8],
-                            "tags": verre_tags,
-                            "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]
-                        })
-                else:
-                    # Mode classique : tous les tags doivent être présents (AND)
-                    if search_tags_lower and all(tag in verre_tags_lower for tag in search_tags_lower):
-                        verres.append({
-                            "id": row[0],
-                            "nom": row[1],
-                            "indice": row[5],
-                            "gravure": row[6],
-                            "url_source": row[7],
-                            "fournisseur": row[8],
-                            "tags": verre_tags,
-                            "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]
-                        })
+
+                if any(tag in verre_tags_lower for tag in search_tags_lower):
+                    verres.append({
+                        "id": row[0],
+                        "nom": row[1],
+                        "indice": row[5],
+                        "gravure": row[6],
+                        "url_source": row[7],
+                        "fournisseur": row[8],
+                        "tags": verre_tags,
+                        "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]
+                    })
             except Exception as e:
                 logger.error(f"Erreur lors du traitement des tags pour le verre {row[0]}: {e}")
                 continue
 
-        if top20_tags:
-            logger.info(f"Nombre de verres avec tags Top 20 + filtres manuels: {len(verres)}")
-        else:
-            logger.info(f"Nombre de verres ayant TOUS les tags correspondants: {len(verres)}")
+        logger.info(f"Nombre de verres ayant au moins un tag correspondant: {len(verres)}")
         return verres
 
     except Exception as e:
