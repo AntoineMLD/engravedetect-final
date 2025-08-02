@@ -32,7 +32,7 @@ from api_ia.app.security import (
     log_security_event,
 )
 from api_ia.app.middleware.security import SecurityHeadersMiddleware
-from api_ia.app.config import ADMIN_EMAIL, ADMIN_PASSWORD, API_TITLE, API_VERSION, API_DESCRIPTION
+from api_ia.app.config import API_TITLE, API_VERSION, API_DESCRIPTION
 from api_ia.app.openapi_config import setup_openapi
 from pydantic import BaseModel
 
