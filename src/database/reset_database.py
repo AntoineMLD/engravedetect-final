@@ -1,6 +1,8 @@
+# src/database/reset_database.py
+
 import logging
 from sqlalchemy import create_engine, text
-from ..api.core.config import settings
+from src.api.core.config import settings  # adapt path if needed
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -8,142 +10,84 @@ logger = logging.getLogger(__name__)
 
 
 def reset_database():
-    """
-    Réinitialise complètement la base de données en :
-    1. Supprimant toutes les tables existantes
-    2. Recréant les tables avec la bonne structure
-    3. Créant les index nécessaires
-    """
     try:
-        # Créer la connexion
-        engine = create_engine(settings.DATABASE_URL)
+        # Créer la connexion PostgreSQL
+        engine = create_engine(settings.computed_database_url)
 
         with engine.connect() as conn:
-            # 1. Supprimer toutes les tables existantes
-            logger.info("🗑️ Suppression des tables existantes...")
+            logger.info("🧨 Suppression des tables existantes (ordre contrôlé)...")
 
-            # Supprimer les tables dans le bon ordre pour éviter les erreurs de contraintes
+            # Ordre de suppression (respecte les FK si existantes)
             tables_to_drop = ["verres", "enhanced", "staging"]
 
             for table in tables_to_drop:
-                conn.execute(text(f"IF OBJECT_ID('{table}', 'U') IS NOT NULL DROP TABLE {table}"))
+                conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
                 logger.info(f"✅ Table {table} supprimée")
 
-            conn.commit()
+            logger.info("🛠️ Création des tables...")
 
-            # 2. Recréer les tables avec la bonne structure
-            logger.info("🏗️ Création des nouvelles tables...")
-
-            # Créer la table staging
-            conn.execute(
-                text(
-                    """
+            # Table staging
+            conn.execute(text("""
                 CREATE TABLE staging (
-                    id INT IDENTITY(1,1) PRIMARY KEY,
-                    source_url NVARCHAR(MAX),
-                    nom_verre NVARCHAR(MAX),
-                    gravure_nasale NVARCHAR(MAX),
-                    indice FLOAT,
-                    materiaux NVARCHAR(100),
-                    fournisseur NVARCHAR(100),
-                    created_at DATETIME2 DEFAULT GETDATE()
+                    id SERIAL PRIMARY KEY,
+                    source_url TEXT,
+                    nom_verre TEXT,
+                    gravure_nasale TEXT,
+                    indice DOUBLE PRECISION,
+                    materiaux VARCHAR(100),
+                    fournisseur VARCHAR(100),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
-                )
-            )
-            logger.info("✅ Table staging créée")
+            """))
 
-            # Créer la table enhanced
-            conn.execute(
-                text(
-                    """
+            # Table enhanced
+            conn.execute(text("""
                 CREATE TABLE enhanced (
-                    id INT IDENTITY(1,1) PRIMARY KEY,
-                    nom_verre NVARCHAR(MAX),
-                    materiaux NVARCHAR(100),
-                    indice FLOAT,
-                    fournisseur NVARCHAR(100),
-                    gravure_nasale NVARCHAR(MAX),
-                    source_url NVARCHAR(MAX),
-                    created_at DATETIME2 DEFAULT GETDATE()
+                    id SERIAL PRIMARY KEY,
+                    nom_du_verre TEXT,
+                    materiaux VARCHAR(100),
+                    indice DOUBLE PRECISION,
+                    fournisseur VARCHAR(100),
+                    gravure_nasale TEXT,
+                    source_url TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
-                )
-            )
+            """))
 
-            # Créer les index pour enhanced
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)
-            """
-                )
-            )
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)
-            """
-                )
-            )
-            logger.info("✅ Table enhanced créée avec ses index")
+            # Indexes enhanced
+            conn.execute(text("CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)"))
+            conn.execute(text("CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)"))
 
-            # Créer la table verres
-            conn.execute(
-                text(
-                    """
+            # Table verres
+            conn.execute(text("""
                 CREATE TABLE verres (
-                    id INT IDENTITY(1,1) PRIMARY KEY,
-                    nom NVARCHAR(255) NOT NULL,
-                    materiaux NVARCHAR(100),
-                    indice FLOAT,
-                    fournisseur NVARCHAR(100),
-                    gravure NVARCHAR(MAX),
-                    url_source NVARCHAR(MAX),
-                    variante NVARCHAR(100),
-                    hauteur_min INT,
-                    hauteur_max INT,
-                    protection BIT DEFAULT 0,
-                    photochromic BIT DEFAULT 0,
-                    tags NVARCHAR(MAX),
-                    image_gravure NVARCHAR(MAX)
+                    id SERIAL PRIMARY KEY,
+                    nom VARCHAR(255) NOT NULL,
+                    materiaux VARCHAR(100),
+                    indice DOUBLE PRECISION,
+                    fournisseur VARCHAR(100),
+                    gravure TEXT,
+                    url_source TEXT,
+                    variante VARCHAR(100),
+                    hauteur_min INTEGER,
+                    hauteur_max INTEGER,
+                    protection BOOLEAN DEFAULT FALSE,
+                    photochromic BOOLEAN DEFAULT FALSE,
+                    tags TEXT,
+                    image_gravure TEXT
                 )
-            """
-                )
-            )
+            """))
 
-            # Créer les index pour verres
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX idx_verres_nom ON verres (nom)
-            """
-                )
-            )
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX idx_verres_fournisseur ON verres (fournisseur)
-            """
-                )
-            )
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX idx_verres_materiaux ON verres (materiaux)
-            """
-                )
-            )
-            logger.info("✅ Table verres créée avec ses index")
+            # Indexes verres
+            conn.execute(text("CREATE INDEX idx_verres_nom ON verres (nom)"))
+            conn.execute(text("CREATE INDEX idx_verres_fournisseur ON verres (fournisseur)"))
+            conn.execute(text("CREATE INDEX idx_verres_materiaux ON verres (materiaux)"))
 
             conn.commit()
-
-            logger.info("✨ Base de données réinitialisée avec succès!")
-            return True
+            logger.info("✨ Base de données PostgreSQL réinitialisée avec succès.")
 
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la réinitialisation de la base de données : {e}")
-        return False
+        logger.error(f"❌ Erreur lors de la réinitialisation : {e}")
 
 
 if __name__ == "__main__":

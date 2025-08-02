@@ -1,3 +1,4 @@
+#src/api_ia/app/config.py
 """
 Configuration centralisée pour l'API
 
@@ -55,18 +56,17 @@ ROTATION_THRESHOLD_MINUTES = int(os.getenv("ROTATION_THRESHOLD_MINUTES", "25"))
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 
+
+# Configuration de la base PostgreSQL (Coolify)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
 # Configuration des chemins
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEIGHTS_DIR = os.path.join(BASE_DIR, "weights")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 REFERENCE_DIR = os.path.join(DATA_DIR, "oversampled_gravures")
 
-# Configuration Azure Database
-AZURE_SERVER = os.getenv("AZURE_SERVER", "")
-AZURE_DATABASE = os.getenv("AZURE_DATABASE", "")
-AZURE_USERNAME = os.getenv("AZURE_USERNAME", "")
-AZURE_PASSWORD = os.getenv("AZURE_PASSWORD", "")
-AZURE_DRIVER = "{ODBC Driver 18 for SQL Server}"
 
 # Configuration du monitoring
 REPORTS_DIR = os.path.join(LOG_DIR, "reports")

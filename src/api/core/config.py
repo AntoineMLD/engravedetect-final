@@ -9,7 +9,6 @@ load_dotenv()
 # Déterminer si nous sommes en mode test
 IS_TEST = os.getenv("ENVIRONMENT") == "test"
 
-
 class Settings(BaseSettings):
     # Nom et version de l'application
     APP_NAME: str = "EngraveDetect API"
@@ -25,75 +24,69 @@ class Settings(BaseSettings):
     # Configuration de l'API
     API_V1_STR: str = "/api/v1"
 
-    # Configuration Azure
-    AZURE_SERVER: str = "test-server" if IS_TEST else os.getenv("AZURE_SERVER", "test-server")
-    AZURE_DATABASE: str = "test-db" if IS_TEST else os.getenv("AZURE_DATABASE", "test-db")
-    AZURE_USERNAME: str = "test-user" if IS_TEST else os.getenv("AZURE_USERNAME", "test-user")
-    AZURE_PASSWORD: str = "test-password" if IS_TEST else os.getenv("AZURE_PASSWORD", "test-password")
-
-    # Champs supplémentaires trouvés dans votre .env
-    database_url: str | None = None  # Permet de surcharger via .env
-    admin_email: str = "admin@example.com"
-    admin_password: str = "admin123"
-    csrf_secret_key: str = "default-csrf-secret-key"
-    csrf_token_expire_minutes: str = "60"
-    allowed_hosts: str = "localhost,127.0.0.1"
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    # Configuration base de données
+    DATABASE_URL: str | None = None
 
     @computed_field
     @property
     def computed_database_url(self) -> str:
-        """Construit la chaîne de connexion ODBC pour Azure SQL Server."""
-        # Si database_url est défini dans .env, l'utiliser
-        if self.database_url:
-            return self.database_url
-
-        # En mode test, utiliser SQLite
+        """Retourne l'URL de connexion à la base PostgreSQL ou SQLite en test."""
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         if IS_TEST:
             return "sqlite:///./test.db"
+        raise ValueError("DATABASE_URL must be defined in the .env file")
 
-        # En production, construire depuis les paramètres Azure
-        return (
-            f"mssql+pyodbc://{self.AZURE_USERNAME}:{self.AZURE_PASSWORD}@"
-            f"{self.AZURE_SERVER}/{self.AZURE_DATABASE}?"
-            "driver=ODBC+Driver+18+for+SQL+Server&"
-            "TrustServerCertificate=yes&"
-            "Connection Timeout=30"
-        )
+    # Configuration sécurité
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "test-secret-key")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
-    # Configuration Docker Hub
-    docker_hub_username: str | None = None
-    docker_hub_token: str | None = None
-
-    # Configuration de sécurité
-    SECRET_KEY: str = "test-secret-key-for-testing-only"  # Valeur par défaut pour les tests
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-
-    # Configuration du serveur
-    HOST: str = "0.0.0.0"
-    PORT: int = 8000
-    DEBUG: bool = True
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://engravedetect.fr")  # URL du frontend en production
+    # Configuration serveur
+    HOST: str = os.getenv("HOST", "0.0.0.0")
+    PORT: int = int(os.getenv("PORT", "8000"))
+    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://engravedetect.fr")
 
     # Configuration OpenAPI/Swagger
-    OPENAPI_URL: str = "/openapi.json"
-    DOCS_URL: str = "/docs"
-    REDOC_URL: str = "/redoc"
-
-    # Description de l'API
+    OPENAPI_URL: str = os.getenv("OPENAPI_URL", "/openapi.json")
+    DOCS_URL: str = os.getenv("DOCS_URL", "/docs")
+    REDOC_URL: str = os.getenv("REDOC_URL", "/redoc")
     API_DESCRIPTION: str = "API de gestion des verres optiques"
 
-    # Configuration du déploiement
-    deploy_ssh_key: str = ""  # Utiliser une chaîne vide comme valeur par défaut
+    # Docker Hub
+    docker_hub_username: str | None = os.getenv("DOCKER_HUB_USERNAME")
+    docker_hub_token: str | None = os.getenv("DOCKER_HUB_TOKEN")
 
-    # AJOUT IMPORTANT : Permettre les champs extra
-    model_config = ConfigDict(env_file=".env", extra="allow")  # Permet les champs supplémentaires
+    # Admin
+    admin_email: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
+    admin_password: str = os.getenv("ADMIN_PASSWORD", "admin123")
+
+    # CSRF
+    csrf_secret_key: str = os.getenv("CSRF_SECRET_KEY", "default-csrf-secret-key")
+    csrf_token_expire_minutes: str = os.getenv("CSRF_TOKEN_EXPIRE_MINUTES", "60")
+
+    # CORS / Sécurité réseau
+    allowed_hosts: str = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
+    cors_origins: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+
+    # Déploiement
+    deploy_ssh_key: str = os.getenv("DEPLOY_SSH_KEY", "")
+
+    # Logging
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    reports_dir: str = os.getenv("REPORTS_DIR", "/app/logs/reports")
+
+    # Monitoring Grafana
+    grafana_token: str = os.getenv("GRAFANA_TOKEN", "")
+    grafana_host: str = os.getenv("GRAFANA_HOST", "")
+
+    model_config = ConfigDict(env_file=".env", extra="allow")
 
 
 settings = Settings()
 
-# Configuration OpenAPI pour Swagger/ReDoc
+
 openapi_config = {
     "title": settings.APP_NAME,
     "version": settings.APP_VERSION,
@@ -106,5 +99,3 @@ openapi_config = {
     "openapi_url": settings.OPENAPI_URL,
     "redoc_url": settings.REDOC_URL,
 }
-
-

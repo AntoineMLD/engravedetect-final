@@ -1,7 +1,7 @@
 import subprocess
-import pyodbc
 import os
 from datetime import datetime
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement
@@ -17,35 +17,19 @@ SPIDERS = [
     "glass_spider_indo_optical",
 ]
 
-
-def get_connection():
-    """Établit une connexion à Azure SQL avec le pilote 18."""
-    try:
-        conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f'SERVER={os.getenv("AZURE_SERVER")};'
-            f'DATABASE={os.getenv("AZURE_DATABASE")};'
-            f'UID={os.getenv("AZURE_USERNAME")};'
-            f'PWD={os.getenv("AZURE_PASSWORD")};'
-            "Encrypt=yes;"
-            "TrustServerCertificate=no;"
-            "Connection Timeout=30;"
-        )
-        return pyodbc.connect(conn_str)
-    except Exception as error:
-        print(f"❌ Erreur de connexion Azure SQL: {error}")
-        raise
+# Récupération de l'URL de la base PostgreSQL
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = create_engine(DATABASE_URL)
 
 
 def count_database_rows():
-    """Compte le nombre de lignes dans la table Azure SQL 'staging'."""
+    """Compte le nombre de lignes dans la table PostgreSQL 'staging'."""
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT COUNT(*) FROM staging")
-                return cursor.fetchone()[0]
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT COUNT(*) FROM staging"))
+            return result.scalar()
     except Exception as error:
-        print(f"❌ Erreur Azure SQL: {error}")
+        print(f"❌ Erreur PostgreSQL: {error}")
         return 0
 
 
@@ -57,23 +41,19 @@ def run_spider(spider_name):
     print("=" * 50)
 
     try:
-        # État initial de la table
         initial_count = count_database_rows()
 
-        # Lancer le spider avec l'encodage correct
         result = subprocess.run(
             ["scrapy", "crawl", spider_name],
             check=True,
             text=True,
             capture_output=True,
             cwd=os.path.dirname(__file__),
-            encoding="cp1252",  # Encodage Windows pour les caractères spéciaux
+            encoding="utf-8",
         )
 
-        # Affichage des logs de Scrapy
         print(result.stdout)
 
-        # État final
         final_count = count_database_rows()
         new_items = final_count - initial_count
 

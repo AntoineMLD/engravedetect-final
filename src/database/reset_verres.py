@@ -1,5 +1,8 @@
+# src/database/reset_verres.py
+
 from sqlalchemy import text
 from src.api.core.database.database import Base, engine
+from src.api.models.verres import Verre  # Assure-toi que ce modèle est bien importé
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -7,19 +10,20 @@ logger = logging.getLogger(__name__)
 
 
 def reset_verres():
-    """Réinitialise la table verres."""
+    """Réinitialise uniquement la table verres (PostgreSQL)."""
     try:
-        # Supprimer la table verres si elle existe
         with engine.connect() as conn:
-            conn.execute(text("IF OBJECT_ID('verres', 'U') IS NOT NULL DROP TABLE verres"))
+            logger.info("🧨 Suppression de la table verres si elle existe...")
+            conn.execute(text("DROP TABLE IF EXISTS verres CASCADE"))
             conn.commit()
 
-        # Recréer la table verres
-        Base.metadata.create_all(bind=engine)
+        logger.info("🛠️ Création de la table verres depuis SQLAlchemy...")
+        Base.metadata.create_all(bind=engine, tables=[Verre.__table__])
+
         logger.info("✅ Table verres réinitialisée avec succès")
 
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la réinitialisation: {str(e)}")
+        logger.error(f"❌ Erreur lors de la réinitialisation : {e}")
         raise
 
 

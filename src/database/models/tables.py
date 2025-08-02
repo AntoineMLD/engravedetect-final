@@ -20,5 +20,4 @@ class DatabaseManager:
         # Créer les tables
         self.create_tables()
 
-        # Ici vous pouvez ajouter la logique pour remplir les tables
-        # avec les données de la table enhanced
+

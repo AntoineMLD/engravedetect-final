@@ -1,3 +1,4 @@
+# src/api_ia/app/main.py
 """
 API FastAPI pour la classification des verres
 """

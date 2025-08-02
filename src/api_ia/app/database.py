@@ -1,161 +1,96 @@
 import json
-import os
 import logging
-import pyodbc
 from typing import List, Dict, Optional, Any
 from contextlib import contextmanager
-from .config import AZURE_SERVER, AZURE_DATABASE, AZURE_USERNAME, AZURE_PASSWORD, AZURE_DRIVER
+
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from .config import DATABASE_URL
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
 
+# Initialisation SQLAlchemy
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @contextmanager
-def get_db_connection():
-    """
-    Gestionnaire de contexte pour la connexion à la base de données Azure.
-
-    Yields:
-        pyodbc.Connection: Objet de connexion à la base de données.
-
-    Raises:
-        pyodbc.Error: Si la connexion échoue.
-    """
-    conn = None
+def get_db_session():
+    """Gestionnaire de session SQLAlchemy."""
+    db = SessionLocal()
     try:
-        conn_str = (
-            f"DRIVER={AZURE_DRIVER};"
-            f"SERVER={AZURE_SERVER};"
-            f"DATABASE={AZURE_DATABASE};"
-            f"UID={AZURE_USERNAME};"
-            f"PWD={AZURE_PASSWORD};"
-            "Encrypt=yes;"
-            "TrustServerCertificate=no;"
-        )
-        conn = pyodbc.connect(conn_str)
-        yield conn
-    except pyodbc.Error as e:
-        logger.error(f"Erreur de connexion à la base de données Azure: {e}")
-        raise
+        yield db
     finally:
-        if conn:
-            conn.close()
+        db.close()
 
-
-def execute_query(query: str, params: tuple = None) -> List[tuple]:
+def execute_query(query: str, params: dict = None) -> List[Any]:
     """
-    Exécute une requête SQL avec des paramètres.
+    Exécute une requête SQL avec SQLAlchemy.
 
     Args:
-        query (str): Requête SQL à exécuter.
-        params (tuple, optional): Paramètres de la requête.
+        query (str): Requête SQL.
+        params (dict, optional): Paramètres de la requête.
 
     Returns:
-        List[tuple]: Résultats de la requête.
-
-    Raises:
-        pyodbc.Error: Si l'exécution de la requête échoue.
+        List[Any]: Résultats de la requête.
     """
     try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            return cursor.fetchall()
-    except pyodbc.Error as e:
+        with get_db_session() as db:
+            result = db.execute(text(query), params or {})
+            return result.fetchall()
+    except Exception as e:
         logger.error(f"Erreur lors de l'exécution de la requête: {e}")
         raise
 
-
 def parse_verre_tags(tags_json: str) -> List[str]:
-    """
-    Parse les tags JSON d'un verre.
-
-    Args:
-        tags_json (str): Tags au format JSON.
-
-    Returns:
-        List[str]: Liste des tags.
-    """
+    """Parse les tags JSON d'un verre."""
     try:
         return json.loads(tags_json or "[]")
     except json.JSONDecodeError as e:
         logger.error(f"Erreur de décodage JSON pour les tags: {e}")
         return []
 
-
-def create_verre_dict(row: tuple, columns: List[str]) -> Dict[str, Any]:
-    """
-    Crée un dictionnaire pour un verre à partir d'une ligne de la base de données.
-
-    Args:
-        row (tuple): Ligne de la base de données.
-        columns (List[str]): Noms des colonnes.
-
-    Returns:
-        Dict[str, Any]: Dictionnaire représentant le verre.
-    """
+def create_verre_dict(row: Any, columns: List[str]) -> Dict[str, Any]:
+    """Transforme une ligne SQL en dictionnaire."""
     verre = dict(zip(columns, row))
     if "tags" in verre:
         verre["tags"] = parse_verre_tags(verre["tags"])
     return verre
 
-
 def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
-    """
-    Trouve les verres qui ont au moins un des tags spécifiés.
-
-    Args:
-        tags (list): Liste de tags à rechercher.
-
-    Returns:
-        list: Liste des verres qui ont au moins un des tags recherchés.
-    """
+    """Trouve les verres correspondant à au moins un tag."""
     try:
         if not tags:
             return []
 
-        # Récupérer tous les verres avec leurs tags
         query = """
             SELECT v.id, v.nom, v.variante, v.hauteur_min, v.hauteur_max,
                    v.indice, v.gravure, v.url_source, v.fournisseur, v.tags
             FROM verres v
             WHERE v.tags IS NOT NULL
         """
-
         results = execute_query(query)
-        logger.info(f"Nombre total de verres trouvés: {len(results)}")
 
-        # Filtrer les verres qui ont au moins un des tags recherchés
         verres = []
         for row in results:
-            verre_id, nom, variante, hauteur_min, hauteur_max, indice, gravure, url_source, fournisseur, tags_json = row
             try:
-                # Parser les tags du verre
-                verre_tags = parse_verre_tags(tags_json)
-
-                # Convertir tous les tags en minuscules pour la comparaison
+                verre_tags = parse_verre_tags(row[9])
                 verre_tags_lower = [vt.strip().lower() for vt in verre_tags]
                 search_tags_lower = [tag.strip().lower() for tag in tags]
 
-                # Vérifier si au moins un des tags recherchés est présent
                 if any(tag in verre_tags_lower for tag in search_tags_lower):
-                    verres.append(
-                        {
-                            "id": verre_id,
-                            "nom": nom,
-                            "indice": indice,
-                            "gravure": gravure,
-                            "url_source": url_source,
-                            "fournisseur": fournisseur,
-                            "tags": verre_tags,  # Garder les tags originaux dans la réponse
-                            "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]  # Liste des tags correspondants
-                        }
-                    )
+                    verres.append({
+                        "id": row[0],
+                        "nom": row[1],
+                        "indice": row[5],
+                        "gravure": row[6],
+                        "url_source": row[7],
+                        "fournisseur": row[8],
+                        "tags": verre_tags,
+                        "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]
+                    })
             except Exception as e:
-                logger.error(f"Erreur lors du traitement des tags pour le verre {verre_id}: {e}")
+                logger.error(f"Erreur lors du traitement des tags pour le verre {row[0]}: {e}")
                 continue
 
         logger.info(f"Nombre de verres ayant au moins un tag correspondant: {len(verres)}")
@@ -165,92 +100,43 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
         logger.error(f"Erreur lors de la recherche des verres: {e}")
         return []
 
-
 def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
-    """
-    Récupère les détails complets d'un verre.
-
-    Args:
-        verre_id (int): Identifiant du verre.
-
-    Returns:
-        Optional[Dict[str, Any]]: Détails du verre ou None si non trouvé.
-    """
+    """Récupère les détails d’un verre par son ID."""
     try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            # Requête SQL optimisée pour Azure
-            query = """
-                SELECT *
-                FROM verres
-                WHERE id = ?
-            """
-            cursor.execute(query, (verre_id,))
-
-            # Récupérer les colonnes avant de récupérer les résultats
-            columns = [column[0] for column in cursor.description]
-
-            # Récupérer les résultats
-            results = cursor.fetchall()
-
-            if not results:
+        query = "SELECT * FROM verres WHERE id = :verre_id"
+        with get_db_session() as db:
+            result = db.execute(text(query), {"verre_id": verre_id})
+            row = result.fetchone()
+            if not row:
                 logger.warning(f"Verre avec ID {verre_id} non trouvé")
                 return None
-
-            return create_verre_dict(results[0], columns)
-
+            return create_verre_dict(row, result.keys())
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des détails du verre: {e}")
         return None
 
-
 def get_verre_staging_details(verre_id: int) -> Optional[Dict[str, Any]]:
-    """
-    Récupère les détails d'un verre depuis la table staging.
-
-    Args:
-        verre_id (int): Identifiant du verre.
-
-    Returns:
-        Optional[Dict[str, Any]]: Détails du verre ou None si non trouvé.
-    """
+    """Récupère les détails d’un verre depuis la table staging."""
     try:
-        # Requête SQL optimisée pour Azure
-        query = """
-            SELECT *
-            FROM verres_staging
-            WHERE id = @verre_id
-        """
-
-        results = execute_query(query, (verre_id,))
-        if not results:
-            logger.warning(f"Verre staging avec ID {verre_id} non trouvé")
-            return None
-
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            columns = [column[0] for column in cursor.description]
-            return create_verre_dict(results[0], columns)
-
+        query = "SELECT * FROM verres_staging WHERE id = :verre_id"
+        with get_db_session() as db:
+            result = db.execute(text(query), {"verre_id": verre_id})
+            row = result.fetchone()
+            if not row:
+                logger.warning(f"Verre staging avec ID {verre_id} non trouvé")
+                return None
+            return create_verre_dict(row, result.keys())
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des détails du verre staging: {e}")
+        logger.error(f"Erreur lors de la récupération du verre staging: {e}")
         return None
 
-
 def delete_user_by_username(username: str) -> bool:
-    """
-    Supprime un utilisateur de la table users par son username.
-    Args:
-        username (str): Nom d'utilisateur à supprimer.
-    Returns:
-        bool: True si un utilisateur a été supprimé, False sinon.
-    """
+    """Supprime un utilisateur par son nom d'utilisateur."""
     try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM users WHERE username = ?", (username,))
-            conn.commit()
-            return cursor.rowcount > 0
+        with get_db_session() as db:
+            result = db.execute(text("DELETE FROM users WHERE username = :username"), {"username": username})
+            db.commit()
+            return result.rowcount > 0
     except Exception as e:
         logger.error(f"Erreur lors de la suppression de l'utilisateur {username}: {e}")
         return False

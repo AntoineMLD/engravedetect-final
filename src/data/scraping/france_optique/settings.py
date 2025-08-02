@@ -21,11 +21,7 @@ NEWSPIDER_MODULE = "src.data.scraping.france_optique.spiders"
 FEED_EXPORT_ENCODING = "utf-8"
 
 # Configuration de la base de données
-SQLALCHEMY_DATABASE_URI = (
-    f"mssql+pyodbc://{os.getenv('AZURE_USERNAME')}:{os.getenv('AZURE_PASSWORD')}@"
-    f"{os.getenv('AZURE_SERVER')}/{os.getenv('AZURE_DATABASE')}?"
-    "driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
-)
+SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
 
 # Paramètres de scraping optimisés
 CONCURRENT_REQUESTS = 1  # Limite le nombre de requêtes simultanées
@@ -90,8 +86,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 ITEM_PIPELINES = {
-    "src.data.scraping.france_optique.pipelines.AzureSQLPipeline": 300,
+    "src.data.scraping.france_optique.pipelines.PostgresPipeline": 300,
 }
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
