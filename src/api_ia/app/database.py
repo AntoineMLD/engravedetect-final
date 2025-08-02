@@ -10,6 +10,19 @@ from .config import DATABASE_URL
 # Configuration du logging
 logger = logging.getLogger(__name__)
 
+# Liste des tags Top 20 possibles (symboles de gravures)
+TOP20_TAGS = [
+    '^', '1sl', 'ae', 'arc', 'balance', 'carré', 'cercle', 'cintre', 'coupe', 'coureur',
+    'csl', 'doubletriangle', 'e_accentdouble', 'eas', 'e_coeur', 'e_courbe', 'e_courbebasse',
+    'e_oeil', 'e_soleil', 'e)', 'e)_', 'ea', 'epsilone', 'étoile', 'figma', 'fleche',
+    'hexagone', 'isi', 'losange', 'losange-triangle-carre-cercle', 'lune', 'm_symbol',
+    'machine_laver', 'manette', 'n_encoche', 'neo', 'neutron', 'notemusique',
+    'o_courbebasse', 'oeil_a', 'oeilprofil', 'omega', 'ordi', 'pi', 'pont', 'road',
+    '(e', '(e)', '(s)', '{s}', 's1', 'sigma', 'soleil', 'tortue', 'triangle',
+    'triangle-carre', 'triangle-carre-cercle', 'vcercle', 'wifi', 'wifi_rectangle',
+    '_ea_', '_x_', '---e', '[sl', 's_carre', 's_cercle', 's_losange'
+]
+
 # Initialisation SQLAlchemy
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -57,11 +70,31 @@ def create_verre_dict(row: Any, columns: List[str]) -> Dict[str, Any]:
         verre["tags"] = parse_verre_tags(verre["tags"])
     return verre
 
+def filter_top20_tags(tags: List[str]) -> List[str]:
+    """Filtre les tags pour ne garder que ceux du Top 20."""
+    return [tag for tag in tags if tag in TOP20_TAGS]
+
+def filter_manual_tags(tags: List[str]) -> List[str]:
+    """Filtre les tags pour ne garder que ceux qui ne sont PAS du Top 20."""
+    return [tag for tag in tags if tag not in TOP20_TAGS]
+
 def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
-    """Trouve les verres correspondant à au moins un tag."""
+    """
+    Trouve les verres selon la logique intelligente :
+    - Sépare automatiquement les tags Top 20 des tags manuels
+    - Si tags Top 20 présents : recherche OR parmi Top 20 + filtre par tags manuels
+    - Sinon : recherche AND classique
+    """
     try:
         if not tags:
             return []
+
+        # Séparation automatique des tags
+        top20_tags = filter_top20_tags(tags)
+        manual_tags = filter_manual_tags(tags)
+        
+        logger.info(f"Tags Top 20 détectés: {top20_tags}")
+        logger.info(f"Tags manuels détectés: {manual_tags}")
 
         query = """
             SELECT v.id, v.nom, v.variante, v.hauteur_min, v.hauteur_max,
@@ -76,24 +109,54 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
             try:
                 verre_tags = parse_verre_tags(row[9])
                 verre_tags_lower = [vt.strip().lower() for vt in verre_tags]
-                search_tags_lower = [tag.strip().lower() for tag in tags]
-
-                if any(tag in verre_tags_lower for tag in search_tags_lower):
-                    verres.append({
-                        "id": row[0],
-                        "nom": row[1],
-                        "indice": row[5],
-                        "gravure": row[6],
-                        "url_source": row[7],
-                        "fournisseur": row[8],
-                        "tags": verre_tags,
-                        "matching_tags": [tag for tag in search_tags_lower if tag in verre_tags_lower]
-                    })
+                manual_tags_lower = [tag.strip().lower() for tag in manual_tags]
+                
+                # Logique avec conditions simples
+                if top20_tags:
+                    # Mode Top 20 : OR parmi Top 20 + AND pour tags manuels
+                    top20_tags_lower = [tag.strip().lower() for tag in top20_tags]
+                    
+                    # Condition 1 : Le verre doit avoir au moins un tag du Top 20
+                    has_top20_tag = any(tag in verre_tags_lower for tag in top20_tags_lower)
+                    
+                    # Condition 2 : Le verre doit avoir tous les tags manuels (si il y en a)
+                    has_all_manual_tags = True
+                    if manual_tags_lower:
+                        has_all_manual_tags = all(tag in verre_tags_lower for tag in manual_tags_lower)
+                    
+                    # Les deux conditions doivent être vraies
+                    if has_top20_tag and has_all_manual_tags:
+                        verres.append({
+                            "id": row[0],
+                            "nom": row[1],
+                            "indice": row[5],
+                            "gravure": row[6],
+                            "url_source": row[7],
+                            "fournisseur": row[8],
+                            "tags": verre_tags,
+                            "matching_tags": [tag for tag in manual_tags_lower if tag in verre_tags_lower]
+                        })
+                else:
+                    # Mode classique : tous les tags doivent être présents (AND)
+                    if manual_tags_lower and all(tag in verre_tags_lower for tag in manual_tags_lower):
+                        verres.append({
+                            "id": row[0],
+                            "nom": row[1],
+                            "indice": row[5],
+                            "gravure": row[6],
+                            "url_source": row[7],
+                            "fournisseur": row[8],
+                            "tags": verre_tags,
+                            "matching_tags": [tag for tag in manual_tags_lower if tag in verre_tags_lower]
+                        })
             except Exception as e:
                 logger.error(f"Erreur lors du traitement des tags pour le verre {row[0]}: {e}")
                 continue
 
-        logger.info(f"Nombre de verres ayant au moins un tag correspondant: {len(verres)}")
+        if top20_tags:
+            logger.info(f"Nombre de verres avec tags Top 20 + filtres manuels: {len(verres)}")
+        else:
+            logger.info(f"Nombre de verres ayant TOUS les tags correspondants: {len(verres)}")
         return verres
 
     except Exception as e:
