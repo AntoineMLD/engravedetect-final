@@ -1,0 +1,2 @@
+id,email,username,hashed_password,is_active,created_at,updated_at,last_login
+1,admin@example.com,admin,$2b$12$LlM/LfSulU7irvIdZ9I4.ODr471UlGILT0/h8not9Xol.Y2OKIs5e,True,2025-06-11 20:49:19.107,2025-06-13 16:08:15.757,2025-06-13 16:08:15.757

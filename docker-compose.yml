@@ -75,9 +75,24 @@ services:
     networks:
       - app-network
 
+  postgres:
+    image: postgres:14.7
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: azerton3359
+      POSTGRES_DB: glass_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
 
 volumes:
   grafana_data:
+  pgdata:
