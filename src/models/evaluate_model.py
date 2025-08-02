@@ -1,5 +1,26 @@
-# evaluate_model.py
-# Version enrichie avec courbe de top-k accuracy + matrice de confusion
+"""
+Script d'évaluation du modèle EfficientNet avec métriques avancées.
+
+Ce module évalue les performances du modèle EfficientNetEmbedding entraîné
+en utilisant plusieurs métriques : top-k accuracy, matrice de confusion
+et analyse des similarités cosinus.
+
+Fonctionnalités :
+- Chargement du modèle entraîné
+- Extraction d'embeddings pour les données de test et de référence
+- Calcul de la top-k accuracy (k=1, 3, 5)
+- Génération de la matrice de confusion
+- Visualisation des résultats avec graphiques
+- Analyse des similarités cosinus entre embeddings
+
+Métriques calculées :
+- Top-1, Top-3, Top-5 accuracy
+- Matrice de confusion
+- Similarités cosinus
+
+Auteur : Équipe de développement
+Version : 1.0.0
+"""
 
 import os
 import sys
@@ -35,6 +56,15 @@ transform = transforms.Compose(
 
 
 def load_model():
+    """
+    Charge le modèle EfficientNetEmbedding entraîné depuis le disque.
+
+    Returns:
+        EfficientNetEmbedding: Modèle PyTorch prêt à l'évaluation.
+
+    Exemple d'utilisation :
+        model = load_model()
+    """
     model = EfficientNetEmbedding(embedding_dim=EMBEDDING_DIM, pretrained=False)
     model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
     model.to(DEVICE)
@@ -43,6 +73,19 @@ def load_model():
 
 
 def extract_embeddings(model, data_dir):
+    """
+    Extrait les embeddings et les labels pour toutes les images d'un dossier.
+
+    Args:
+        model: Modèle PyTorch pour l'extraction d'embeddings.
+        data_dir (str): Dossier contenant les sous-dossiers de classes.
+
+    Returns:
+        Tuple[np.ndarray, List[str], List[str]]: Embeddings, labels, chemins des images.
+
+    Exemple d'utilisation :
+        emb, labels, paths = extract_embeddings(model, 'data/split/test')
+    """
     embeddings = []
     labels = []
     paths = []
@@ -66,6 +109,22 @@ def extract_embeddings(model, data_dir):
 
 
 def compute_topk_accuracy(test_embeddings, test_labels, ref_embeddings, ref_labels, ks):
+    """
+    Calcule la top-k accuracy pour différents k entre les embeddings de test et de référence.
+
+    Args:
+        test_embeddings (np.ndarray): Embeddings des images de test.
+        test_labels (List[str]): Labels des images de test.
+        ref_embeddings (np.ndarray): Embeddings des images de référence.
+        ref_labels (List[str]): Labels des images de référence.
+        ks (List[int]): Valeurs de k à tester (ex: [1, 3, 5]).
+
+    Returns:
+        Tuple[Dict[str, float], List[str], List[str]]: Dictionnaire des top-k accuracies, labels réels, prédictions top-1.
+
+    Exemple d'utilisation :
+        topk_acc, y_true, y_pred = compute_topk_accuracy(...)
+    """
     similarities = cosine_similarity(test_embeddings, ref_embeddings)
     topk_hits = {k: 0 for k in ks}
     y_true, y_pred_top1 = [], []
@@ -86,6 +145,15 @@ def compute_topk_accuracy(test_embeddings, test_labels, ref_embeddings, ref_labe
 
 
 def plot_topk(topk_acc):
+    """
+    Génère et sauvegarde un graphique de top-k accuracy.
+
+    Args:
+        topk_acc (Dict[str, float]): Dictionnaire des top-k accuracies.
+
+    Exemple d'utilisation :
+        plot_topk({'Top-1': 0.95, 'Top-3': 0.98, 'Top-5': 0.99})
+    """
     labels = list(topk_acc.keys())
     values = list(topk_acc.values())
 
@@ -101,6 +169,16 @@ def plot_topk(topk_acc):
 
 
 def plot_confusion(y_true, y_pred):
+    """
+    Génère et sauvegarde la matrice de confusion pour les prédictions top-1.
+
+    Args:
+        y_true (List[str]): Labels réels.
+        y_pred (List[str]): Labels prédits (top-1).
+
+    Exemple d'utilisation :
+        plot_confusion(y_true, y_pred)
+    """
     labels = sorted(list(set(y_true + y_pred)))
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
@@ -113,6 +191,13 @@ def plot_confusion(y_true, y_pred):
 
 
 def main():
+    """
+    Point d'entrée du script d'évaluation.
+    Charge le modèle, extrait les embeddings, calcule les métriques et génère les graphiques.
+
+    Exemple d'utilisation :
+        python evaluate_model.py
+    """
     print("Chargement du modèle...")
     model = load_model()
 

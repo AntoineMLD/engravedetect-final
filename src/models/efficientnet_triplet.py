@@ -6,11 +6,27 @@ import torchvision.models as models
 
 class EfficientNetEmbedding(nn.Module):
     """
-    Modèle basé sur EfficientNet-B0 pour l'extraction d'embedding.
-    Conçu pour fonctionner avec des images grayscale et compatible Triplet Loss.
-    """
+    Modèle PyTorch basé sur EfficientNet-B0 pour l'extraction d'embeddings à partir d'images.
 
+    Ce modèle est conçu pour fonctionner avec des images en niveaux de gris (grayscale)
+    et pour être utilisé dans des architectures à Triplet Loss.
+
+    Args:
+        embedding_dim (int): Dimension de l'espace d'embedding de sortie.
+        pretrained (bool): Si True, charge les poids pré-entraînés ImageNet.
+
+    Exemple d'utilisation :
+        model = EfficientNetEmbedding(embedding_dim=256, pretrained=True)
+        emb = model.forward_one(image_tensor)
+    """
     def __init__(self, embedding_dim: int = 256, pretrained: bool = True):
+        """
+        Initialise le modèle EfficientNetEmbedding.
+
+        Args:
+            embedding_dim (int): Dimension de l'embedding de sortie.
+            pretrained (bool): Charge les poids ImageNet si True.
+        """
         super().__init__()
 
         # charge EfficientNet-B0 avec les poids appropriés
@@ -40,15 +56,17 @@ class EfficientNetEmbedding(nn.Module):
 
     def forward_one(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Calcule l'embedding d'une seule image ou un batch.
+        Calcule l'embedding d'une seule image ou d'un batch d'images.
 
         Args:
-        x: image grayscale tensor de forme (B, 1, H, W)
+            x (torch.Tensor): Image ou batch d'images de forme (B, 1, H, W) en niveaux de gris.
 
         Returns:
-        embedding normalisé L2 de forme (B, embedding_dim)
-        """
+            torch.Tensor: Embedding normalisé L2 de forme (B, embedding_dim).
 
+        Exemple d'utilisation :
+            emb = model.forward_one(image_tensor)
+        """
         if x.size(1) == 1:
             x = self.grayscale_conv(x)
 
@@ -59,7 +77,19 @@ class EfficientNetEmbedding(nn.Module):
 
     def forward(self, anchor, positive, negative):
         """
-        Pour compatibilité avec Triplet Loss.
+        Calcule les embeddings pour un triplet (anchor, positive, negative).
+        Utilisé pour la compatibilité avec la Triplet Loss.
+
+        Args:
+            anchor (torch.Tensor): Batch d'images ancre.
+            positive (torch.Tensor): Batch d'images positives.
+            negative (torch.Tensor): Batch d'images négatives.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Embeddings normalisés pour anchor, positive, negative.
+
+        Exemple d'utilisation :
+            anchor_emb, pos_emb, neg_emb = model(anchor, positive, negative)
         """
         anchor_emb = self.forward_one(anchor)
         positive_emb = self.forward_one(positive)

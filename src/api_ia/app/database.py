@@ -29,23 +29,39 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @contextmanager
 def get_db_session():
-    """Gestionnaire de session SQLAlchemy."""
+    """
+    Gestionnaire de contexte pour obtenir une session SQLAlchemy.
+
+    Yields:
+        Session: Session SQLAlchemy connectée à la base.
+
+    Exemple d'utilisation :
+        with get_db_session() as db:
+            result = db.execute(...)
+    """
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+
 def execute_query(query: str, params: dict = None) -> List[Any]:
     """
-    Exécute une requête SQL avec SQLAlchemy.
+    Exécute une requête SQL avec SQLAlchemy et retourne les résultats.
 
     Args:
-        query (str): Requête SQL.
-        params (dict, optional): Paramètres de la requête.
+        query (str): Requête SQL à exécuter.
+        params (dict, optionnel): Paramètres de la requête.
 
     Returns:
-        List[Any]: Résultats de la requête.
+        List[Any]: Résultats de la requête (listes de tuples).
+
+    Raises:
+        Exception: Si l'exécution échoue.
+
+    Exemple d'utilisation :
+        results = execute_query('SELECT * FROM verres')
     """
     try:
         with get_db_session() as db:
@@ -55,35 +71,88 @@ def execute_query(query: str, params: dict = None) -> List[Any]:
         logger.error(f"Erreur lors de l'exécution de la requête: {e}")
         raise
 
+
 def parse_verre_tags(tags_json: str) -> List[str]:
-    """Parse les tags JSON d'un verre."""
+    """
+    Parse une chaîne JSON représentant une liste de tags.
+
+    Args:
+        tags_json (str): Chaîne JSON à parser.
+
+    Returns:
+        List[str]: Liste de tags extraits.
+
+    Exemple d'utilisation :
+        tags = parse_verre_tags('["tag1", "tag2"]')
+    """
     try:
         return json.loads(tags_json or "[]")
     except json.JSONDecodeError as e:
         logger.error(f"Erreur de décodage JSON pour les tags: {e}")
         return []
 
+
 def create_verre_dict(row: Any, columns: List[str]) -> Dict[str, Any]:
-    """Transforme une ligne SQL en dictionnaire."""
+    """
+    Transforme une ligne SQL (tuple) et une liste de colonnes en dictionnaire.
+
+    Args:
+        row (Any): Tuple représentant une ligne SQL.
+        columns (List[str]): Liste des noms de colonnes.
+
+    Returns:
+        Dict[str, Any]: Dictionnaire clé-valeur pour chaque colonne.
+
+    Exemple d'utilisation :
+        d = create_verre_dict(row, result.keys())
+    """
     verre = dict(zip(columns, row))
     if "tags" in verre:
         verre["tags"] = parse_verre_tags(verre["tags"])
     return verre
 
+
 def filter_top20_tags(tags: List[str]) -> List[str]:
-    """Filtre les tags pour ne garder que ceux du Top 20."""
+    """
+    Filtre une liste de tags pour ne garder que ceux du Top 20.
+
+    Args:
+        tags (List[str]): Liste de tags à filtrer.
+
+    Returns:
+        List[str]: Tags appartenant au Top 20.
+    """
     return [tag for tag in tags if tag in TOP20_TAGS]
 
+
 def filter_manual_tags(tags: List[str]) -> List[str]:
-    """Filtre les tags pour ne garder que ceux qui ne sont PAS du Top 20."""
+    """
+    Filtre une liste de tags pour ne garder que ceux qui ne sont PAS du Top 20.
+
+    Args:
+        tags (List[str]): Liste de tags à filtrer.
+
+    Returns:
+        List[str]: Tags n'appartenant pas au Top 20.
+    """
     return [tag for tag in tags if tag not in TOP20_TAGS]
+
 
 def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
     """
-    Trouve les verres selon la logique intelligente :
+    Trouve les verres correspondant à une liste de tags selon une logique intelligente :
     - Sépare automatiquement les tags Top 20 des tags manuels
-    - Si tags Top 20 présents : recherche OR parmi Top 20 + filtre par tags manuels
-    - Sinon : recherche AND classique
+    - Si tags Top 20 présents : recherche OR parmi Top 20 + filtre par tags manuels
+    - Sinon : recherche AND classique
+
+    Args:
+        tags (List[str]): Liste de tags à rechercher.
+
+    Returns:
+        List[Dict[str, Any]]: Liste de verres correspondants (dictionnaires).
+
+    Exemple d'utilisation :
+        verres = find_matching_verres(['cercle', 'marque'])
     """
     try:
         if not tags:
@@ -163,8 +232,20 @@ def find_matching_verres(tags: List[str]) -> List[Dict[str, Any]]:
         logger.error(f"Erreur lors de la recherche des verres: {e}")
         return []
 
+
 def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
-    """Récupère les détails d’un verre par son ID."""
+    """
+    Récupère les détails d’un verre par son ID depuis la table principale.
+
+    Args:
+        verre_id (int): Identifiant du verre à rechercher.
+
+    Returns:
+        Optional[Dict[str, Any]]: Dictionnaire des détails du verre ou None si non trouvé.
+
+    Exemple d'utilisation :
+        details = get_verre_details(42)
+    """
     try:
         query = "SELECT * FROM verres WHERE id = :verre_id"
         with get_db_session() as db:
@@ -178,8 +259,20 @@ def get_verre_details(verre_id: int) -> Optional[Dict[str, Any]]:
         logger.error(f"Erreur lors de la récupération des détails du verre: {e}")
         return None
 
+
 def get_verre_staging_details(verre_id: int) -> Optional[Dict[str, Any]]:
-    """Récupère les détails d’un verre depuis la table staging."""
+    """
+    Récupère les détails d’un verre par son ID depuis la table staging.
+
+    Args:
+        verre_id (int): Identifiant du verre à rechercher dans la table staging.
+
+    Returns:
+        Optional[Dict[str, Any]]: Dictionnaire des détails du verre ou None si non trouvé.
+
+    Exemple d'utilisation :
+        details = get_verre_staging_details(42)
+    """
     try:
         query = "SELECT * FROM verres_staging WHERE id = :verre_id"
         with get_db_session() as db:
@@ -193,8 +286,20 @@ def get_verre_staging_details(verre_id: int) -> Optional[Dict[str, Any]]:
         logger.error(f"Erreur lors de la récupération du verre staging: {e}")
         return None
 
+
 def delete_user_by_username(username: str) -> bool:
-    """Supprime un utilisateur par son nom d'utilisateur."""
+    """
+    Supprime un utilisateur de la table users par son nom d'utilisateur.
+
+    Args:
+        username (str): Nom d'utilisateur à supprimer.
+
+    Returns:
+        bool: True si l'utilisateur a été supprimé, False sinon.
+
+    Exemple d'utilisation :
+        success = delete_user_by_username('admin')
+    """
     try:
         with get_db_session() as db:
             result = db.execute(text("DELETE FROM users WHERE username = :username"), {"username": username})

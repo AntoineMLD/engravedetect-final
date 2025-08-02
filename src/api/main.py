@@ -1,3 +1,21 @@
+"""
+Module principal de l'API de gestion des verres optiques.
+
+Ce module configure et initialise l'application FastAPI principale pour la gestion
+des verres optiques. Il inclut la configuration du logging, des middlewares CORS,
+et l'enregistrement des routes principales.
+
+Fonctionnalités :
+- Configuration du logging détaillé
+- Initialisation de l'application FastAPI
+- Configuration CORS
+- Enregistrement des routes d'authentification et de gestion des verres
+- Endpoints de santé et racine
+
+Auteur : Équipe de développement
+Version : 1.0.0
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.routes.v1 import auth, verres

@@ -14,6 +14,15 @@ transform = transforms.Compose(
 
 
 def load_model():
+    """
+    Charge le modèle EfficientNetEmbedding avec les poids entraînés pour l'API IA.
+
+    Returns:
+        EfficientNetEmbedding: Modèle PyTorch prêt à l'inférence.
+
+    Exemple d'utilisation :
+        model = load_model()
+    """
     # Nous utilisons pretrained=False car nous chargeons nos propres poids
     # Le warning ne devrait plus apparaître car nous avons modifié la classe pour utiliser weights=None
     model = EfficientNetEmbedding(embedding_dim=256, pretrained=False)
@@ -24,10 +33,35 @@ def load_model():
 
 
 def preprocess_image(img: Image.Image):
+    """
+    Prétraite une image PIL pour l'inférence avec le modèle EfficientNetEmbedding.
+
+    Args:
+        img (PIL.Image.Image): Image à prétraiter.
+
+    Returns:
+        torch.Tensor: Image transformée, normalisée et prête à être passée au modèle.
+
+    Exemple d'utilisation :
+        tensor = preprocess_image(img)
+    """
     return transform(img).unsqueeze(0).to(DEVICE)
 
 
 def get_embedding(model, img: Image.Image):
+    """
+    Extrait l'embedding d'une image à l'aide du modèle fourni.
+
+    Args:
+        model: Modèle EfficientNetEmbedding chargé.
+        img (PIL.Image.Image): Image à encoder.
+
+    Returns:
+        np.ndarray: Vecteur d'embedding de l'image.
+
+    Exemple d'utilisation :
+        emb = get_embedding(model, img)
+    """
     tensor = preprocess_image(img)
     with torch.no_grad():
         emb = model.forward_one(tensor).cpu().numpy()

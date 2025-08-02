@@ -1,3 +1,31 @@
+"""
+Script d'insertion des tags extraits dans la base de données PostgreSQL.
+
+Ce module charge les tags extraits depuis un fichier JSON et les insère
+dans la table verres de la base de données PostgreSQL.
+
+Fonctionnalités :
+- Chargement des tags depuis le fichier JSON
+- Connexion sécurisée à PostgreSQL
+- Mise à jour en lot des enregistrements
+- Gestion des erreurs et logging détaillé
+- Validation des correspondances de gravures
+
+Processus :
+1. Lecture du fichier output/verres_tags.json
+2. Connexion à la base PostgreSQL
+3. Mise à jour des tags pour chaque gravure
+4. Validation et reporting des résultats
+
+Format des données :
+- Tags stockés en JSON dans la colonne tags
+- Correspondance par gravure (recherche ILIKE)
+- Gestion des caractères spéciaux (UTF-8)
+
+Auteur : Équipe de développement
+Version : 1.0.0
+"""
+
 # src/scripts/insert_tags.py
 
 import os
@@ -13,7 +41,18 @@ logger = logging.getLogger(__name__)
 
 
 def get_connection():
-    """Établit une connexion à PostgreSQL."""
+    """
+    Établit une connexion à la base de données PostgreSQL à partir de la variable d'environnement DATABASE_URL.
+
+    Returns:
+        connection (psycopg2.extensions.connection): Objet de connexion PostgreSQL.
+
+    Raises:
+        Exception: Si la connexion échoue.
+
+    Exemple d'utilisation :
+        conn = get_connection()
+    """
     load_dotenv()
     try:
         return psycopg2.connect(os.getenv("DATABASE_URL"))
@@ -23,7 +62,18 @@ def get_connection():
 
 
 def load_tags_from_json() -> List[Dict]:
-    """Charge les tags depuis le fichier JSON."""
+    """
+    Charge les tags extraits depuis le fichier JSON généré par extract_tags.py.
+
+    Returns:
+        List[Dict]: Liste de dictionnaires contenant les gravures et leurs tags associés.
+
+    Raises:
+        Exception: Si la lecture du fichier JSON échoue.
+
+    Exemple d'utilisation :
+        tags_data = load_tags_from_json()
+    """
     try:
         with open("output/verres_tags.json", "r", encoding="utf-8") as f:
             return json.load(f)
@@ -33,7 +83,21 @@ def load_tags_from_json() -> List[Dict]:
 
 
 def update_tags_in_database(conn, tags_data: List[Dict]):
-    """Met à jour les tags dans la table verres."""
+    """
+    Met à jour la colonne 'tags' de la table 'verres' pour chaque gravure présente dans tags_data.
+
+    Args:
+        conn: Objet de connexion PostgreSQL.
+        tags_data (List[Dict]): Liste de dictionnaires avec les champs 'gravure' et 'tags'.
+
+    Cette fonction parcourt chaque entrée, convertit les tags en JSON, et met à jour la base.
+    Elle logue le nombre de mises à jour et d'erreurs.
+
+    Exemple d'utilisation :
+        conn = get_connection()
+        tags_data = load_tags_from_json()
+        update_tags_in_database(conn, tags_data)
+    """
     cursor = conn.cursor()
     updated_count = 0
     error_count = 0
@@ -65,6 +129,18 @@ def update_tags_in_database(conn, tags_data: List[Dict]):
 
 
 def main():
+    """
+    Point d'entrée du script. Charge les tags, se connecte à la base et met à jour les enregistrements.
+
+    Étapes :
+    1. Chargement des tags depuis le JSON
+    2. Connexion à PostgreSQL
+    3. Mise à jour des tags dans la base
+    4. Fermeture de la connexion
+
+    Exemple d'utilisation :
+        python insert_tags.py
+    """
     try:
         logger.info("📥 Chargement des tags JSON...")
         tags_data = load_tags_from_json()

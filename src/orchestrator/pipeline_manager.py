@@ -1,3 +1,27 @@
+"""
+Module d'orchestration du pipeline de données optiques.
+
+Ce module contient la classe DataPipelineManager qui orchestre l'ensemble
+du pipeline de traitement des données optiques, du scraping à la création
+des tables finales en base de données.
+
+Fonctionnalités :
+- Configuration automatique du logging et des chemins
+- Chargement dynamique des spiders Scrapy
+- Exécution séquentielle des étapes du pipeline
+- Gestion des erreurs et monitoring des processus
+- Export des données vers PostgreSQL
+
+Pipeline complet :
+1. Exécution des spiders de scraping
+2. Export des données brutes vers staging
+3. Nettoyage et enrichissement des données
+4. Export des données finales vers verres
+
+Auteur : Équipe de développement
+Version : 1.0.0
+"""
+
 import logging
 from datetime import datetime
 from typing import Dict, Optional
@@ -10,16 +34,28 @@ from ..database.reset_database import reset_database
 class DataPipelineManager:
     """
     Orchestrateur principal du pipeline de données optiques.
-    Gère l'ensemble du flux de données : du scraping à la création des tables finales.
-    """
 
+    Cette classe gère l'ensemble du flux de données, du scraping à la création des tables finales.
+    Elle encapsule toutes les étapes du pipeline, la configuration du logging, le chargement des dépendances,
+    et fournit des méthodes pour exécuter chaque étape ou le pipeline complet.
+
+    Exemple d'utilisation :
+        pipeline = DataPipelineManager()
+        pipeline.run_full_pipeline()
+    """
     def __init__(self):
+        """
+        Initialise le pipeline, configure le logging, les chemins et charge les dépendances.
+        """
         self._setup_logging()
         self._setup_paths()
         self._load_dependencies()
 
     def _setup_logging(self) -> None:
-        """Configure le système de logging."""
+        """
+        Configure le système de logging pour le pipeline.
+        Crée un fichier de log daté et configure la sortie console.
+        """
         log_format = "%(asctime)s [%(levelname)s] %(message)s"
         date_format = "%Y-%m-%d %H:%M:%S"
 
@@ -43,7 +79,9 @@ class DataPipelineManager:
         self.logger = logging.getLogger(__name__)
 
     def _setup_paths(self) -> None:
-        """Configure les chemins du projet."""
+        """
+        Configure les chemins du projet et ajoute le projet au PYTHONPATH pour Scrapy.
+        """
         # Obtenir le chemin absolu du projet
         self.project_root = Path(__file__).resolve().parents[2]
 
@@ -53,7 +91,9 @@ class DataPipelineManager:
             self.logger.info(f"Ajout du chemin du projet au PYTHONPATH: {self.project_root}")
 
     def _load_dependencies(self) -> None:
-        """Charge les dépendances nécessaires."""
+        """
+        Charge dynamiquement les spiders Scrapy et le nettoyeur de données.
+        """
         try:
             from src.data.scraping.france_optique.spiders import (
                 glass_spider,
@@ -83,10 +123,14 @@ class DataPipelineManager:
 
     def run_spiders(self) -> bool:
         """
-        Lance tous les spiders pour collecter les données.
+        Lance tous les spiders Scrapy pour collecter les données brutes.
 
         Returns:
-            bool: True si tous les spiders ont réussi, False sinon
+            bool: True si tous les spiders ont réussi, False sinon.
+
+        Exemple d'utilisation :
+            pipeline = DataPipelineManager()
+            pipeline.run_spiders()
         """
         self.logger.info("🕷️ Démarrage des spiders...")
 
@@ -119,10 +163,10 @@ class DataPipelineManager:
 
     def export_staging_data(self) -> Optional[str]:
         """
-        Exporte les données de la table staging en CSV.
+        Exporte les données de la table staging en CSV via le cleaner.
 
         Returns:
-            Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur
+            Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur.
         """
         self.logger.info("📤 Export des données staging en CSV...")
         try:
@@ -142,10 +186,10 @@ class DataPipelineManager:
 
     def clean_and_enhance_data(self) -> bool:
         """
-        Nettoie les données et les insère dans la table enhanced.
+        Nettoie les données brutes et les insère dans la table enhanced.
 
         Returns:
-            bool: True si le processus a réussi, False sinon
+            bool: True si le processus a réussi, False sinon.
         """
         self.logger.info("🧹 Nettoyage et amélioration des données...")
         try:
@@ -175,10 +219,10 @@ class DataPipelineManager:
 
     def export_enhanced_data(self) -> Optional[str]:
         """
-        Exporte les données de la table enhanced en CSV.
+        Exporte les données de la table enhanced en CSV via le cleaner.
 
         Returns:
-            Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur
+            Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur.
         """
         self.logger.info("📤 Export des données enhanced en CSV...")
         try:
@@ -198,10 +242,14 @@ class DataPipelineManager:
 
     def run_full_pipeline(self) -> Dict[str, bool]:
         """
-        Exécute l'ensemble du pipeline de données.
+        Exécute l'ensemble du pipeline de données, étape par étape.
 
         Returns:
-            Dict[str, bool]: Dictionnaire indiquant le statut de chaque étape
+            Dict[str, bool]: Dictionnaire indiquant le statut de chaque étape.
+
+        Exemple d'utilisation :
+            pipeline = DataPipelineManager()
+            results = pipeline.run_full_pipeline()
         """
         results = {
             "reset_database": False,
@@ -246,7 +294,16 @@ class DataPipelineManager:
 
 
 def main():
-    """Point d'entrée principal du script."""
+    """
+    Point d'entrée principal du script pipeline_manager.py.
+    Instancie le pipeline, exécute le pipeline complet et affiche un résumé des résultats.
+
+    Returns:
+        int: 0 si tout a réussi, 1 sinon (pour usage en ligne de commande).
+
+    Exemple d'utilisation :
+        python pipeline_manager.py
+    """
     try:
         pipeline = DataPipelineManager()
         results = pipeline.run_full_pipeline()

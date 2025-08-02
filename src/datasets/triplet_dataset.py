@@ -1,3 +1,31 @@
+"""
+Module de dataset pour l'entraînement avec Triplet Loss.
+
+Ce module contient la classe TripletDataset qui génère dynamiquement des triplets
+d'images (anchor, positive, negative) pour l'entraînement de modèles de deep learning
+utilisant la Triplet Loss.
+
+Fonctionnalités :
+- Génération automatique de triplets d'images
+- Sélection intelligente d'images positives et négatives
+- Support des transformations d'images
+- Gestion des formats d'images multiples (PNG, JPG, JPEG)
+- Conversion automatique en grayscale
+
+Structure des triplets :
+- Anchor : Image de référence
+- Positive : Image de la même classe que l'anchor
+- Negative : Image d'une classe différente
+
+Transformations par défaut :
+- Redimensionnement à 224x224 pixels
+- Conversion en tenseur PyTorch
+- Normalisation avec mean=0.5, std=0.5
+
+Auteur : Équipe de développement
+Version : 1.0.0
+"""
+
 import os
 import random
 from PIL import Image
@@ -7,15 +35,29 @@ import torchvision.transforms as transforms
 
 
 class TripletDataset(Dataset):
+    """
+    Dataset PyTorch pour la génération dynamique de triplets d'images (anchor, positive, negative).
+
+    Ce dataset est utilisé pour l'entraînement de modèles avec la Triplet Loss.
+    Il sélectionne automatiquement, pour chaque image ancre, une image positive (même classe)
+    et une image négative (classe différente).
+
+    Args:
+        root_dir (str): Dossier racine contenant les sous-dossiers de classes.
+        transform (callable, optionnel): Transformations à appliquer aux images.
+
+    Exemple d'utilisation :
+        dataset = TripletDataset('data/split/train', transform=default_transform)
+        anchor, positive, negative = dataset[0]
+    """
     def __init__(self, root_dir: str, transform=None):
         """
-        Dataset qui génère dynamiquement des triplets d'images pour l'entrainement d'un modèle de triplet.
+        Initialise le dataset de triplets à partir d'un dossier racine.
 
         Args:
-            root_dir: Dossier racine contenant les sous-dossiers de classes
-            transform: Transformations à appliquer aux images (par ex. redimensionnement)
+            root_dir (str): Dossier racine contenant les sous-dossiers de classes.
+            transform (callable, optionnel): Transformations à appliquer aux images.
         """
-
         self.root_dir = root_dir
         self.transform = transform
 
@@ -37,9 +79,27 @@ class TripletDataset(Dataset):
         self.samples = [(img_path, cls) for cls, imgs in self.image_dict.items() for img_path in imgs]
 
     def __len__(self):
+        """
+        Retourne le nombre total de triplets disponibles dans le dataset.
+
+        Returns:
+            int: Nombre de triplets (égal au nombre d'images disponibles).
+        """
         return len(self.samples)
 
     def __getitem__(self, index: int) -> Tuple:
+        """
+        Retourne un triplet (anchor, positive, negative) pour l'index donné.
+
+        Args:
+            index (int): Index du triplet à retourner.
+
+        Returns:
+            Tuple: (anchor, positive, negative), chacun étant une image (PIL ou Tensor).
+
+        Exemple d'utilisation :
+            anchor, positive, negative = dataset[0]
+        """
         anchor_path, anchor_class = self.samples[index]
 
         # Tirer une image positive dans la même classe (différente de l'ancre)

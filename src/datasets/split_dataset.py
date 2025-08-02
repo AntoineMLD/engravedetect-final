@@ -1,3 +1,27 @@
+"""
+Script de division du dataset en ensembles d'entraînement, validation et test.
+
+Ce module divise automatiquement le dataset d'images de gravures en trois
+ensembles distincts selon des ratios configurables pour l'entraînement
+de modèles de deep learning.
+
+Fonctionnalités :
+- Division automatique des données par classe
+- Respect des ratios train/validation/test
+- Préservation de la structure des répertoires
+- Gestion des erreurs et validation des chemins
+- Reproducibilité avec seed aléatoire
+
+Configuration par défaut :
+- Source : ../data/oversampled_gravures
+- Cible : ../data/split
+- Ratios : 70% train, 15% validation, 15% test
+- Seed : 42 pour la reproductibilité
+
+Auteur : Équipe de développement
+Version : 1.0.0
+"""
+
 import os
 import random
 import shutil
@@ -13,6 +37,24 @@ SEED = 42
 
 
 def split_dataset(source_dir: str, target_dir: str, split_ratios: Tuple[float, float, float], seed: int = 42):
+    """
+    Divise un dataset d'images en trois ensembles (train, val, test) selon les ratios fournis.
+
+    Args:
+        source_dir (str): Chemin du dossier source contenant les sous-dossiers de classes.
+        target_dir (str): Chemin du dossier cible où seront créés les sous-dossiers train/val/test.
+        split_ratios (Tuple[float, float, float]): Ratios pour train, val, test (doivent totaliser 1.0).
+        seed (int, optionnel): Graine aléatoire pour la reproductibilité.
+
+    Cette fonction :
+    - Crée la structure de dossiers cible
+    - Répartit aléatoirement les images de chaque classe selon les ratios
+    - Copie les images dans les bons sous-dossiers
+    - Affiche un résumé pour chaque classe
+
+    Exemple d'utilisation :
+        split_dataset('../data/oversampled_gravures', '../data/split', (0.7, 0.15, 0.15), seed=42)
+    """
     assert sum(split_ratios) == 1.0, "Les ratios doivent totaliser 1.0"
 
     # Vérifier si le répertoire source existe

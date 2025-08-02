@@ -19,6 +19,16 @@ import magic
 
 # Logger sécurité
 def setup_security_logging():
+    """
+    Configure le logger de sécurité pour l'API.
+    Crée un fichier de log rotatif dans le dossier logs/security.
+
+    Returns:
+        logging.Logger: Logger configuré pour la sécurité.
+
+    Exemple d'utilisation :
+        logger = setup_security_logging()
+    """
     log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "security")
     os.makedirs(log_path, exist_ok=True)
 
@@ -38,11 +48,25 @@ security_logger = setup_security_logging()
 
 # Modèles
 class TokenData(BaseModel):
+    """
+    Modèle Pydantic pour représenter les données d'un token JWT.
+
+    Attributs :
+        username (str): Nom d'utilisateur associé au token.
+        exp (datetime): Date d'expiration du token.
+    """
     username: str
     exp: datetime
 
 
 class UserCredentials(BaseModel):
+    """
+    Modèle Pydantic pour représenter les identifiants d'un utilisateur.
+
+    Attributs :
+        email (EmailStr): Adresse email de l'utilisateur.
+        password (str): Mot de passe de l'utilisateur.
+    """
     email: EmailStr
     password: str
 
@@ -59,11 +83,29 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Auth - Utilise la même logique que l'API principale
 def verify_password(plain: str, hashed: str) -> bool:
+    """
+    Vérifie qu'un mot de passe en clair correspond à son hash.
+
+    Args:
+        plain (str): Mot de passe en clair.
+        hashed (str): Hash du mot de passe.
+
+    Returns:
+        bool: True si le mot de passe correspond, False sinon.
+    """
     return pwd_context.verify(plain, hashed)
 
 
 def get_user(username: str):
-    """Récupère un utilisateur depuis la base PostgreSQL (même logique que l'API principale)"""
+    """
+    Récupère un utilisateur depuis la base PostgreSQL par son username.
+
+    Args:
+        username (str): Nom d'utilisateur à rechercher.
+
+    Returns:
+        dict | None: Dictionnaire des infos utilisateur ou None si non trouvé.
+    """
     try:
         engine = create_engine(DATABASE_URL, pool_pre_ping=True)
         with engine.connect() as conn:
@@ -87,7 +129,16 @@ def get_user(username: str):
 
 
 def authenticate_user(username: str, password: str):
-    """Authentifie un utilisateur (même logique que l'API principale)"""
+    """
+    Authentifie un utilisateur en vérifiant son mot de passe et la confirmation email.
+
+    Args:
+        username (str): Nom d'utilisateur.
+        password (str): Mot de passe en clair.
+
+    Returns:
+        dict | bool: Dictionnaire utilisateur si authentifié, False sinon.
+    """
     user = get_user(username)
     if not user:
         return False
@@ -100,7 +151,15 @@ def authenticate_user(username: str, password: str):
 
 # Tokens - Utilise la même logique que l'API principale
 def create_access_token(username: str) -> str:
-    """Crée un token d'accès (même logique que l'API principale)"""
+    """
+    Crée un token d'accès JWT pour un utilisateur donné.
+
+    Args:
+        username (str): Nom d'utilisateur.
+
+    Returns:
+        str: Token JWT encodé.
+    """
     expire = datetime.utcnow() + timedelta(minutes=TOKEN_SETTINGS["ACCESS_TOKEN_EXPIRE_MINUTES"])
     payload = {"sub": username, "exp": expire}
 
@@ -111,7 +170,18 @@ def create_access_token(username: str) -> str:
 
 
 def verify_token(token: str) -> TokenData:
-    """Vérifie un token (même logique que l'API principale)"""
+    """
+    Vérifie la validité d'un token JWT et retourne les données associées.
+
+    Args:
+        token (str): Token JWT à vérifier.
+
+    Returns:
+        TokenData: Données extraites du token.
+
+    Raises:
+        HTTPException: Si le token est invalide ou expiré.
+    """
     try:
         payload = jwt.decode(token, TOKEN_SETTINGS["SECRET_KEY"], algorithms=[TOKEN_SETTINGS["ALGORITHM"]])
         username = payload.get("sub")
@@ -164,7 +234,7 @@ def check_mime_type(file_content: bytes) -> Tuple[bool, str]:
 
 def validate_image_file(file_content: bytes, max_size: int = 5 * 1024 * 1024) -> bool:
     """
-    Valide un fichier image en vérifiant sa taille et son type MIME.
+    Valide un fichier image en vérifiant sa taille, son type MIME et sa signature binaire.
 
     Args:
         file_content (bytes): Contenu du fichier à valider
@@ -197,6 +267,14 @@ def validate_image_file(file_content: bytes, max_size: int = 5 * 1024 * 1024) ->
 
 # Logs sécurité
 def log_security_event(event_type: str, details: str, level: str = "INFO"):
+    """
+    Loggue un événement de sécurité dans le logger dédié.
+
+    Args:
+        event_type (str): Type d'événement (ex: TOKEN_EXPIRED, INVALID_FILE_TYPE).
+        details (str): Détails de l'événement.
+        level (str): Niveau de log (INFO, WARNING, ERROR).
+    """
     message = f"{event_type} - {details}"
     if level == "ERROR":
         security_logger.error(message)

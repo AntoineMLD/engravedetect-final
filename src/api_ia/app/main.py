@@ -109,6 +109,13 @@ except Exception as e:
 
 
 class Match(BaseModel):
+    """
+    Schéma Pydantic représentant une correspondance de classe et son score de similarité.
+
+    Attributs :
+        class_ (str) : Nom de la classe prédite.
+        similarity (float) : Score de similarité cosinus (0 à 1).
+    """
     class_: str = None
     similarity: float = 0.0
 
@@ -120,10 +127,24 @@ class Match(BaseModel):
 
 
 class MatchResponse(BaseModel):
+    """
+    Schéma Pydantic pour la réponse du endpoint /match.
+
+    Attributs :
+        matches (List[Match]) : Liste des correspondances trouvées.
+    """
     matches: List[Match]
 
 
 class TokenResponse(BaseModel):
+    """
+    Schéma Pydantic pour la réponse du endpoint /token (authentification).
+
+    Attributs :
+        access_token (str) : Token JWT d'accès.
+        token_type (str) : Type de token ("bearer").
+        version (str) : Version de l'API.
+    """
     access_token: str
     token_type: str
     version: str
@@ -133,6 +154,18 @@ class TokenResponse(BaseModel):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """
+    Dépendance FastAPI pour récupérer l'utilisateur courant à partir du token JWT.
+
+    Args:
+        token (str): Token JWT d'authentification.
+
+    Returns:
+        str: Nom d'utilisateur extrait du token.
+
+    Raises:
+        HTTPException: Si le token est invalide ou l'utilisateur non trouvé.
+    """
     try:
         token_data = verify_token(token)
         user = get_user(token_data.username)
@@ -148,6 +181,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @app.post("/token", response_model=TokenResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Endpoint d'authentification utilisateur.
+    Retourne un token JWT si les identifiants sont valides.
+
+    Args:
+        form_data (OAuth2PasswordRequestForm): Formulaire contenant username et password.
+
+    Returns:
+        TokenResponse: Token JWT, type et version.
+
+    Raises:
+        HTTPException: Si l'authentification échoue.
+    """
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
@@ -159,6 +205,19 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.post("/embedding")
 @limiter.limit("5/minute")
 async def get_image_embedding(request: Request, file: UploadFile = File(...), token: str = Depends(oauth2_scheme)):
+    """
+    Endpoint pour obtenir l'embedding d'une image envoyée.
+
+    Args:
+        file (UploadFile): Fichier image à encoder.
+        token (str): Token JWT d'authentification.
+
+    Returns:
+        dict: Embedding de l'image sous forme de liste.
+
+    Raises:
+        HTTPException: Si l'image est invalide ou une erreur survient.
+    """
     EMBED_REQUEST_COUNT.inc()
     start_time = time.time()
     try:
@@ -179,6 +238,19 @@ async def get_image_embedding(request: Request, file: UploadFile = File(...), to
 @app.post("/match", response_model=MatchResponse)
 @limiter.limit("5/minute")
 async def get_best_match(request: Request, file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    """
+    Endpoint pour obtenir les meilleures correspondances de classes pour une image envoyée.
+
+    Args:
+        file (UploadFile): Fichier image à comparer.
+        current_user (str): Utilisateur authentifié (dépendance).
+
+    Returns:
+        MatchResponse: Liste des classes les plus similaires et leur score.
+
+    Raises:
+        HTTPException: Si l'image est invalide ou une erreur survient.
+    """
     MATCH_REQUEST_COUNT.inc()
     start_time = time.time()
     try:
@@ -211,6 +283,19 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
 @app.post("/search_tags")
 @limiter.limit("10/minute")
 async def search_tags(request: Request, tags: List[str] = Body(...), current_user: str = Depends(get_current_user)):
+    """
+    Endpoint pour rechercher des verres à partir d'une liste de tags.
+
+    Args:
+        tags (List[str]): Liste de tags à rechercher.
+        current_user (str): Utilisateur authentifié (dépendance).
+
+    Returns:
+        dict: Résultats de la recherche (liste de verres).
+
+    Raises:
+        HTTPException: Si la liste de tags est vide ou une erreur survient.
+    """
     SEARCH_TAGS_COUNT.inc()
     start_time = time.time()
     try:
@@ -232,8 +317,21 @@ async def search_tags(request: Request, tags: List[str] = Body(...), current_use
 )
 @limiter.limit("20/minute")
 async def get_verre(
-    request: Request, verre_id: int, current_user_email: str = Depends(get_current_user)  # ✅ Ajouté pour SlowAPI
+    request: Request, verre_id: int, current_user_email: str = Depends(get_current_user)
 ):
+    """
+    Endpoint pour obtenir les détails d'un verre par son ID.
+
+    Args:
+        verre_id (int): Identifiant du verre à rechercher.
+        current_user_email (str): Utilisateur authentifié (dépendance).
+
+    Returns:
+        dict: Détails du verre ou message d'erreur.
+
+    Raises:
+        HTTPException: Si le verre n'est pas trouvé ou une erreur survient.
+    """
     VERRE_DETAIL_COUNT.inc()  # Incrémenter le compteur de requêtes
     start_time = time.time()  # Démarrer le chronomètre
 
@@ -264,7 +362,16 @@ from fastapi.responses import JSONResponse
 @app.get("/me")
 async def get_me(current_user: str = Depends(get_current_user)):
     """
-    Retourne les données personnelles de l'utilisateur authentifié (username, email).
+    Endpoint RGPD pour obtenir les données personnelles de l'utilisateur authentifié.
+
+    Args:
+        current_user (str): Utilisateur authentifié (dépendance).
+
+    Returns:
+        dict: Données personnelles (username, email).
+
+    Raises:
+        HTTPException: Si l'utilisateur n'est pas trouvé.
     """
     user = get_user(current_user)
     if not user:
@@ -275,7 +382,16 @@ async def get_me(current_user: str = Depends(get_current_user)):
 @app.delete("/me", response_class=JSONResponse)
 async def delete_me(current_user: str = Depends(get_current_user)):
     """
-    Supprime le compte de l'utilisateur authentifié (droit à l'oubli RGPD).
+    Endpoint RGPD pour supprimer le compte de l'utilisateur authentifié (droit à l'oubli).
+
+    Args:
+        current_user (str): Utilisateur authentifié (dépendance).
+
+    Returns:
+        dict: Message de confirmation.
+
+    Raises:
+        HTTPException: Si l'utilisateur n'est pas trouvé ou la suppression échoue.
     """
     user = get_user(current_user)
     if not user:
@@ -289,14 +405,32 @@ async def delete_me(current_user: str = Depends(get_current_user)):
 
 @app.get("/")
 async def root():
+    """
+    Endpoint racine de l'API.
+
+    Returns:
+        dict: Message de bienvenue.
+    """
     return {"message": "Bienvenue sur l'API de classification d'images"}
 
 
 @app.get("/health")
 async def health_check():
+    """
+    Endpoint de vérification de santé de l'API.
+
+    Returns:
+        dict: Statut de santé.
+    """
     return {"status": "healthy"}
 
 
 @app.get("/metrics")
 def metrics():
+    """
+    Endpoint Prometheus pour exporter les métriques de monitoring.
+
+    Returns:
+        Response: Données Prometheus formatées.
+    """
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
