@@ -48,6 +48,16 @@ def db_session():
 
 
 @pytest.fixture(scope="function")
+def auth_headers():
+    """
+    Crée des en-têtes d'authentification pour les tests.
+    """
+    # Créer un token d'accès pour les tests
+    token = create_access_token(data={"sub": "test_user"})
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(scope="function")
 def client(db_session):
     """
     Crée un client de test FastAPI avec une base de données de test.
