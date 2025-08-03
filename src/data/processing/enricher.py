@@ -187,14 +187,14 @@ class DataEnricher:
                 enhanced_data = pd.read_sql("SELECT * FROM enhanced ORDER BY id", conn)
 
             if enhanced_data.empty:
-                self.logger.warning("⚠️ Aucune donnée trouvée dans la table enhanced")
+                self.logger.warning(" Aucune donnée trouvée dans la table enhanced")
                 return
 
-            self.logger.info(f"📊 {len(enhanced_data)} lignes chargées depuis enhanced")
+            self.logger.info(f" {len(enhanced_data)} lignes chargées depuis enhanced")
 
             # 2. Enrichir les données
             enriched_records = self.enrich_data(enhanced_data)
-            self.logger.info(f"✨ Données enrichies générées : {len(enriched_records)} enregistrements")
+            self.logger.info(f"Données enrichies générées : {len(enriched_records)} enregistrements")
 
             # 3. Vider la table verres
             session = self.SessionLocal()
@@ -209,7 +209,7 @@ class DataEnricher:
                     session.add(verre)
 
                 session.commit()
-                self.logger.info(f"✅ {len(enriched_records)} verres insérés avec succès")
+                self.logger.info(f"{len(enriched_records)} verres insérés avec succès")
 
             except Exception as e:
                 session.rollback()
@@ -218,7 +218,7 @@ class DataEnricher:
                 session.close()
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du traitement enhanced -> verres : {str(e)}")
+            self.logger.error(f" Erreur lors du traitement enhanced -> verres : {str(e)}")
             raise
 
 

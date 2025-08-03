@@ -115,10 +115,10 @@ class DataPipelineManager:
             }
 
             self.cleaner = OpticalDataCleaner()
-            self.logger.info("✅ Dépendances chargées avec succès")
+            self.logger.info("Dépendances chargées avec succès")
 
         except ImportError as e:
-            self.logger.error(f"❌ Erreur lors du chargement des dépendances : {e}")
+            self.logger.error(f" Erreur lors du chargement des dépendances : {e}")
             raise
 
     def run_spiders(self) -> bool:
@@ -132,7 +132,7 @@ class DataPipelineManager:
             pipeline = DataPipelineManager()
             pipeline.run_spiders()
         """
-        self.logger.info("🕷️ Démarrage des spiders...")
+        self.logger.info("Démarrage des spiders...")
 
         try:
             from scrapy.crawler import CrawlerProcess
@@ -142,7 +142,7 @@ class DataPipelineManager:
 
             # Ajouter chaque spider au processus
             for spider_name, spider_module in self.spiders.items():
-                self.logger.info(f"➕ Ajout du spider {spider_name}")
+                self.logger.info(f" Ajout du spider {spider_name}")
                 # Obtenir la classe Spider directement du module
                 spider_class = next(
                     obj
@@ -154,11 +154,11 @@ class DataPipelineManager:
             # Lancer tous les spiders
             process.start()
 
-            self.logger.info("✅ Tous les spiders ont terminé avec succès")
+            self.logger.info("Tous les spiders ont terminé avec succès")
             return True
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'exécution des spiders : {e}")
+            self.logger.error(f" Erreur lors de l'exécution des spiders : {e}")
             return False
 
     def export_staging_data(self) -> Optional[str]:
@@ -168,20 +168,20 @@ class DataPipelineManager:
         Returns:
             Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur.
         """
-        self.logger.info("📤 Export des données staging en CSV...")
+        self.logger.info("Export des données staging en CSV...")
         try:
             # Charger les données de staging
             df = self.cleaner.load_data_from_staging()
             if df.empty:
-                self.logger.warning("⚠️ Aucune donnée trouvée dans la table staging")
+                self.logger.warning(" Aucune donnée trouvée dans la table staging")
                 return None
 
             # Exporter en CSV
             csv_path = self.cleaner.export_to_csv(df)
-            self.logger.info(f"✅ Données staging exportées vers {csv_path}")
+            self.logger.info(f"Données staging exportées vers {csv_path}")
             return csv_path
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'export staging : {e}")
+            self.logger.error(f"Erreur lors de l'export staging : {e}")
             return None
 
     def clean_and_enhance_data(self) -> bool:
@@ -196,12 +196,12 @@ class DataPipelineManager:
             # Charger et nettoyer les données
             df_raw = self.cleaner.load_data_from_staging()
             if df_raw.empty:
-                self.logger.error("❌ Aucune donnée à nettoyer dans la table staging")
+                self.logger.error("Aucune donnée à nettoyer dans la table staging")
                 return False
 
             df_clean = self.cleaner.clean_dataframe(df_raw)
             if df_clean.empty:
-                self.logger.error("❌ Aucune donnée valide après nettoyage")
+                self.logger.error("Aucune donnée valide après nettoyage")
                 return False
 
             # Créer la table enhanced et insérer les données
@@ -211,10 +211,10 @@ class DataPipelineManager:
             # Afficher les statistiques
             self.cleaner.get_data_statistics(df_clean)
 
-            self.logger.info("✅ Données nettoyées et améliorées avec succès")
+            self.logger.info("Données nettoyées et améliorées avec succès")
             return True
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du nettoyage des données : {e}")
+            self.logger.error(f" Erreur lors du nettoyage des données : {e}")
             return False
 
     def export_enhanced_data(self) -> Optional[str]:
@@ -224,20 +224,20 @@ class DataPipelineManager:
         Returns:
             Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur.
         """
-        self.logger.info("📤 Export des données enhanced en CSV...")
+        self.logger.info("Export des données enhanced en CSV...")
         try:
             # Charger les données directement depuis la table enhanced
             df = self.cleaner.load_data_from_enhanced()
             if df.empty:
-                self.logger.warning("⚠️ Aucune donnée trouvée dans la table enhanced")
+                self.logger.warning("Aucune donnée trouvée dans la table enhanced")
                 return None
 
             # Exporter en CSV
             csv_path = self.cleaner.export_enhanced_to_csv(df)
-            self.logger.info(f"✅ Données enhanced exportées vers {csv_path}")
+            self.logger.info(f"Données enhanced exportées vers {csv_path}")
             return csv_path
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'export enhanced : {e}")
+            self.logger.error(f" Erreur lors de l'export enhanced : {e}")
             return None
 
     def run_full_pipeline(self) -> Dict[str, bool]:
@@ -262,34 +262,34 @@ class DataPipelineManager:
             # 1. Réinitialiser la base de données
             self.logger.info("🔄 Réinitialisation de la base de données...")
             if not reset_database():
-                self.logger.error("❌ Échec de la réinitialisation de la base de données")
+                self.logger.error(" Échec de la réinitialisation de la base de données")
                 return results
             results["reset_database"] = True
 
             # 2. Lancer les spiders
             if not self.run_spiders():
-                self.logger.error("❌ Échec des spiders")
+                self.logger.error(" Échec des spiders")
                 return results
             results["spiders"] = True
 
             # 3. Nettoyer et enrichir les données
             if not self.clean_and_enhance_data():
-                self.logger.error("❌ Échec du nettoyage et de l'enrichissement des données")
+                self.logger.error(" Échec du nettoyage et de l'enrichissement des données")
                 return results
             results["clean_and_enhance"] = True
 
             # 4. Exporter les données enrichies
             csv_path = self.export_enhanced_data()
             if not csv_path:
-                self.logger.error("❌ Échec de l'export des données enrichies")
+                self.logger.error(" Échec de l'export des données enrichies")
                 return results
             results["export_enhanced"] = True
 
-            self.logger.info("✨ Pipeline terminé avec succès!")
+            self.logger.info("Pipeline terminé avec succès!")
             return results
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur dans le pipeline : {e}")
+            self.logger.error(f" Erreur dans le pipeline : {e}")
             return results
 
 
@@ -312,14 +312,14 @@ def main():
         print("\nRésumé du pipeline :")
         print("=" * 50)
         for step, success in results.items():
-            status = "✅" if success else "❌"
+            status = "V" if success else "X"
             print(f"{status} {step}")
 
         # Retourner un code d'erreur si une étape a échoué
         return 0 if all(results.values()) else 1
 
     except Exception as e:
-        print(f"❌ Erreur critique : {e}")
+        print(f"Erreur critique : {e}")
         return 1
 
 

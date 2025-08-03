@@ -81,7 +81,7 @@ for epoch in range(NUM_EPOCHS):
     - Suivi de la perte moyenne pour affichage et analyse
     """
     epoch_loss = 0.0
-    progress_bar = tqdm(dataloader, desc=f"📚 Epoch {epoch + 1}/{NUM_EPOCHS}")
+    progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{NUM_EPOCHS}")
 
     for anchor, positive, negative in progress_bar:
         anchor = anchor.to(DEVICE)

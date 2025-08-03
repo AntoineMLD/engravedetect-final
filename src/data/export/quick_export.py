@@ -32,8 +32,8 @@ def quick_export():
             writer.writerow(columns)
             writer.writerows(rows)
 
-    print(f"✅ Export terminé: {csv_file}")
-    print(f"📊 {len(rows)} lignes exportées")
+    print(f"Export terminé: {csv_file}")
+    print(f"{len(rows)} lignes exportées")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ def migrate_data():
         with SessionLocal() as session:
             logger.info("Migration des données de enhanced vers verres...")
 
-            # Requête SQL brute (tu peux aussi faire en ORM si tu préfères)
+            # Requête SQL brute 
             insert_query = text("""
                 INSERT INTO verres (nom, materiau, indice, fournisseur, gravure_nasale, source_url)
                 SELECT nom_du_verre, materiaux, indice, fournisseur, gravure_nasale, source_url
@@ -24,10 +24,10 @@ def migrate_data():
 
             session.execute(insert_query)
             session.commit()
-            logger.info("✅ Données migrées avec succès dans la table verres.")
+            logger.info("Données migrées avec succès dans la table verres.")
 
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la migration : {e}")
+        logger.error(f"Erreur lors de la migration : {e}")
         raise
 
 if __name__ == "__main__":

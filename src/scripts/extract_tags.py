@@ -54,7 +54,7 @@ def get_connection():
     try:
         return psycopg2.connect(os.getenv("DATABASE_URL"))
     except Exception as error:
-        print(f"❌ Erreur de connexion PostgreSQL : {error}")
+        print(f"Erreur de connexion PostgreSQL : {error}")
         raise
 
 
@@ -137,11 +137,11 @@ def extract_verres_data():
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(verres_data, f, ensure_ascii=False, indent=2)
 
-        print(f"✅ Données extraites avec succès dans {output_file}")
-        print(f"📊 Nombre de gravures distinctes avec https : {len(verres_data)}")
+        print(f"Données extraites avec succès dans {output_file}")
+        print(f"Nombre de gravures distinctes avec https : {len(verres_data)}")
 
     except Exception as error:
-        print(f"❌ Erreur lors de l'extraction des données : {error}")
+        print(f"Erreur lors de l'extraction des données : {error}")
         raise
     finally:
         if 'conn' in locals():

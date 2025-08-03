@@ -57,7 +57,7 @@ def get_connection():
     try:
         return psycopg2.connect(os.getenv("DATABASE_URL"))
     except Exception as error:
-        logger.error(f"❌ Erreur de connexion PostgreSQL : {error}")
+        logger.error(f"Erreur de connexion PostgreSQL : {error}")
         raise
 
 
@@ -78,7 +78,7 @@ def load_tags_from_json() -> List[Dict]:
         with open("output/verres_tags.json", "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as error:
-        logger.error(f"❌ Erreur lors de la lecture du fichier JSON : {error}")
+        logger.error(f"Erreur lors de la lecture du fichier JSON : {error}")
         raise
 
 
@@ -116,13 +116,13 @@ def update_tags_in_database(conn, tags_data: List[Dict]):
 
             if cursor.rowcount > 0:
                 updated_count += 1
-                logger.info(f"✅ Tags mis à jour pour : {item['gravure']}")
+                logger.info(f"Tags mis à jour pour : {item['gravure']}")
             else:
-                logger.warning(f"⚠️ Aucune correspondance trouvée pour : {item['gravure']}")
+                logger.warning(f"Aucune correspondance trouvée pour : {item['gravure']}")
 
         except Exception as error:
             error_count += 1
-            logger.error(f"❌ Erreur pour {item['gravure']} : {error}")
+            logger.error(f"Erreur pour {item['gravure']} : {error}")
 
     conn.commit()
     logger.info(f"🔄 Résultat : {updated_count} mis à jour, {error_count} erreurs.")
@@ -142,20 +142,20 @@ def main():
         python insert_tags.py
     """
     try:
-        logger.info("📥 Chargement des tags JSON...")
+        logger.info("Chargement des tags JSON...")
         tags_data = load_tags_from_json()
 
-        logger.info("🔌 Connexion PostgreSQL...")
+        logger.info("Connexion PostgreSQL...")
         conn = get_connection()
 
-        logger.info("📤 Insertion des tags dans la base de données...")
+        logger.info("Insertion des tags dans la base de données...")
         update_tags_in_database(conn, tags_data)
 
         conn.close()
-        logger.info("✅ Opération terminée avec succès !")
+        logger.info("Opération terminée avec succès !")
 
     except Exception as error:
-        logger.error(f"❌ Une erreur est survenue : {error}")
+        logger.error(f"Une erreur est survenue : {error}")
         raise
 
 

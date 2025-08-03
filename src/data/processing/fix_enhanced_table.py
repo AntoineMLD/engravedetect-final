@@ -87,10 +87,10 @@ def fix_enhanced_table():
             logger.info(f"Materiau ID NULL : {stats[4]}")
 
             conn.commit()
-            logger.info("✅ Corrections terminées")
+            logger.info("Corrections terminées")
 
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la correction : {e}")
+        logger.error(f"Erreur lors de la correction : {e}")
         raise
 
 

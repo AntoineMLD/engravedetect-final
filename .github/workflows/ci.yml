@@ -11,31 +11,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🧾 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: 🐍 Set up Python
+    - name: Set up Python
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
 
-    - name: 📦 Install system dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y unixodbc-dev
 
-    - name: 📦 Install Python dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -e .
 
-    - name: 🛠️ Set PYTHONPATH
+    - name: Set PYTHONPATH
       run: |
         echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
         echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
 
-    - name: 🧪 Run tests
+    - name: Run tests
       env:
         ENVIRONMENT: "test"
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -54,8 +54,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🧾 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: 🐳 Build Docker image
+    - name: Build Docker image
       run: docker build -t api_bdd .

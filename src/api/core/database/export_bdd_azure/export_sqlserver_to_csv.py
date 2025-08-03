@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine, inspect
 import urllib
 
-# ⚙️ Config SQL Server
+# Config SQL Server
 server = 'localhost'
 database = 'engravedetect'
 username = 'sa'
@@ -23,16 +23,16 @@ params = urllib.parse.quote_plus(
 engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
 inspector = inspect(engine)
 
-# 🔍 Lister les tables
+# Lister les tables
 tables = inspector.get_table_names(schema="dbo")
-print(f"📦 Tables trouvées dans la base '{database}': {tables}")
+print(f"Tables trouvées dans la base '{database}': {tables}")
 
-# 💾 Export CSV par table
+# Export CSV par table
 for table in tables:
-    print(f"📤 Export de la table : {table}")
+    print(f"Export de la table : {table}")
     df = pd.read_sql_table(table, con=engine, schema="dbo")
     out_path = os.path.join(output_dir, f"{table}.csv")
     df.to_csv(out_path, index=False)
     print(f"✔️ Exportée : {out_path}")
 
-print("🎉 Export terminé !")
+print("Export terminé !")

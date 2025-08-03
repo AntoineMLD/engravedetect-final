@@ -34,14 +34,14 @@ def reset_database():
         engine = create_engine(settings.computed_database_url)
 
         with engine.connect() as conn:
-            logger.info("🧨 Suppression des tables existantes (ordre contrôlé)...")
+            logger.info("Suppression des tables existantes (ordre contrôlé)...")
 
             # Ordre de suppression (respecte les FK si existantes)
             tables_to_drop = ["verres", "enhanced", "staging"]
 
             for table in tables_to_drop:
                 conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
-                logger.info(f"✅ Table {table} supprimée")
+                logger.info(f"Table {table} supprimée")
 
             logger.info("🛠️ Création des tables...")
 
@@ -103,10 +103,10 @@ def reset_database():
             conn.execute(text("CREATE INDEX idx_verres_materiaux ON verres (materiaux)"))
 
             conn.commit()
-            logger.info("✨ Base de données PostgreSQL réinitialisée avec succès.")
+            logger.info("Base de données PostgreSQL réinitialisée avec succès.")
 
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la réinitialisation : {e}")
+        logger.error(f"Erreur lors de la réinitialisation : {e}")
 
 
 if __name__ == "__main__":

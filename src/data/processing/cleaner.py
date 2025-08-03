@@ -43,7 +43,7 @@ class OpticalDataCleaner:
         try:
             return self.engine.connect()
         except Exception as error:
-            self.logger.error(f"❌ Erreur de connexion PostgreSQL: {error}")
+            self.logger.error(f"Erreur de connexion PostgreSQL: {error}")
             raise
 
     def load_data_from_staging(self):
@@ -65,11 +65,11 @@ class OpticalDataCleaner:
             with self.get_connection() as conn:
                 df = pd.read_sql(text(query), conn)
 
-            self.logger.info(f"🔍 {len(df)} lignes chargées depuis la table staging")
+            self.logger.info(f"{len(df)} lignes chargées depuis la table staging")
             return df
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du chargement des données : {e}")
+            self.logger.error(f"Erreur lors du chargement des données : {e}")
             raise
 
     def clean_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -106,7 +106,7 @@ class OpticalDataCleaner:
             return df
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du nettoyage des données : {e}")
+            self.logger.error(f"Erreur lors du nettoyage des données : {e}")
             raise
 
     def create_enhanced_table(self):
@@ -136,10 +136,10 @@ class OpticalDataCleaner:
                 conn.execute(text("CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)"))
 
                 conn.commit()
-                self.logger.info("✅ Table enhanced créée avec succès dans PostgreSQL")
+                self.logger.info("Table enhanced créée avec succès dans PostgreSQL")
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de la création de la table enhanced : {e}")
+            self.logger.error(f"Erreur lors de la création de la table enhanced : {e}")
             raise
 
     def export_enhanced_to_csv(self, df: pd.DataFrame) -> str:
@@ -155,24 +155,24 @@ class OpticalDataCleaner:
             # Export en CSV
             df.to_csv(csv_filename, index=False, sep=";", encoding="utf-8")
 
-            self.logger.info(f"✅ Données exportées vers {csv_filename}")
+            self.logger.info(f"Données exportées vers {csv_filename}")
             return csv_filename
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'export CSV : {e}")
+            self.logger.error(f"Erreur lors de l'export CSV : {e}")
             raise
 
     def process_and_export(self, create_enhanced_table=True):
         """Processus complet : charge, nettoie, exporte et optionnellement crée la table enhanced."""
         try:
-            self.logger.info("🚀 Début du processus de nettoyage et export")
+            self.logger.info("Début du processus de nettoyage et export")
             self.logger.info("=" * 60)
 
             # 1. Chargement des données
             df_raw = self.load_data_from_staging()
 
             if df_raw.empty:
-                self.logger.warning("⚠️ Aucune donnée trouvée dans la table staging.")
+                self.logger.warning("Aucune donnée trouvée dans la table staging.")
                 return None
 
             # 2. Nettoyage des données
@@ -186,7 +186,7 @@ class OpticalDataCleaner:
             if create_enhanced_table:
                 # Création de la table enhanced
                 self.create_enhanced_table()
-                self.logger.info("✅ Table enhanced créée avec succès")
+                self.logger.info("Table enhanced créée avec succès")
 
                         # Insertion des données nettoyées
                         self.insert_to_enhanced(df_clean)
@@ -198,7 +198,7 @@ class OpticalDataCleaner:
             return {"staging_csv": csv_clean_file, "enhanced_csv": csv_enhanced_file}
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du processus de nettoyage et export : {e}")
+            self.logger.error(f"Erreur lors du processus de nettoyage et export : {e}")
             raise
 
     def _prepare_data_for_verres(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -237,7 +237,7 @@ class OpticalDataCleaner:
             # Gestion des valeurs manquantes
             missing_before = df_prep["indice"].isna().sum()
             df_prep["indice"] = df_prep["indice"].fillna("1.5")
-            self.logger.info(f"⚠️ {missing_before} valeurs d'indice manquantes remplacées par 1.5")
+            self.logger.info(f"{missing_before} valeurs d'indice manquantes remplacées par 1.5")
 
             # Conversion en float et validation des plages
             df_prep["indice"] = pd.to_numeric(df_prep["indice"], errors="coerce").fillna(1.5)
@@ -246,7 +246,7 @@ class OpticalDataCleaner:
             invalid_before = len(df_prep[df_prep["indice"] < 1.0]) + len(df_prep[df_prep["indice"] > 2.0])
             df_prep.loc[df_prep["indice"] < 1.0, "indice"] = 1.5
             df_prep.loc[df_prep["indice"] > 2.0, "indice"] = 1.5
-            self.logger.info(f"⚠️ {invalid_before} valeurs d'indice hors plage corrigées")
+            self.logger.info(f"{invalid_before} valeurs d'indice hors plage corrigées")
 
             # Arrondi à 2 décimales
             df_prep["indice"] = df_prep["indice"].round(2)
@@ -254,11 +254,11 @@ class OpticalDataCleaner:
             # Conversion finale en float64
             df_prep["indice"] = df_prep["indice"].astype("float64")
 
-            self.logger.info("✅ Traitement des indices terminé")
+            self.logger.info("Traitement des indices terminé")
             return df_prep
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de la préparation des données : {e}")
+            self.logger.error(f"Erreur lors de la préparation des données : {e}")
             raise
 
     def _handle_references(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -334,7 +334,7 @@ class OpticalDataCleaner:
             return df
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de la gestion des références : {e}")
+            self.logger.error(f"Erreur lors de la gestion des références : {e}")
             raise
 
     def _clean_specific_columns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -348,7 +348,7 @@ class OpticalDataCleaner:
                     df[col] = df[col].str.replace(r"\s+", " ", regex=True)
             return df
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du nettoyage des colonnes : {e}")
+            self.logger.error(f"Erreur lors du nettoyage des colonnes : {e}")
             raise
 
     def get_data_statistics(self, df: pd.DataFrame):
@@ -370,12 +370,12 @@ class OpticalDataCleaner:
             for indice, count in indice_stats.items():
                 self.logger.info(f"   • {indice}: {count} verres")
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'affichage des statistiques : {e}")
+            self.logger.error(f"Erreur lors de l'affichage des statistiques : {e}")
             raise
 
     def log_progress(self, message):
         """Affiche un message de progression."""
-        print("📊 " + message)
+        print("In progress" + message)
 
     def export_to_csv(self, df: pd.DataFrame) -> str:
         """Exporte les données vers un fichier CSV."""
@@ -390,11 +390,11 @@ class OpticalDataCleaner:
             # Export en CSV
             df.to_csv(csv_filename, index=False, sep=";", encoding="utf-8")
 
-            self.logger.info("✅ Données exportées avec succès")
+            self.logger.info("Données exportées avec succès")
             return csv_filename
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'export CSV : {e}")
+            self.logger.error(f"Erreur lors de l'export CSV : {e}")
             raise
 
     def insert_to_enhanced(self, df: pd.DataFrame):
@@ -420,9 +420,9 @@ class OpticalDataCleaner:
                             ),
                         )
                     conn.commit()
-            self.logger.info("✅ Données insérées avec succès dans la table enhanced")
+            self.logger.info("Données insérées avec succès dans la table enhanced")
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'insertion : {e}")
+            self.logger.error(f"Erreur lors de l'insertion : {e}")
             raise
 
     def load_data_from_enhanced(self):
@@ -443,10 +443,10 @@ class OpticalDataCleaner:
             """
             with self.get_connection() as conn:
                 df = pd.read_sql(text(query), conn)
-            self.logger.info(f"🔍 {len(df)} lignes chargées depuis la table enhanced")
+            self.logger.info(f"{len(df)} lignes chargées depuis la table enhanced")
             return df
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors du chargement des données : {e}")
+            self.logger.error(f"Erreur lors du chargement des données : {e}")
             raise
 
     def insert_from_enhanced_csv(self, csv_path: str) -> bool:
@@ -473,10 +473,10 @@ class OpticalDataCleaner:
                             },
                         )
                     conn.commit()
-            self.logger.info("✅ Données importées avec succès")
+            self.logger.info("Données importées avec succès")
             return True
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'import: {str(e)}")
+            self.logger.error(f"Erreur lors de l'import: {str(e)}")
             return False
 
     def insert_to_verres(self, df: pd.DataFrame) -> bool:
@@ -490,7 +490,7 @@ class OpticalDataCleaner:
             bool: True si l'insertion a réussi, False sinon
         """
         try:
-            self.logger.info("📥 Préparation des données pour la table verres...")
+            self.logger.info("Préparation des données pour la table verres...")
 
             # Préparer les données pour la table verres
             df_verres = self._prepare_data_for_verres(df)
@@ -500,9 +500,9 @@ class OpticalDataCleaner:
                 result = conn.execute(text("SELECT COUNT(*) FROM verres"))
                 count = result.fetchone()[0]
                 if count > 0:
-                    self.logger.warning(f"⚠️ La table verres contient déjà {count} lignes")
+                    self.logger.warning(f"La table verres contient déjà {count} lignes")
                     conn.execute(text("TRUNCATE TABLE verres"))
-                    self.logger.info("✅ Table verres vidée")
+                    self.logger.info("Table verres vidée")
 
                 inserted_count = 0
                 error_count = 0
@@ -511,7 +511,7 @@ class OpticalDataCleaner:
                     try:
                         # Vérification des valeurs requises
                         if pd.isna(row["nom"]) or pd.isna(row["materiau"]) or pd.isna(row["fournisseur"]):
-                            self.logger.warning(f"⚠️ Ligne {index} ignorée: valeurs requises manquantes")
+                            self.logger.warning(f"Ligne {index} ignorée: valeurs requises manquantes")
                             error_count += 1
                             continue
 
@@ -537,13 +537,13 @@ class OpticalDataCleaner:
                             conn.commit()
 
                     except Exception as row_error:
-                        self.logger.error(f"❌ Erreur lors de l'insertion de la ligne {index}: {str(row_error)}")
+                        self.logger.error(f"Erreur lors de l'insertion de la ligne {index}: {str(row_error)}")
                         self.logger.error(f"Données de la ligne : {row.to_dict()}")
                         error_count += 1
                         continue
 
                 conn.commit()
-                self.logger.info("✅ Résumé de l'insertion dans verres:")
+                self.logger.info("Résumé de l'insertion dans verres:")
                 self.logger.info(f"- {inserted_count} lignes insérées avec succès")
                 self.logger.info(f"- {error_count} lignes ignorées ou en erreur")
 
@@ -555,7 +555,7 @@ class OpticalDataCleaner:
                 return final_count == inserted_count
 
         except Exception as e:
-            self.logger.error(f"❌ Erreur lors de l'insertion dans verres : {str(e)}")
+            self.logger.error(f"Erreur lors de l'insertion dans verres : {str(e)}")
             return False
 
 
