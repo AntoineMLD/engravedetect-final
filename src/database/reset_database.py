@@ -46,7 +46,9 @@ def reset_database():
             logger.info("🛠️ Création des tables...")
 
             # Table staging
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE staging (
                     id SERIAL PRIMARY KEY,
                     source_url TEXT,
@@ -57,10 +59,14 @@ def reset_database():
                     fournisseur VARCHAR(100),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """))
+            """
+                )
+            )
 
             # Table enhanced
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE enhanced (
                     id SERIAL PRIMARY KEY,
                     nom_du_verre TEXT,
@@ -71,14 +77,18 @@ def reset_database():
                     source_url TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """))
+            """
+                )
+            )
 
             # Indexes enhanced
             conn.execute(text("CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)"))
             conn.execute(text("CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)"))
 
             # Table verres
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE verres (
                     id SERIAL PRIMARY KEY,
                     nom VARCHAR(255) NOT NULL,
@@ -95,7 +105,9 @@ def reset_database():
                     tags TEXT,
                     image_gravure TEXT
                 )
-            """))
+            """
+                )
+            )
 
             # Indexes verres
             conn.execute(text("CREATE INDEX idx_verres_nom ON verres (nom)"))

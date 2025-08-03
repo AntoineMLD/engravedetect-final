@@ -2,7 +2,7 @@
 
 from sqlalchemy import text
 from src.api.core.database.database import Base, engine
-from src.api.models.verres import Verre  
+from src.api.models.verres import Verre
 import logging
 
 logging.basicConfig(level=logging.INFO)

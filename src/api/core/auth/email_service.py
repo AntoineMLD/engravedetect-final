@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def send_confirmation_email(email: str, token: str) -> None:
     """
     Envoie un email de confirmation avec un lien contenant le token JWT.

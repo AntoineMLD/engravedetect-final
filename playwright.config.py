@@ -1,6 +1,7 @@
 """
 Configuration Playwright pour les tests end-to-end
 """
+
 from playwright.sync_api import Playwright, sync_playwright, expect
 
 
@@ -11,11 +12,11 @@ def run(playwright: Playwright) -> None:
     browser = playwright.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
-    
+
     # Configuration par défaut
     page.set_default_timeout(30000)  # 30 secondes
     page.set_default_navigation_timeout(30000)
-    
+
     return browser, context, page
 
 
@@ -36,7 +37,7 @@ def browser_context_args(browser_context_args):
             "height": 1080,
         },
         "ignore_https_errors": True,
-        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
     }
 
 
@@ -54,6 +55,6 @@ def browser_type_launch_args():
             "--disable-accelerated-2d-canvas",
             "--no-first-run",
             "--no-zygote",
-            "--disable-gpu"
-        ]
-    } 
+            "--disable-gpu",
+        ],
+    }

@@ -1,4 +1,4 @@
-#src/api_ia/app/config.py
+# src/api_ia/app/config.py
 """
 Configuration centralisée pour l'API
 

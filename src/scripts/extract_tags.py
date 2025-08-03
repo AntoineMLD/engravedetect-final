@@ -124,10 +124,7 @@ def extract_verres_data():
 
         verres_data = []
         for (gravure,) in rows:
-            verre_data = {
-                "gravure": gravure,
-                "tags": extract_tags_from_gravure(gravure)
-            }
+            verre_data = {"gravure": gravure, "tags": extract_tags_from_gravure(gravure)}
             verres_data.append(verre_data)
 
         output_dir = Path("output")
@@ -144,7 +141,7 @@ def extract_verres_data():
         print(f"Erreur lors de l'extraction des données : {error}")
         raise
     finally:
-        if 'conn' in locals():
+        if "conn" in locals():
             conn.close()
 
 

@@ -5,7 +5,7 @@ from .database import SessionLocal
 def get_db():
     """Dépendance pour obtenir une session de base de données."""
     db = SessionLocal()
-    try:    
+    try:
         yield db
     except Exception as e:
         db.rollback()

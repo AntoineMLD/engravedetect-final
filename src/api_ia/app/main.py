@@ -116,6 +116,7 @@ class Match(BaseModel):
         class_ (str) : Nom de la classe prédite.
         similarity (float) : Score de similarité cosinus (0 à 1).
     """
+
     class_: str = None
     similarity: float = 0.0
 
@@ -133,6 +134,7 @@ class MatchResponse(BaseModel):
     Attributs :
         matches (List[Match]) : Liste des correspondances trouvées.
     """
+
     matches: List[Match]
 
 
@@ -145,6 +147,7 @@ class TokenResponse(BaseModel):
         token_type (str) : Type de token ("bearer").
         version (str) : Version de l'API.
     """
+
     access_token: str
     token_type: str
     version: str
@@ -316,9 +319,7 @@ async def search_tags(request: Request, tags: List[str] = Body(...), current_use
     description="Récupère les détails complets d'un verre par son ID",
 )
 @limiter.limit("20/minute")
-async def get_verre(
-    request: Request, verre_id: int, current_user_email: str = Depends(get_current_user)
-):
+async def get_verre(request: Request, verre_id: int, current_user_email: str = Depends(get_current_user)):
     """
     Endpoint pour obtenir les détails d'un verre par son ID.
 
@@ -359,6 +360,7 @@ async def get_verre(
 
 from fastapi.responses import JSONResponse
 
+
 @app.get("/me")
 async def get_me(current_user: str = Depends(get_current_user)):
     """
@@ -378,6 +380,7 @@ async def get_me(current_user: str = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     # On ne retourne que les infos RGPD pertinentes
     return {"username": user["username"], "email": user["email"]}
+
 
 @app.delete("/me", response_class=JSONResponse)
 async def delete_me(current_user: str = Depends(get_current_user)):

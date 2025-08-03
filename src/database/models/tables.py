@@ -19,5 +19,3 @@ class DatabaseManager:
         """Processus principal de création et remplissage des tables."""
         # Créer les tables
         self.create_tables()
-
-

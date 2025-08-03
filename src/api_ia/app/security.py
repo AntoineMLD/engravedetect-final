@@ -55,6 +55,7 @@ class TokenData(BaseModel):
         username (str): Nom d'utilisateur associé au token.
         exp (datetime): Date d'expiration du token.
     """
+
     username: str
     exp: datetime
 
@@ -67,6 +68,7 @@ class UserCredentials(BaseModel):
         email (EmailStr): Adresse email de l'utilisateur.
         password (str): Mot de passe de l'utilisateur.
     """
+
     email: EmailStr
     password: str
 
@@ -110,18 +112,20 @@ def get_user(username: str):
         engine = create_engine(DATABASE_URL, pool_pre_ping=True)
         with engine.connect() as conn:
             result = conn.execute(
-                text("SELECT id, username, email, hashed_password, is_active, email_confirmed FROM users WHERE username = :username"),
-                {"username": username}
+                text(
+                    "SELECT id, username, email, hashed_password, is_active, email_confirmed FROM users WHERE username = :username"
+                ),
+                {"username": username},
             )
             row = result.fetchone()
             if row:
                 return {
-                    "id": row[0], 
-                    "username": row[1], 
-                    "email": row[2], 
-                    "hashed_password": row[3], 
+                    "id": row[0],
+                    "username": row[1],
+                    "email": row[2],
+                    "hashed_password": row[3],
                     "is_active": row[4],
-                    "email_confirmed": row[5]
+                    "email_confirmed": row[5],
                 }
     except Exception as e:
         security_logger.error(f"Erreur lors de la récupération de l'utilisateur : {e}")

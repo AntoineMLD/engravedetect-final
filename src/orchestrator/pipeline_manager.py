@@ -43,6 +43,7 @@ class DataPipelineManager:
         pipeline = DataPipelineManager()
         pipeline.run_full_pipeline()
     """
+
     def __init__(self):
         """
         Initialise le pipeline, configure le logging, les chemins et charge les dépendances.

@@ -50,6 +50,7 @@ class TripletDataset(Dataset):
         dataset = TripletDataset('data/split/train', transform=default_transform)
         anchor, positive, negative = dataset[0]
     """
+
     def __init__(self, root_dir: str, transform=None):
         """
         Initialise le dataset de triplets à partir d'un dossier racine.

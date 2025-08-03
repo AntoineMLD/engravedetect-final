@@ -9,6 +9,7 @@ load_dotenv()
 # Déterminer si nous sommes en mode test
 IS_TEST = os.getenv("ENVIRONMENT") == "test"
 
+
 class Settings(BaseSettings):
     # Nom et version de l'application
     APP_NAME: str = "EngraveDetect API"
@@ -20,7 +21,7 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "user@example.com")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "password")
     SMTP_SENDER: str = os.getenv("SMTP_SENDER", "noreply@example.com")
-    
+
     # Configuration de l'API
     API_V1_STR: str = "/api/v1"
 

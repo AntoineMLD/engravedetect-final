@@ -23,15 +23,12 @@ from src.api.core.config import settings
 import logging
 
 # Configuration détaillée du logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Loggers spécifiques
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-logging.getLogger('src.api').setLevel(logging.INFO)
-logging.getLogger('fastapi').setLevel(logging.INFO)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+logging.getLogger("src.api").setLevel(logging.INFO)
+logging.getLogger("fastapi").setLevel(logging.INFO)
 
 # Création de l'application FastAPI
 app = FastAPI(
@@ -43,7 +40,7 @@ app = FastAPI(
 # Configuration CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins.split(","), 
+    allow_origins=settings.cors_origins.split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

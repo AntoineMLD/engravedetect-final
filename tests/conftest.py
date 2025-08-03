@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.api.main import app
 from src.api.core.database.database import Base, get_db
-from src.api.core.security import create_access_token 
+from src.api.core.security import create_access_token
 from src.api.core.auth.jwt import get_current_user
 
 # --- Config base SQLite pour tests ---
@@ -21,6 +21,7 @@ SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # --- 1. Configuration variables d'env pour tests ---
 @pytest.fixture(autouse=True, scope="session")
@@ -40,12 +41,14 @@ def setup_test_environment():
     os.environ.clear()
     os.environ.update(original_env)
 
+
 # --- 2. Création / destruction de la base ---
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
 
 # --- 3. Session DB isolée par test ---
 @pytest.fixture
@@ -57,16 +60,19 @@ def db_session():
         db.rollback()
         db.close()
 
+
 # --- 4. Utilisateur simulé ---
 @pytest.fixture
 def mock_current_user():
     return {"sub": "test@example.com", "id": 1}
+
 
 # --- 5. Headers d'authentification ---
 @pytest.fixture
 def auth_headers(mock_current_user):
     token = create_access_token(mock_current_user)
     return {"Authorization": f"Bearer {token}"}
+
 
 # --- 6. Client FastAPI avec overrides ---
 @pytest.fixture

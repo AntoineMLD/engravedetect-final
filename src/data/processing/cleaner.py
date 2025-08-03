@@ -25,7 +25,7 @@ class OpticalDataCleaner:
         self.database_url = os.getenv("DATABASE_URL")
         if not self.database_url:
             raise ValueError("DATABASE_URL must be defined in the .env file")
-        
+
         # Création de l'engine SQLAlchemy
         self.engine = create_engine(self.database_url, pool_pre_ping=True)
 
@@ -188,12 +188,12 @@ class OpticalDataCleaner:
                 self.create_enhanced_table()
                 self.logger.info("Table enhanced créée avec succès")
 
-                        # Insertion des données nettoyées
-                        self.insert_to_enhanced(df_clean)
+                # Insertion des données nettoyées
+                self.insert_to_enhanced(df_clean)
 
-                        # Export des données enhanced
-                        df_enhanced = self.load_data_from_enhanced()
-                        csv_enhanced_file = self.export_enhanced_to_csv(df_enhanced)
+                # Export des données enhanced
+                df_enhanced = self.load_data_from_enhanced()
+                csv_enhanced_file = self.export_enhanced_to_csv(df_enhanced)
 
             return {"staging_csv": csv_clean_file, "enhanced_csv": csv_enhanced_file}
 
@@ -457,12 +457,14 @@ class OpticalDataCleaner:
                 with self.get_connection() as conn:
                     for row in reader:
                         conn.execute(
-                            text("""
+                            text(
+                                """
                                 INSERT INTO staging (
                                     source_url, nom_verre, gravure_nasale,
                                     indice, materiaux, fournisseur
                                 ) VALUES (:source_url, :nom_verre, :gravure_nasale, :indice, :materiaux, :fournisseur)
-                            """),
+                            """
+                            ),
                             {
                                 "source_url": row["source_url"],
                                 "nom_verre": row["nom_verre"],
@@ -517,11 +519,13 @@ class OpticalDataCleaner:
 
                         # Insertion dans la table verres
                         conn.execute(
-                            text("""
+                            text(
+                                """
                                 INSERT INTO verres (
                                     nom, materiau, indice, fournisseur, gravure
                                 ) VALUES (:nom, :materiau, :indice, :fournisseur, :gravure)
-                            """),
+                            """
+                            ),
                             {
                                 "nom": row["nom"],
                                 "materiau": row["materiau"],
