@@ -39,7 +39,7 @@ class TestAuthentification:
 
         # Attente de la redirection et vérification de la connexion
         page.wait_for_timeout(2000)
-        
+
         # Vérification que l'utilisateur est connecté (plus flexible)
         try:
             expect(page.locator('button:has-text("📤 Déconnexion")')).to_be_visible(timeout=5000)
@@ -77,7 +77,7 @@ class TestInterfaceUtilisateur:
 
         # Attendre que les éléments de connexion soient visibles
         page.wait_for_selector('input[id="username"]', state="visible", timeout=5000)
-        
+
         admin_username = os.getenv("ADMIN_USERNAME", "admin")
         admin_password = os.getenv("ADMIN_PASSWORD", "adminpass123")
 
@@ -92,7 +92,7 @@ class TestInterfaceUtilisateur:
 
         # Attente de la redirection et vérification
         page.wait_for_timeout(2000)
-        
+
         # Vérification que la connexion a réussi
         try:
             expect(page.locator('button:has-text("📤 Déconnexion")')).to_be_visible(timeout=5000)
@@ -150,7 +150,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton d'effacement est disponible
         clear_button = page.locator('button:has-text("🗑️ Effacer le dessin")')
         expect(clear_button).to_be_attached()
-        
+
         # Clic sur le bouton d'effacement (avec gestion d'erreur)
         try:
             clear_button.click(timeout=5000)
@@ -181,7 +181,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton de recherche est disponible
         search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
         expect(search_button).to_be_attached()
-        
+
         # Clic sur le bouton de recherche (avec gestion d'erreur)
         try:
             search_button.click(timeout=5000)
@@ -212,7 +212,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton de recherche est disponible
         search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
         expect(search_button).to_be_attached()
-        
+
         # Clic sur le bouton de recherche (avec gestion d'erreur)
         try:
             search_button.click(timeout=5000)
@@ -241,7 +241,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton de recherche de verres existe
         search_verres_button = page.locator('button:has-text("📦 Rechercher les verres correspondants")')
         expect(search_verres_button).to_be_attached()
-        
+
         # Clic sur le bouton de recherche de verres (avec gestion d'erreur)
         try:
             search_verres_button.click(timeout=5000)
@@ -261,7 +261,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton de reset existe
         reset_button = page.locator('button:has-text("🧹 Réinitialiser les tags")')
         expect(reset_button).to_be_attached()
-        
+
         # Clic sur le bouton de reset (avec gestion d'erreur)
         try:
             reset_button.click(timeout=5000)
@@ -281,7 +281,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton de déconnexion existe
         logout_button = page.locator('button:has-text("📤 Déconnexion")')
         expect(logout_button).to_be_attached()
-        
+
         # Clic sur le bouton de déconnexion (avec gestion d'erreur)
         try:
             logout_button.click(timeout=5000)
@@ -324,7 +324,7 @@ class TestInterfaceUtilisateur:
         # Vérification que le bouton de recherche est disponible
         search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
         expect(search_button).to_be_attached()
-        
+
         # Clic sur le bouton de recherche (avec gestion d'erreur)
         try:
             search_button.click(timeout=5000)
