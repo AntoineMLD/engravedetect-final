@@ -28,11 +28,9 @@ def run_command(command, description):
     """Exécute une commande et affiche le résultat."""
     print(f"🔄 {description}...")
     print(f"Commande: {command}")
-    
+
     try:
-        result = subprocess.run(
-            command, shell=True, capture_output=True, text=True, check=True
-        )
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
         print(f"✅ {description} terminé avec succès")
         if result.stdout:
             print("Sortie:")
@@ -74,80 +72,92 @@ def main():
         default=2,
         help="Nombre de workers parallèles (défaut: 2)",
     )
-    
+
     args = parser.parse_args()
-    
+
     print("🚀 Démarrage des tests Playwright optimisés...")
-    
+
     # Obtenir le répertoire racine du projet
     project_root = Path(__file__).parent.parent
     print(f"Répertoire du projet: {project_root}")
-    
+
     # Configuration de base
     test_file = "tests/test_playwright_e2e.py"
     output_dir = "test-results"
-    
+
     # Créer le répertoire de sortie
     os.makedirs(output_dir, exist_ok=True)
-    
+
     # Construction de la commande pytest
     cmd_parts = [
-        "python", "-m", "pytest",
+        "python",
+        "-m",
+        "pytest",
         test_file,
         "-v",
         "--disable-warnings",
         f"--junitxml={output_dir}/results.xml",
         f"-n={args.workers}",  # Workers parallèles
-        "--dist=worksteal",    # Distribution des tests
-        "--timeout=30",        # Timeout réduit
+        "--dist=worksteal",  # Distribution des tests
+        "--timeout=30",  # Timeout réduit
         "--timeout-method=thread",  # Méthode de timeout
     ]
-    
+
     # Options selon le mode
     if args.fast:
         print("⚡ Mode rapide activé")
-        cmd_parts.extend([
-            "-m", "not slow",  # Exclure les tests lents
-            "--tb=short",      # Traceback court
-        ])
-    
+        cmd_parts.extend(
+            [
+                "-m",
+                "not slow",  # Exclure les tests lents
+                "--tb=short",  # Traceback court
+            ]
+        )
+
     if args.ci:
         print("🏗️ Mode CI activé")
-        cmd_parts.extend([
-            "-m", "not slow",  # Exclure les tests lents
-            "--tb=short",      # Traceback court
-            "--strict-markers",  # Marqueurs stricts
-        ])
+        cmd_parts.extend(
+            [
+                "-m",
+                "not slow",  # Exclure les tests lents
+                "--tb=short",  # Traceback court
+                "--strict-markers",  # Marqueurs stricts
+            ]
+        )
         # Définir les variables d'environnement pour CI
         os.environ["CI"] = "true"
-    
+
     if args.debug:
         print("🐛 Mode debug activé")
-        cmd_parts.extend([
-            "-s",              # Sortie non capturée
-            "--tb=long",       # Traceback détaillé
-        ])
-    
+        cmd_parts.extend(
+            [
+                "-s",  # Sortie non capturée
+                "--tb=long",  # Traceback détaillé
+            ]
+        )
+
     # Ajouter des options pour optimiser les performances
-    cmd_parts.extend([
-        "--maxfail=5",         # Arrêter après 5 échecs
-        "--durations=10",      # Afficher les 10 tests les plus lents
-        "--strict-config",     # Configuration stricte
-    ])
-    
+    cmd_parts.extend(
+        [
+            "--maxfail=5",  # Arrêter après 5 échecs
+            "--durations=10",  # Afficher les 10 tests les plus lents
+            "--strict-config",  # Configuration stricte
+        ]
+    )
+
     # Construire la commande finale
     command = " ".join(cmd_parts)
-    
+
     print(f"Configuration:")
     print(f"- Mode rapide: {args.fast}")
     print(f"- Mode CI: {args.ci}")
     print(f"- Mode debug: {args.debug}")
     print(f"- Workers: {args.workers}")
     print(f"- Timeout: 30s")
-    
+
     # Exécuter les tests
     success = run_command(command, "Exécution des tests Playwright")
-    
+
     # Résultat final
     if success:
         print("\n🎉 Tests terminés avec succès!")
@@ -163,4 +173,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())
