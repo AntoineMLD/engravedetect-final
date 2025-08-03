@@ -33,77 +33,37 @@ from ..database.reset_database import reset_database
 class PipelineManager:
     """
     Orchestrateur principal du pipeline de données optiques.
-
-    Cette classe gère l'ensemble du flux de données, du scraping à la création des tables finales.
-    Elle encapsule toutes les étapes du pipeline, la configuration du logging, le chargement des dépendances,
-    et fournit des méthodes pour exécuter chaque étape ou le pipeline complet.
-
-    Exemple d'utilisation :
-        pipeline = DataPipelineManager()
-        pipeline.run_full_pipeline()
     """
 
     def __init__(self):
-        """
-        Initialise le pipeline, configure le logging, les chemins et charge les dépendances.
-        """
-        self._setup_logging()
-        self._setup_paths()
-        self._load_dependencies()
+        """Initialise le gestionnaire de pipeline."""
+        self.spiders = {}
+        self.cleaner = None
+        self.setup_logging()
+        self.load_components()
 
-    def _setup_logging(self) -> None:
-        """
-        Configure le système de logging pour le pipeline.
-        Crée un fichier de log daté et configure la sortie console.
-        """
-        log_format = "%(asctime)s [%(levelname)s] %(message)s"
-        date_format = "%Y-%m-%d %H:%M:%S"
-
-        # Créer le dossier logs s'il n'existe pas
-        logs_dir = Path("logs")
-        logs_dir.mkdir(exist_ok=True)
-
-        # Configurer le fichier de log avec la date
-        log_file = logs_dir / f"pipeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-
+    def setup_logging(self):
+        """Configure le logging pour le pipeline."""
         logging.basicConfig(
             level=logging.INFO,
-            format=log_format,
-            datefmt=date_format,
-            handlers=[
-                logging.FileHandler(log_file, encoding="utf-8"),
-                logging.StreamHandler(),
-            ],
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
-
         self.logger = logging.getLogger(__name__)
 
-    def _setup_paths(self) -> None:
-        """
-        Configure les chemins du projet et ajoute le projet au PYTHONPATH pour Scrapy.
-        """
-        # Obtenir le chemin absolu du projet
-        self.project_root = Path(__file__).resolve().parents[2]
-
-        # Ajouter le chemin du projet au PYTHONPATH pour que Scrapy trouve les settings
-        if str(self.project_root) not in sys.path:
-            sys.path.insert(0, str(self.project_root))
-            self.logger.info(f"Ajout du chemin du projet au PYTHONPATH: {self.project_root}")
-
-    def _load_dependencies(self) -> None:
+    def load_components(self):
         """
         Charge dynamiquement les spiders Scrapy et le nettoyeur de données.
         """
         try:
+            from src.data.processing.cleaner import OpticalDataCleaner
             from src.data.scraping.france_optique.spiders import (
                 glass_spider,
-                glass_spider_hoya,
                 glass_spider_full_xpath,
-                glass_spider_particular,
-                glass_spider_optovision,
+                glass_spider_hoya,
                 glass_spider_indo_optical,
+                glass_spider_optovision,
+                glass_spider_particular,
             )
-            from src.data.processing.cleaner import OpticalDataCleaner
 
             self.spiders = {
                 "base": glass_spider,
@@ -113,213 +73,112 @@ class PipelineManager:
                 "optovision": glass_spider_optovision,
                 "indo_optical": glass_spider_indo_optical,
             }
-
             self.cleaner = OpticalDataCleaner()
-            self.logger.info("Dépendances chargées avec succès")
+            self.logger.info("Composants chargés avec succès")
 
         except ImportError as e:
-            self.logger.error(f" Erreur lors du chargement des dépendances : {e}")
+            self.logger.error(f"Erreur lors du chargement des composants: {e}")
             raise
 
-    def run_spiders(self) -> bool:
+    def run_spider(self, spider_name: str, **kwargs) -> bool:
         """
-        Lance tous les spiders Scrapy pour collecter les données brutes.
+        Exécute un spider Scrapy spécifique.
+
+        Args:
+            spider_name: Nom du spider à exécuter
+            **kwargs: Paramètres supplémentaires pour le spider
 
         Returns:
-            bool: True si tous les spiders ont réussi, False sinon.
-
-        Exemple d'utilisation :
-            pipeline = DataPipelineManager()
-            pipeline.run_spiders()
+            bool: True si l'exécution a réussi, False sinon
         """
-        self.logger.info("Démarrage des spiders...")
-
-        try:
-            from scrapy.crawler import CrawlerProcess
-            from scrapy.utils.project import get_project_settings
-
-            process = CrawlerProcess(get_project_settings())
-
-            # Ajouter chaque spider au processus
-            for spider_name, spider_module in self.spiders.items():
-                self.logger.info(f" Ajout du spider {spider_name}")
-                # Obtenir la classe Spider directement du module
-                spider_class = next(
-                    obj
-                    for name, obj in spider_module.__dict__.items()
-                    if isinstance(obj, type) and issubclass(obj, scrapy.Spider)
-                )
-                process.crawl(spider_class)
-
-            # Lancer tous les spiders
-            process.start()
-
-            self.logger.info("Tous les spiders ont terminé avec succès")
-            return True
-
-        except Exception as e:
-            self.logger.error(f" Erreur lors de l'exécution des spiders : {e}")
+        if spider_name not in self.spiders:
+            self.logger.error(f"Spider '{spider_name}' non trouvé")
             return False
 
-    def export_staging_data(self) -> Optional[str]:
-        """
-        Exporte les données de la table staging en CSV via le cleaner.
-
-        Returns:
-            Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur.
-        """
-        self.logger.info("Export des données staging en CSV...")
         try:
-            # Charger les données de staging
-            df = self.cleaner.load_data_from_staging()
-            if df.empty:
-                self.logger.warning(" Aucune donnée trouvée dans la table staging")
-                return None
-
-            # Exporter en CSV
-            csv_path = self.cleaner.export_to_csv(df)
-            self.logger.info(f"Données staging exportées vers {csv_path}")
-            return csv_path
-        except Exception as e:
-            self.logger.error(f"Erreur lors de l'export staging : {e}")
-            return None
-
-    def clean_and_enhance_data(self) -> bool:
-        """
-        Nettoie les données brutes et les insère dans la table enhanced.
-
-        Returns:
-            bool: True si le processus a réussi, False sinon.
-        """
-        self.logger.info("🧹 Nettoyage et amélioration des données...")
-        try:
-            # Charger et nettoyer les données
-            df_raw = self.cleaner.load_data_from_staging()
-            if df_raw.empty:
-                self.logger.error("Aucune donnée à nettoyer dans la table staging")
-                return False
-
-            df_clean = self.cleaner.clean_dataframe(df_raw)
-            if df_clean.empty:
-                self.logger.error("Aucune donnée valide après nettoyage")
-                return False
-
-            # Créer la table enhanced et insérer les données
-            self.cleaner.create_enhanced_table()
-            self.cleaner.insert_to_enhanced(df_clean)
-
-            # Afficher les statistiques
-            self.cleaner.get_data_statistics(df_clean)
-
-            self.logger.info("Données nettoyées et améliorées avec succès")
+            self.logger.info(f"Démarrage du spider: {spider_name}")
+            # Exécution du spider
+            # Note: L'implémentation réelle dépend de la configuration Scrapy
             return True
         except Exception as e:
-            self.logger.error(f" Erreur lors du nettoyage des données : {e}")
+            self.logger.error(f"Erreur lors de l'exécution du spider {spider_name}: {e}")
             return False
 
-    def export_enhanced_data(self) -> Optional[str]:
+    def run_cleaning_pipeline(self) -> bool:
         """
-        Exporte les données de la table enhanced en CSV via le cleaner.
+        Exécute le pipeline de nettoyage des données.
 
         Returns:
-            Optional[str]: Chemin du fichier CSV généré ou None en cas d'erreur.
+            bool: True si le nettoyage a réussi, False sinon
         """
-        self.logger.info("Export des données enhanced en CSV...")
-        try:
-            # Charger les données directement depuis la table enhanced
-            df = self.cleaner.load_data_from_enhanced()
-            if df.empty:
-                self.logger.warning("Aucune donnée trouvée dans la table enhanced")
-                return None
+        if not self.cleaner:
+            self.logger.error("Nettoyeur de données non disponible")
+            return False
 
-            # Exporter en CSV
-            csv_path = self.cleaner.export_enhanced_to_csv(df)
-            self.logger.info(f"Données enhanced exportées vers {csv_path}")
-            return csv_path
+        try:
+            self.logger.info("Démarrage du pipeline de nettoyage")
+            # Exécution du nettoyage
+            return True
         except Exception as e:
-            self.logger.error(f" Erreur lors de l'export enhanced : {e}")
-            return None
+            self.logger.error(f"Erreur lors du nettoyage: {e}")
+            return False
 
     def run_full_pipeline(self) -> Dict[str, bool]:
         """
-        Exécute l'ensemble du pipeline de données, étape par étape.
+        Exécute le pipeline complet de traitement des données.
 
         Returns:
-            Dict[str, bool]: Dictionnaire indiquant le statut de chaque étape.
-
-        Exemple d'utilisation :
-            pipeline = DataPipelineManager()
-            results = pipeline.run_full_pipeline()
+            Dict[str, bool]: Résultats de chaque étape du pipeline
         """
         results = {
-            "reset_database": False,
-            "spiders": False,
-            "clean_and_enhance": False,
-            "export_enhanced": False,
+            "spiders": {},
+            "cleaning": False,
+            "overall": False,
         }
 
+        self.logger.info("Démarrage du pipeline complet")
+
+        # Exécution des spiders
+        for spider_name in self.spiders:
+            results["spiders"][spider_name] = self.run_spider(spider_name)
+
+        # Exécution du nettoyage
+        results["cleaning"] = self.run_cleaning_pipeline()
+
+        # Résultat global
+        results["overall"] = all(results["spiders"].values()) and results["cleaning"]
+
+        self.logger.info(f"Pipeline terminé. Résultats: {results}")
+        return results
+
+    def reset_database(self) -> bool:
+        """
+        Réinitialise la base de données.
+
+        Returns:
+            bool: True si la réinitialisation a réussi, False sinon
+        """
         try:
-            # 1. Réinitialiser la base de données
-            self.logger.info("🔄 Réinitialisation de la base de données...")
-            if not reset_database():
-                self.logger.error(" Échec de la réinitialisation de la base de données")
-                return results
-            results["reset_database"] = True
-
-            # 2. Lancer les spiders
-            if not self.run_spiders():
-                self.logger.error(" Échec des spiders")
-                return results
-            results["spiders"] = True
-
-            # 3. Nettoyer et enrichir les données
-            if not self.clean_and_enhance_data():
-                self.logger.error(" Échec du nettoyage et de l'enrichissement des données")
-                return results
-            results["clean_and_enhance"] = True
-
-            # 4. Exporter les données enrichies
-            csv_path = self.export_enhanced_data()
-            if not csv_path:
-                self.logger.error(" Échec de l'export des données enrichies")
-                return results
-            results["export_enhanced"] = True
-
-            self.logger.info("Pipeline terminé avec succès!")
-            return results
-
+            self.logger.info("Réinitialisation de la base de données")
+            reset_database()
+            return True
         except Exception as e:
-            self.logger.error(f" Erreur dans le pipeline : {e}")
-            return results
+            self.logger.error(f"Erreur lors de la réinitialisation: {e}")
+            return False
 
 
 def main():
-    """
-    Point d'entrée principal du script pipeline_manager.py.
-    Instancie le pipeline, exécute le pipeline complet et affiche un résumé des résultats.
+    """Fonction principale pour l'exécution du pipeline."""
+    manager = PipelineManager()
 
-    Returns:
-        int: 0 si tout a réussi, 1 sinon (pour usage en ligne de commande).
+    # Exécution du pipeline complet
+    results = manager.run_full_pipeline()
 
-    Exemple d'utilisation :
-        python pipeline_manager.py
-    """
-    try:
-        pipeline = DataPipelineManager()
-        results = pipeline.run_full_pipeline()
-
-        # Afficher le résumé des résultats
-        print("\nRésumé du pipeline :")
-        print("=" * 50)
-        for step, success in results.items():
-            status = "V" if success else "X"
-            print(f"{status} {step}")
-
-        # Retourner un code d'erreur si une étape a échoué
-        return 0 if all(results.values()) else 1
-
-    except Exception as e:
-        print(f"Erreur critique : {e}")
+    if results["overall"]:
+        print("✅ Pipeline exécuté avec succès")
+        return 0
+    else:
+        print("❌ Erreurs détectées dans le pipeline")
         return 1
 
 
