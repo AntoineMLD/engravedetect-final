@@ -1,4 +1,3 @@
-
 # README — Tests automatisés IA pour EngraveDetect
 
 Ce fichier a pour but de documenter les tests automatisés mis en place autour du modèle d’intelligence artificielle du projet EngraveDetect, dans le cadre du critère **C12 du bloc E3** de la certification RNCP 37638.

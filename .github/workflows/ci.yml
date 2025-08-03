@@ -25,7 +25,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y unixodbc-dev
-        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
+        sudo apt-get install -y libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 libasound2t64
 
     - name: Install Python dependencies
       run: |
@@ -71,7 +71,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          libgl1-mesa-glx \
           libglib2.0-0 \
           libsm6 \
           libxext6 \
@@ -87,7 +86,11 @@ jobs:
           libgbm1 \
           libpango-1.0-0 \
           libcairo2 \
-          libasound2
+          libasound2t64 \
+          libgl1-mesa-dri \
+          libgl1-mesa-glx \
+          libgles2-mesa \
+          libegl1-mesa
 
     - name: Install Python dependencies
       run: |
