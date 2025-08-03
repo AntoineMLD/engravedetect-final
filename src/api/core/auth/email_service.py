@@ -1,7 +1,8 @@
+import logging
 import smtplib
 from email.mime.text import MIMEText
+
 from ..config import settings
-import logging
 
 logger = logging.getLogger(__name__)
 

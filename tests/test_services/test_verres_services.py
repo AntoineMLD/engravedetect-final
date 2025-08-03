@@ -1,7 +1,8 @@
 import pytest
-from src.api.services import verres
-from src.api.schemas.verres import VerreCreate, VerreUpdate
+
 from src.api.models.verres import Verre
+from src.api.schemas.verres import VerreCreate, VerreUpdate
+from src.api.services import verres
 
 
 @pytest.fixture

@@ -1,11 +1,18 @@
-from datetime import datetime
-from fastapi import HTTPException, status, Request
-from sqlalchemy.orm import Session
-from src.api.core.auth.models import User
-from src.api.core.security import verify_password, get_password_hash, create_access_token, create_confirmation_token
-from src.api.core.auth.token_service import create_db_token
-from src.api.core.auth.email_service import send_confirmation_email
 import logging
+from datetime import datetime
+
+from fastapi import HTTPException, Request, status
+from sqlalchemy.orm import Session
+
+from src.api.core.auth.email_service import send_confirmation_email
+from src.api.core.auth.models import User
+from src.api.core.auth.token_service import create_db_token
+from src.api.core.security import (
+    create_access_token,
+    create_confirmation_token,
+    get_password_hash,
+    verify_password,
+)
 
 
 def authenticate_user(db: Session, username: str, password: str, request: Request = None) -> tuple[User, str]:

@@ -1,26 +1,18 @@
 """
-Module de dataset pour l'entraînement avec Triplet Loss.
+Dataset de triplets pour l'entraînement du modèle EfficientNet
 
-Ce module contient la classe TripletDataset qui génère dynamiquement des triplets
-d'images (anchor, positive, negative) pour l'entraînement de modèles de deep learning
-utilisant la Triplet Loss.
+Ce module implémente un dataset personnalisé pour l'entraînement
+avec Triplet Loss, permettant de créer des triplets (anchor, positive, negative)
+pour améliorer la discrimination entre les classes de gravures.
 
 Fonctionnalités :
-- Génération automatique de triplets d'images
-- Sélection intelligente d'images positives et négatives
-- Support des transformations d'images
-- Gestion des formats d'images multiples (PNG, JPG, JPEG)
-- Conversion automatique en grayscale
+- Chargement automatique des images depuis les dossiers de classes
+- Création de triplets (anchor, positive, negative) pour l'entraînement
+- Application de transformations d'augmentation de données
+- Gestion des chemins d'accès et de la structure des données
 
-Structure des triplets :
-- Anchor : Image de référence
-- Positive : Image de la même classe que l'anchor
-- Negative : Image d'une classe différente
-
-Transformations par défaut :
-- Redimensionnement à 224x224 pixels
-- Conversion en tenseur PyTorch
-- Normalisation avec mean=0.5, std=0.5
+Classes :
+- TripletDataset : Dataset principal pour l'entraînement avec triplets
 
 Auteur : Équipe de développement
 Version : 1.0.0
@@ -28,10 +20,11 @@ Version : 1.0.0
 
 import os
 import random
-from PIL import Image
-from typing import Tuple, List
-from torch.utils.data import Dataset
+from typing import List, Tuple
+
 import torchvision.transforms as transforms
+from PIL import Image
+from torch.utils.data import Dataset
 
 
 class TripletDataset(Dataset):

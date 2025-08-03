@@ -1,26 +1,23 @@
 """
-Script de réinitialisation de la base de données PostgreSQL.
+Script de réinitialisation de la base de données
 
-Ce module permet de réinitialiser complètement la base de données en supprimant
-et recréant toutes les tables nécessaires au projet de détection de gravures.
+Ce script permet de réinitialiser complètement la base de données
+en supprimant toutes les tables et en les recréant.
 
 Fonctionnalités :
-- Suppression sécurisée des tables existantes
-- Création des tables staging, enhanced et verres
-- Création des index pour optimiser les performances
-- Gestion des erreurs et logging détaillé
-
-Tables créées :
-- staging : Données brutes en cours de traitement
-- enhanced : Données enrichies et nettoyées
-- verres : Données finales des verres optiques
+- Suppression de toutes les tables existantes
+- Création des nouvelles tables
+- Initialisation des données de base
+- Gestion des erreurs et logging
 
 Auteur : Équipe de développement
 Version : 1.0.0
 """
 
 import logging
+
 from sqlalchemy import create_engine, text
+
 from src.api.core.config import settings  # adapt path if needed
 
 # Configuration du logging

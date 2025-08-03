@@ -1,10 +1,11 @@
 import json
 import logging
-from typing import List, Dict, Optional, Any
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+
 from .config import DATABASE_URL
 
 # Configuration du logging

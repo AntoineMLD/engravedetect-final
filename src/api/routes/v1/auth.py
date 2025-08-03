@@ -1,15 +1,17 @@
+import logging
+from typing import Dict
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from typing import Dict
+
+from src.api.core.auth.jwt import get_current_user
+from src.api.core.auth.models import User as UserModel
+from src.api.core.auth.service import authenticate_user
 from src.api.core.database.database import get_db
 from src.api.core.security import decode_access_token
-from src.api.core.auth.jwt import get_current_user
-from src.api.schemas.auth import UserCreate, User, Token
+from src.api.schemas.auth import Token, User, UserCreate
 from src.api.services import auth as auth_service
-from src.api.core.auth.service import authenticate_user
-from src.api.core.auth.models import User as UserModel
-import logging
 
 router = APIRouter(tags=["auth"])
 

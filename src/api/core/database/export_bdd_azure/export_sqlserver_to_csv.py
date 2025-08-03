@@ -1,7 +1,8 @@
 import os
+import urllib
+
 import pandas as pd
 from sqlalchemy import create_engine, inspect
-import urllib
 
 # Config SQL Server
 server = "localhost"

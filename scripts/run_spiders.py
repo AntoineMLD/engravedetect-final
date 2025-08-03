@@ -1,8 +1,9 @@
-import subprocess
 import os
+import subprocess
 from datetime import datetime
-from sqlalchemy import create_engine, text
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
 
 # Charger les variables d'environnement
 load_dotenv()

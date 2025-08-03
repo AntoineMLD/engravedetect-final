@@ -1,37 +1,19 @@
 """
-Script d'évaluation du modèle EfficientNet avec métriques avancées.
-
-Ce module évalue les performances du modèle EfficientNetEmbedding entraîné
-en utilisant plusieurs métriques : top-k accuracy, matrice de confusion
-et analyse des similarités cosinus.
-
-Fonctionnalités :
-- Chargement du modèle entraîné
-- Extraction d'embeddings pour les données de test et de référence
-- Calcul de la top-k accuracy (k=1, 3, 5)
-- Génération de la matrice de confusion
-- Visualisation des résultats avec graphiques
-- Analyse des similarités cosinus entre embeddings
-
-Métriques calculées :
-- Top-1, Top-3, Top-5 accuracy
-- Matrice de confusion
-- Similarités cosinus
-
-Auteur : Équipe de développement
-Version : 1.0.0
+Module d'évaluation du modèle EfficientNet pour la classification des gravures
 """
 
 import os
 import sys
-import torch
-import numpy as np
-from PIL import Image
-from torchvision import transforms
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.metrics.pairwise import cosine_similarity
+from collections import Counter, defaultdict
+
 import matplotlib.pyplot as plt
-from collections import defaultdict, Counter
+import numpy as np
+import torch
+from PIL import Image
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+from sklearn.metrics.pairwise import cosine_similarity
+from torchvision import transforms
+
 from models.efficientnet_triplet import EfficientNetEmbedding
 
 # Config

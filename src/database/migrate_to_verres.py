@@ -1,8 +1,10 @@
 # src/database/migrate_to_verres.py
 
 import logging
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
 from src.api.core.database.database import SessionLocal, engine
 from src.api.models.verres import Verre
 

@@ -1,3 +1,3 @@
-from . import verres, auth
+from . import auth, verres
 
 __all__ = ["verres", "auth"]

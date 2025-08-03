@@ -2,11 +2,12 @@
 """
 Script pour exécuter les tests Playwright
 """
-import subprocess
-import sys
 import argparse
 import os
+import subprocess
+import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Chargement des variables d'environnement

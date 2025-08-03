@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ...core.database.database import Base
+
 from ...core.config import settings
+from ...core.database.database import Base
 
 
 class DatabaseManager:

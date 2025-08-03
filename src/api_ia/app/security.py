@@ -1,21 +1,27 @@
 """
-Module de sécurité pour l'API
+Module de sécurité pour l'API IA
 Gère la validation des entrées, les tokens et les logs de sécurité
 """
 
-from datetime import datetime, timedelta
-from typing import Optional, Tuple
-from pydantic import BaseModel, EmailStr
-import jwt
-from fastapi import HTTPException, status
 import logging
 import os
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
-from passlib.context import CryptContext
-from sqlalchemy import create_engine, text
-from api_ia.app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, DATABASE_URL
-import magic
+from typing import Optional, Tuple
 
+import jwt
+import magic
+from fastapi import HTTPException, status
+from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr
+from sqlalchemy import create_engine, text
+
+from api_ia.app.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ALGORITHM,
+    DATABASE_URL,
+    SECRET_KEY,
+)
 
 # Logger sécurité
 def setup_security_logging():

@@ -1,26 +1,26 @@
 """
-Module principal de l'API de gestion des verres optiques.
+API principale pour EngraveDetect
 
-Ce module configure et initialise l'application FastAPI principale pour la gestion
-des verres optiques. Il inclut la configuration du logging, des middlewares CORS,
-et l'enregistrement des routes principales.
+Ce module contient l'application FastAPI principale pour la gestion
+des verres optiques et l'authentification des utilisateurs.
 
 Fonctionnalités :
-- Configuration du logging détaillé
-- Initialisation de l'application FastAPI
-- Configuration CORS
-- Enregistrement des routes d'authentification et de gestion des verres
-- Endpoints de santé et racine
+- Configuration de l'API FastAPI
+- Gestion des routes d'authentification et de verres
+- Configuration CORS et middleware
+- Logging et monitoring
 
 Auteur : Équipe de développement
 Version : 1.0.0
 """
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routes.v1 import auth, verres
+
 from src.api.core.config import settings
-import logging
+from src.api.routes.v1 import auth, verres
 
 # Configuration détaillée du logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

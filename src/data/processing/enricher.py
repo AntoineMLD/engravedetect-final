@@ -1,13 +1,15 @@
-import logging
 import json
+import logging
 import re
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ...api.models.verres import Verre
-from ...api.models.references import Fournisseur
+
 from ...api.core.config import settings
+from ...api.models.references import Fournisseur
+from ...api.models.verres import Verre
 
 
 class DataEnricher:

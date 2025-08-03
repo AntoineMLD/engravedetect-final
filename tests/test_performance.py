@@ -1,22 +1,23 @@
 """
-Tests de performance pour le modèle d'IA EngraveDetect.
+Tests de performance pour l'API EngraveDetect
 
-Ce module contient les tests de performance pour :
-- Le modèle d'IA (temps de prédiction, utilisation mémoire)
-- L'API (temps de réponse, débit)
+Ce module contient les tests de performance pour évaluer :
+- Les temps de réponse de l'API
+- L'utilisation mémoire du modèle IA
 - La base de données (temps de requête, utilisation mémoire)
 """
 
-import pytest
 import time
+
 import psutil
+import pytest
 import torch
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
 from src.api_ia.app.config import API_TITLE, API_VERSION
 
 # Créer une instance de l'application sans charger le modèle
-from fastapi import FastAPI
-
 app = FastAPI(title=API_TITLE, version=API_VERSION)
 client = TestClient(app)
 

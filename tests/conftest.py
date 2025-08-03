@@ -1,6 +1,14 @@
 import os
 import sys
+
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from src.api.core.auth.jwt import get_current_user
+from src.api.core.database.database import Base, get_db
+from src.api.core.security import create_access_token
+from src.api.main import app
 
 # --- AJOUT PYTHONPATH en premier ---
 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -8,13 +16,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from src.api.main import app
-from src.api.core.database.database import Base, get_db
-from src.api.core.security import create_access_token
-from src.api.core.auth.jwt import get_current_user
 
 # --- Config base SQLite pour tests ---
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"

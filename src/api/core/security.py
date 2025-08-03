@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Dict, Optional
+
 from jose import jwt
 from passlib.context import CryptContext
+
 from src.api.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -2,10 +2,11 @@
 """
 Script d'installation et de configuration de Playwright
 """
+import os
 import subprocess
 import sys
-import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Chargement des variables d'environnement

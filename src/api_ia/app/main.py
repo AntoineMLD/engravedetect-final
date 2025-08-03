@@ -1,40 +1,49 @@
-# src/api_ia/app/main.py
 """
 API FastAPI pour la classification des verres
 """
 
-import logging
 import io
+import logging
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import List
-from datetime import datetime
-from PIL import Image
+
 from dotenv import load_dotenv
-from fastapi import FastAPI, UploadFile, File, Request, Depends, HTTPException, status, Body
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi import (
+    Body,
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from PIL import Image
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from pydantic import BaseModel
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from slowapi.util import get_remote_address
 from starlette.responses import Response
 
-from api_ia.app.model_loader import load_model, preprocess_image, get_embedding
-from api_ia.app.similarity_search import get_top_matches, load_references
-from api_ia.app.database import find_matching_verres, get_verre_details, delete_user_by_username
+from api_ia.app.config import API_DESCRIPTION, API_TITLE, API_VERSION
+from api_ia.app.database import delete_user_by_username, find_matching_verres, get_verre_details
+from api_ia.app.middleware.security import SecurityHeadersMiddleware
+from api_ia.app.model_loader import get_embedding, load_model, preprocess_image
+from api_ia.app.openapi_config import setup_openapi
 from api_ia.app.security import (
     authenticate_user,
     create_access_token,
     get_user,
-    verify_token,
-    validate_image_file,
     log_security_event,
+    validate_image_file,
+    verify_token,
 )
-from api_ia.app.middleware.security import SecurityHeadersMiddleware
-from api_ia.app.config import API_TITLE, API_VERSION, API_DESCRIPTION
-from api_ia.app.openapi_config import setup_openapi
-from pydantic import BaseModel
+from api_ia.app.similarity_search import get_top_matches, load_references
 
 # Load env variables
 load_dotenv()

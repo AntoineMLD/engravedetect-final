@@ -1,10 +1,13 @@
-import torch
-from torchvision import transforms
-from PIL import Image
-import sys
 import os
-from .config import MODEL_WEIGHTS_PATH, IMAGE_SIZE
+import sys
+
+import torch
+from PIL import Image
+from torchvision import transforms
+
 from models.efficientnet_triplet import EfficientNetEmbedding
+
+from .config import IMAGE_SIZE, MODEL_WEIGHTS_PATH
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 

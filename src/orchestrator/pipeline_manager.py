@@ -1,37 +1,36 @@
 """
-Module d'orchestration du pipeline de données optiques.
+Gestionnaire de pipeline pour l'orchestration des processus de données
 
-Ce module contient la classe DataPipelineManager qui orchestre l'ensemble
-du pipeline de traitement des données optiques, du scraping à la création
-des tables finales en base de données.
+Ce module centralise la gestion des pipelines de traitement de données
+pour le projet EngraveDetect, incluant le scraping, le nettoyage et
+l'enrichissement des données optiques.
 
 Fonctionnalités :
-- Configuration automatique du logging et des chemins
-- Chargement dynamique des spiders Scrapy
-- Exécution séquentielle des étapes du pipeline
-- Gestion des erreurs et monitoring des processus
-- Export des données vers PostgreSQL
+- Orchestration des spiders Scrapy pour le scraping
+- Gestion du pipeline de nettoyage des données
+- Coordination des processus d'enrichissement
+- Monitoring et logging des opérations
+- Gestion des erreurs et reprises
 
-Pipeline complet :
-1. Exécution des spiders de scraping
-2. Export des données brutes vers staging
-3. Nettoyage et enrichissement des données
-4. Export des données finales vers verres
+Classes :
+- PipelineManager : Gestionnaire principal des pipelines
 
 Auteur : Équipe de développement
 Version : 1.0.0
 """
 
 import logging
-from datetime import datetime
-from typing import Dict, Optional
-from pathlib import Path
-import scrapy
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional
+
+import scrapy
+
 from ..database.reset_database import reset_database
 
 
-class DataPipelineManager:
+class PipelineManager:
     """
     Orchestrateur principal du pipeline de données optiques.
 

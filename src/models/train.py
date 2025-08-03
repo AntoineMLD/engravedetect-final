@@ -1,37 +1,19 @@
 """
-Script d'entraînement du modèle EfficientNet avec Triplet Loss.
-
-Ce module entraîne le modèle EfficientNetEmbedding pour la classification
-des gravures sur les verres optiques en utilisant la Triplet Loss.
-
-Fonctionnalités :
-- Chargement et préparation du dataset de triplets
-- Configuration du modèle EfficientNet avec embedding
-- Entraînement avec Triplet Loss (semi-hard mining)
-- Sauvegarde du modèle entraîné
-- Génération de courbes de perte
-
-Paramètres d'entraînement :
-- Embedding dimension : 256
-- Margin : 0.3
-- Batch size : 32
-- Nombre d'époques : 20
-- Learning rate : 1e-4
-
-Auteur : Équipe de développement
-Version : 1.0.0
+Module d'entraînement du modèle EfficientNet pour la classification des gravures
 """
 
 import os
 import sys
+
+import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
+from efficientnet_triplet import EfficientNetEmbedding
+from losses.triplet_losses import HardTripletLoss
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-from efficientnet_triplet import EfficientNetEmbedding
-from losses.triplet_losses import HardTripletLoss
+
 from datasets.triplet_dataset import TripletDataset, default_transform
 
 # --- Configuration globale ---

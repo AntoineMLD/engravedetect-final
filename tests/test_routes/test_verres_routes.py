@@ -1,8 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
-from src.api.schemas.verres import VerreCreate, VerreUpdate
 from src.api.models.verres import Verre
+from src.api.schemas.verres import VerreCreate, VerreUpdate
 
 
 @pytest.fixture
