@@ -99,7 +99,7 @@ jobs:
         PLAYWRIGHT_TIMEOUT: "30000"
         database_url: "sqlite:///./test.db"
       run: |
-        python -m pytest tests/test_playwright_e2e.py -v --headed=false --disable-warnings
+        python -m pytest tests/test_playwright_e2e.py -v --disable-warnings --junitxml=test-results/results.xml
 
     - name: Upload Playwright test results
       if: always()
