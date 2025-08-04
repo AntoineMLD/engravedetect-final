@@ -112,20 +112,21 @@ class TestAPIIADependencies:
             # Vérifier que les versions sont compatibles
             torch_version = torch.__version__
             torchvision_version = torchvision.__version__
-            
+
             # Test simple de compatibilité - création d'un modèle
             from torchvision import models
+
             model = models.efficientnet_b0(weights=None)
             assert model is not None
-            
+
             # Test de transformation
             from torchvision import transforms
-            transform = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            ])
+
+            transform = transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
+            )
             assert transform is not None
-            
+
         except ImportError as e:
             pytest.skip(f"PyTorch ou TorchVision non disponible: {e}")
         except Exception as e:
