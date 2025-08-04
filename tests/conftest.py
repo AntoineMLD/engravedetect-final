@@ -60,10 +60,11 @@ def db_session():
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
 
+    import os
+    import tempfile
+
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    import tempfile
-    import os
 
     # Utiliser un fichier temporaire au lieu de :memory: pour éviter les problèmes de threads
     temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
