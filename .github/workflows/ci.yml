@@ -49,7 +49,10 @@ jobs:
         
         # Installation des dépendances API IA avec gestion d'erreurs
         echo "Installation des dépendances API IA..."
-        pip install -r src/api_ia/requirements.txt || echo "Certaines dépendances API IA non disponibles - tests skipés"
+        pip install -r src/api_ia/requirements-compatible.txt || pip install -r src/api_ia/requirements.txt || echo "Certaines dépendances API IA non disponibles - tests skipés"
+        
+        # Diagnostic des dépendances si disponible
+        python scripts/diagnose_dependencies.py || echo "Script de diagnostic non disponible"
 
     - name: Set PYTHONPATH
       run: |
