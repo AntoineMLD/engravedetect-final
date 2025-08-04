@@ -50,6 +50,42 @@ class TestAPIIAMocked:
         async def mock_health():
             return {"status": "healthy", "timestamp": "2024-01-01T00:00:00Z"}
 
+        @app.get("/verre/{verre_id}")
+        async def mock_verre_details(verre_id: int):
+            if verre_id == 1:
+                return {
+                    "id": 1,
+                    "nom": "Verre Test",
+                    "fournisseur": "Test Fournisseur",
+                    "materiaux": "Test Materiaux",
+                    "indice": 1.5,
+                    "protection": True,
+                    "photochromic": False,
+                    "hauteur_min": 10.0,
+                    "hauteur_max": 20.0,
+                    "gravure": "TEST123",
+                }
+            else:
+                from fastapi import HTTPException
+
+                raise HTTPException(status_code=404, detail="Verre non trouvé")
+
+        @app.get("/me")
+        async def mock_me():
+            return {"username": "test_user", "email": "test@example.com"}
+
+        @app.delete("/me")
+        async def mock_delete_me():
+            return {"message": "Utilisateur supprimé avec succès"}
+
+        @app.get("/")
+        async def mock_root():
+            return {"message": "API IA EngraveDetect", "version": "1.0.0", "docs_url": "/docs"}
+
+        @app.get("/metrics")
+        async def mock_metrics():
+            return "prometheus_metrics_total 42\n"
+
         return app
 
     @pytest.fixture
@@ -164,11 +200,100 @@ class TestAPIIAMocked:
         with open(main_file, "r") as f:
             content = f.read()
 
-            endpoints = ["/token", "/embedding", "/match", "/search_tags", "/health"]
+            endpoints = [
+                "/token",
+                "/embedding",
+                "/match",
+                "/search_tags",
+                "/health",
+                "/verre/{verre_id}",
+                "/me",
+                "/",
+                "/metrics",
+            ]
             for endpoint in endpoints:
                 assert endpoint in content, f"Endpoint {endpoint} non trouvé"
 
         print("✅ Structure API IA validée")
+
+    def test_verre_details_endpoint(self, client, auth_token):
+        """Test de récupération des détails d'un verre mocké"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        response = client.get("/verre/1", headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["nom"] == "Verre Test"
+        assert data["fournisseur"] == "Test Fournisseur"
+
+    def test_verre_details_not_found(self, client, auth_token):
+        """Test de récupération d'un verre inexistant mocké"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        response = client.get("/verre/999", headers=headers)
+
+        assert response.status_code == 404
+
+    def test_me_endpoint(self, client, auth_token):
+        """Test de récupération des informations utilisateur mocké"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        response = client.get("/me", headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["username"] == "test_user"
+        assert data["email"] == "test@example.com"
+
+    def test_delete_me_endpoint(self, client, auth_token):
+        """Test de suppression de l'utilisateur mocké"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        response = client.delete("/me", headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "Utilisateur supprimé avec succès"
+
+    def test_root_endpoint(self, client):
+        """Test de l'endpoint racine mocké"""
+        response = client.get("/")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "API IA EngraveDetect"
+        assert data["version"] == "1.0.0"
+        assert data["docs_url"] == "/docs"
+
+    def test_metrics_endpoint(self, client):
+        """Test de l'endpoint des métriques mocké"""
+        response = client.get("/metrics")
+
+        assert response.status_code == 200
+        content = response.text
+        assert "prometheus_metrics_total" in content
+
+    def test_rate_limiting_simulation(self, client, auth_token, test_image):
+        """Test de simulation de limitation de débit"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        files = {"file": ("test_image.png", test_image, "image/png")}
+
+        # Simuler plusieurs requêtes
+        responses = []
+        for _ in range(3):
+            response = client.post("/embedding", files=files, headers=headers)
+            responses.append(response)
+
+        # Toutes les requêtes devraient réussir dans le contexte mocké
+        for response in responses:
+            assert response.status_code == 200
+
+    def test_error_handling(self, client):
+        """Test de gestion d'erreurs"""
+        # Test avec un endpoint inexistant
+        response = client.get("/nonexistent")
+        assert response.status_code == 404
+
+        # Test avec une méthode non autorisée
+        response = client.post("/health")
+        assert response.status_code == 405
 
 
 class TestAPIIARealIntegration:

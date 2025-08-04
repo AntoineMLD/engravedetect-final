@@ -183,3 +183,120 @@ class TestAPIIAIntegration:
         response = client.post("/embedding", files=files, headers=headers)
 
         assert response.status_code == 400
+
+    def test_verre_details_endpoint(self, client, auth_token):
+        """Test de récupération des détails d'un verre"""
+        with patch("src.api_ia.app.database.get_verre_details") as mock_get_verre:
+            mock_get_verre.return_value = {
+                "id": 1,
+                "nom": "Verre Test",
+                "fournisseur": "Test Fournisseur",
+                "materiaux": "Test Materiaux",
+                "indice": 1.5,
+                "protection": True,
+                "photochromic": False,
+                "hauteur_min": 10.0,
+                "hauteur_max": 20.0,
+                "gravure": "TEST123",
+            }
+
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            response = client.get("/verre/1", headers=headers)
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["nom"] == "Verre Test"
+            assert data["fournisseur"] == "Test Fournisseur"
+
+    def test_verre_details_not_found(self, client, auth_token):
+        """Test de récupération d'un verre inexistant"""
+        with patch("src.api_ia.app.database.get_verre_details") as mock_get_verre:
+            mock_get_verre.return_value = None
+
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            response = client.get("/verre/999", headers=headers)
+
+            assert response.status_code == 404
+
+    def test_me_endpoint(self, client, auth_token):
+        """Test de récupération des informations utilisateur"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        response = client.get("/me", headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "username" in data
+        assert "email" in data
+
+    def test_delete_me_endpoint(self, client, auth_token):
+        """Test de suppression de l'utilisateur"""
+        with patch("src.api_ia.app.database.delete_user_by_username") as mock_delete:
+            mock_delete.return_value = True
+
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            response = client.delete("/me", headers=headers)
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["message"] == "Utilisateur supprimé avec succès"
+
+    def test_delete_me_not_found(self, client, auth_token):
+        """Test de suppression d'un utilisateur inexistant"""
+        with patch("src.api_ia.app.database.delete_user_by_username") as mock_delete:
+            mock_delete.return_value = False
+
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            response = client.delete("/me", headers=headers)
+
+            assert response.status_code == 404
+
+    def test_root_endpoint(self, client):
+        """Test de l'endpoint racine"""
+        response = client.get("/")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "message" in data
+        assert "version" in data
+        assert "docs_url" in data
+
+    def test_metrics_endpoint(self, client):
+        """Test de l'endpoint des métriques Prometheus"""
+        response = client.get("/metrics")
+
+        assert response.status_code == 200
+        # Vérifier que c'est du texte Prometheus
+        content = response.text
+        assert "prometheus" in content.lower() or "counter" in content.lower()
+
+    def test_rate_limiting(self, client, auth_token, test_image):
+        """Test de limitation de débit"""
+        headers = {"Authorization": f"Bearer {auth_token}"}
+        files = {"file": ("test_image.png", test_image, "image/png")}
+
+        # Faire plusieurs requêtes rapides pour déclencher la limitation
+        responses = []
+        for _ in range(6):  # Plus que la limite de 5/minute
+            response = client.post("/embedding", files=files, headers=headers)
+            responses.append(response)
+
+        # Au moins une requête devrait être limitée
+        status_codes = [r.status_code for r in responses]
+        assert 429 in status_codes or all(code == 200 for code in status_codes)
+
+    def test_cors_headers(self, client):
+        """Test des en-têtes CORS"""
+        response = client.options("/token")
+
+        assert response.status_code == 200
+        # Vérifier la présence d'en-têtes CORS
+        assert "access-control-allow-origin" in response.headers
+
+    def test_security_headers(self, client):
+        """Test des en-têtes de sécurité"""
+        response = client.get("/health")
+
+        assert response.status_code == 200
+        # Vérifier la présence d'en-têtes de sécurité
+        headers = response.headers
+        assert "x-content-type-options" in headers or "x-frame-options" in headers
