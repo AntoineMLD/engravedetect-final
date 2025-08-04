@@ -126,8 +126,8 @@ class TestAPIIAImportStructure:
         """Test d'import de l'API IA (peut échouer si dépendances manquantes)"""
         try:
             # Ajouter le répertoire src au path
-            import sys
             import os
+            import sys
 
             sys.path.insert(0, os.path.join(os.getcwd(), "src"))
 

@@ -7,7 +7,7 @@ Tests qui mockent complètement l'API IA pour éviter les problèmes de dépenda
 import io
 import os
 import sys
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
