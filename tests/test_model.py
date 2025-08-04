@@ -8,6 +8,7 @@ from torch.nn import functional as F
 # Import conditionnel du modèle
 try:
     from src.models.efficientnet_triplet import EfficientNetEmbedding
+
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False

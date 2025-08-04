@@ -11,6 +11,7 @@ import torch
 from PIL import Image
 from sklearn.metrics import confusion_matrix
 
+
 # Test de compatibilité PyTorch/TorchVision avant d'importer les modules
 def check_torch_compatibility():
     """Vérifie la compatibilité PyTorch/TorchVision"""
@@ -18,12 +19,13 @@ def check_torch_compatibility():
         import torch
         import torchvision
         from torchvision import models
-        
+
         # Test simple de compatibilité
         model = models.efficientnet_b0(weights=None)
         return True
     except Exception:
         return False
+
 
 # Import conditionnel des modules
 if check_torch_compatibility():
@@ -36,6 +38,7 @@ if check_torch_compatibility():
         plot_topk,
         transform,
     )
+
     TORCH_AVAILABLE = True
 else:
     TORCH_AVAILABLE = False

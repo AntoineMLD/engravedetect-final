@@ -19,6 +19,7 @@ try:
     from src.api.core.database.database import Base, get_db
     from src.api.core.security import create_access_token
     from src.api.main import app
+
     API_AVAILABLE = True
 except ImportError:
     API_AVAILABLE = False
@@ -28,12 +29,8 @@ import pytest
 
 def pytest_configure(config):
     """Configuration pytest pour les marqueurs personnalisés"""
-    config.addinivalue_line(
-        "markers", "torch: Tests nécessitant PyTorch/TorchVision"
-    )
-    config.addinivalue_line(
-        "markers", "skip_torch: Tests à skiper si PyTorch non disponible"
-    )
+    config.addinivalue_line("markers", "torch: Tests nécessitant PyTorch/TorchVision")
+    config.addinivalue_line("markers", "skip_torch: Tests à skiper si PyTorch non disponible")
 
 
 def check_torch_availability():
@@ -42,7 +39,7 @@ def check_torch_availability():
         import torch
         import torchvision
         from torchvision import models
-        
+
         # Test simple de compatibilité
         model = models.efficientnet_b0(weights=None)
         return True
@@ -62,17 +59,17 @@ def db_session():
     """Fixture pour la session de base de données"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-    
+
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    
+
     # Base de données de test en mémoire
     engine = create_engine("sqlite:///:memory:")
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
+
     # Créer les tables
     Base.metadata.create_all(bind=engine)
-    
+
     session = TestingSessionLocal()
     try:
         yield session
@@ -86,15 +83,15 @@ def auth_headers():
     """Fixture pour les headers d'authentification"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-    
+
     from fastapi.testclient import TestClient
-    
+
     client = TestClient(app)
-    
+
     # Créer un token de test
     test_user = {"sub": "test@example.com", "exp": 9999999999}
     token = create_access_token(data=test_user)
-    
+
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -103,6 +100,7 @@ def client():
     """Fixture pour le client de test FastAPI"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-    
+
     from fastapi.testclient import TestClient
+
     return TestClient(app)
