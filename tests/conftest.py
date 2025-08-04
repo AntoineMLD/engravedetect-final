@@ -79,28 +79,42 @@ def db_session():
 
 
 @pytest.fixture
-def auth_headers():
-    """Fixture pour les headers d'authentification"""
+def client(db_session):
+    """Fixture pour le client de test FastAPI avec base de données configurée"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
 
     from fastapi.testclient import TestClient
 
-    client = TestClient(app)
+    # Override de la dépendance get_db pour utiliser la session de test
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass  # La session est gérée par la fixture db_session
+
+    # Override de la dépendance get_current_user pour les tests
+    def override_get_current_user():
+        return {"id": 1, "username": "test_user", "email": "test@example.com"}
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    # Nettoyer les overrides
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def auth_headers():
+    """Fixture pour les headers d'authentification"""
+    if not API_AVAILABLE:
+        pytest.skip("API principale non disponible")
 
     # Créer un token de test
     test_user = {"sub": "test@example.com", "exp": 9999999999}
     token = create_access_token(data=test_user)
 
     return {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
-def client():
-    """Fixture pour le client de test FastAPI"""
-    if not API_AVAILABLE:
-        pytest.skip("API principale non disponible")
-
-    from fastapi.testclient import TestClient
-
-    return TestClient(app)

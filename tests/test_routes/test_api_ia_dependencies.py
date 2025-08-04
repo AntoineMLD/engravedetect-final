@@ -78,9 +78,13 @@ class TestAPIIADependencies:
         try:
             import torch
 
+            # Vérifier que torch est importable et a une version
+            assert hasattr(torch, "__version__"), "PyTorch n'a pas d'attribut __version__"
             assert torch.__version__ >= "2.2.0"
         except ImportError:
             pytest.skip("PyTorch non disponible - optionnel pour les tests")
+        except AttributeError:
+            pytest.skip("PyTorch version non accessible - optionnel pour les tests")
 
     def test_prometheus_client_available(self):
         """Test que Prometheus Client est disponible"""
