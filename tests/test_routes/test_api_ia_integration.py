@@ -27,22 +27,25 @@ import sys
 from unittest.mock import Mock, patch
 
 # Mock des fonctions qui échouent au chargement
-sys.modules['torch'] = Mock()
-sys.modules['torchvision'] = Mock()
+sys.modules["torch"] = Mock()
+sys.modules["torchvision"] = Mock()
 
 # Import conditionnel
 try:
-    with patch('src.api_ia.app.model_loader.load_model') as mock_load_model, \
-         patch('src.api_ia.app.similarity_search.load_references') as mock_load_refs, \
-         patch('src.api_ia.app.model_loader.MODEL_WEIGHTS_PATH', '/fake/path/model.pth'), \
-         patch('src.api_ia.app.similarity_search.REFERENCES_PATH', '/fake/path/references.json'):
-        
+    with (
+        patch("src.api_ia.app.model_loader.load_model") as mock_load_model,
+        patch("src.api_ia.app.similarity_search.load_references") as mock_load_refs,
+        patch("src.api_ia.app.model_loader.MODEL_WEIGHTS_PATH", "/fake/path/model.pth"),
+        patch("src.api_ia.app.similarity_search.REFERENCES_PATH", "/fake/path/references.json"),
+    ):
+
         # Mock du modèle
         mock_model = Mock()
         mock_load_model.return_value = mock_model
         mock_load_refs.return_value = []
-        
+
         from src.api_ia.app.main import app
+
         API_IA_AVAILABLE = True
 except Exception as e:
     print(f"Erreur d'import: {e}")
@@ -63,35 +66,29 @@ class TestAPIIAIntegration:
     @pytest.fixture
     def auth_token(self, client):
         """Token d'authentification pour les tests"""
-        with patch('src.api_ia.app.security.authenticate_user') as mock_auth:
+        with patch("src.api_ia.app.security.authenticate_user") as mock_auth:
             mock_auth.return_value = {"username": "test_user", "email": "test@example.com"}
-            
-            response = client.post("/token", data={
-                "username": "test_user",
-                "password": "test_password"
-            })
-            
+
+            response = client.post("/token", data={"username": "test_user", "password": "test_password"})
+
             return response.json()["access_token"]
 
     @pytest.fixture
     def test_image(self):
         """Image de test simple"""
-        img = Image.new('L', (224, 224), color=128)
+        img = Image.new("L", (224, 224), color=128)
         img_bytes = io.BytesIO()
-        img.save(img_bytes, format='PNG')
+        img.save(img_bytes, format="PNG")
         img_bytes.seek(0)
         return img_bytes.getvalue()
 
     def test_token_endpoint(self, client):
         """Test d'authentification"""
-        with patch('src.api_ia.app.security.authenticate_user') as mock_auth:
+        with patch("src.api_ia.app.security.authenticate_user") as mock_auth:
             mock_auth.return_value = {"username": "test_user", "email": "test@example.com"}
-            
-            response = client.post("/token", data={
-                "username": "test_user",
-                "password": "test_password"
-            })
-            
+
+            response = client.post("/token", data={"username": "test_user", "password": "test_password"})
+
             assert response.status_code == 200
             data = response.json()
             assert "access_token" in data
@@ -99,17 +96,17 @@ class TestAPIIAIntegration:
 
     def test_embedding_endpoint(self, client, auth_token, test_image):
         """Test de génération d'embedding"""
-        with patch('src.api_ia.app.model_loader.get_embedding') as mock_get_embedding:
+        with patch("src.api_ia.app.model_loader.get_embedding") as mock_get_embedding:
             mock_embedding = Mock()
             mock_embedding.shape = (512,)
             mock_embedding.tolist.return_value = [0.1] * 512
             mock_get_embedding.return_value = mock_embedding
-            
+
             files = {"file": ("test_image.png", test_image, "image/png")}
             headers = {"Authorization": f"Bearer {auth_token}"}
-            
+
             response = client.post("/embedding", files=files, headers=headers)
-            
+
             assert response.status_code == 200
             data = response.json()
             assert "embedding" in data
@@ -117,9 +114,11 @@ class TestAPIIAIntegration:
 
     def test_match_endpoint(self, client, auth_token, test_image):
         """Test de recherche de correspondances"""
-        with patch('src.api_ia.app.model_loader.get_embedding') as mock_get_embedding, \
-             patch('src.api_ia.app.similarity_search.get_top_matches') as mock_get_matches:
-            
+        with (
+            patch("src.api_ia.app.model_loader.get_embedding") as mock_get_embedding,
+            patch("src.api_ia.app.similarity_search.get_top_matches") as mock_get_matches,
+        ):
+
             mock_embedding = Mock()
             mock_embedding.shape = (512,)
             mock_embedding.tolist.return_value = [0.1] * 512
@@ -127,18 +126,15 @@ class TestAPIIAIntegration:
             mock_embedding.max.return_value = 1.0
             mock_embedding.mean.return_value = 0.5
             mock_get_embedding.return_value = mock_embedding
-            
-            mock_matches = [
-                {"class": "e_courbebasse", "similarity": 0.95},
-                {"class": "e_courbehaute", "similarity": 0.87}
-            ]
+
+            mock_matches = [{"class": "e_courbebasse", "similarity": 0.95}, {"class": "e_courbehaute", "similarity": 0.87}]
             mock_get_matches.return_value = mock_matches
-            
+
             files = {"file": ("test_image.png", test_image, "image/png")}
             headers = {"Authorization": f"Bearer {auth_token}"}
-            
+
             response = client.post("/match", files=files, headers=headers)
-            
+
             assert response.status_code == 200
             data = response.json()
             assert "matches" in data
@@ -148,16 +144,14 @@ class TestAPIIAIntegration:
 
     def test_search_tags_endpoint(self, client, auth_token):
         """Test de recherche par tags"""
-        with patch('src.api_ia.app.database.find_matching_verres') as mock_find_verres:
-            mock_find_verres.return_value = [
-                {"id": 1, "nom": "Verre Courbe Basse", "tags": ["courbe", "basse"]}
-            ]
-            
+        with patch("src.api_ia.app.database.find_matching_verres") as mock_find_verres:
+            mock_find_verres.return_value = [{"id": 1, "nom": "Verre Courbe Basse", "tags": ["courbe", "basse"]}]
+
             headers = {"Authorization": f"Bearer {auth_token}"}
             tags = ["courbe", "basse"]
-            
+
             response = client.post("/search_tags", json=tags, headers=headers)
-            
+
             assert response.status_code == 200
             data = response.json()
             assert "results" in data
@@ -166,7 +160,7 @@ class TestAPIIAIntegration:
     def test_health_check(self, client):
         """Test de santé de l'API"""
         response = client.get("/health")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
@@ -174,18 +168,18 @@ class TestAPIIAIntegration:
     def test_authentication_required(self, client, test_image):
         """Test que l'authentification est requise"""
         files = {"file": ("test_image.png", test_image, "image/png")}
-        
+
         response = client.post("/embedding", files=files)
-        
+
         assert response.status_code == 401
 
     def test_invalid_image_rejected(self, client, auth_token):
         """Test que les fichiers non-images sont rejetés"""
         invalid_file = b"This is not an image"
-        
+
         files = {"file": ("invalid.txt", invalid_file, "text/plain")}
         headers = {"Authorization": f"Bearer {auth_token}"}
-        
+
         response = client.post("/embedding", files=files, headers=headers)
-        
-        assert response.status_code == 400 
+
+        assert response.status_code == 400

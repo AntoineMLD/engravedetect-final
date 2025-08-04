@@ -19,6 +19,7 @@ try:
     from src.api.core.database.database import Base, get_db
     from src.api.core.security import create_access_token
     from src.api.main import app
+
     API_AVAILABLE = True
 except ImportError:
     API_AVAILABLE = False
@@ -40,7 +41,7 @@ def db_session():
     """
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-    
+
     # Créer les tables
     Base.metadata.create_all(bind=test_engine)
 
@@ -62,7 +63,7 @@ def auth_headers():
     """
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-    
+
     # Créer un token d'accès pour les tests
     token = create_access_token(data={"sub": "test_user"})
     return {"Authorization": f"Bearer {token}"}

@@ -57,7 +57,8 @@ jobs:
         # Tests unitaires seulement (pas d'E2E)
         python -m pytest tests/ -v --ignore=tests/test_playwright_e2e.py --tb=short -x --maxfail=3
         
-        # Tests API IA rapides (structure et mocks)
+        # Tests API IA rapides (dépendances, structure et mocks)
+        python -m pytest tests/test_routes/test_api_ia_dependencies.py -v
         python -m pytest tests/test_routes/test_api_ia_simple.py -v
         python -m pytest tests/test_routes/test_api_ia_mocked.py -v
 
