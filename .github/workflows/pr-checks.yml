@@ -50,16 +50,16 @@ jobs:
       env:
         ENVIRONMENT: "test"
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        AZURE_SERVER: ${{ secrets.AZURE_SERVER }}
-        AZURE_DATABASE: ${{ secrets.AZURE_DATABASE }}
-        AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
-        AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
         ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
         ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         database_url: "sqlite:///./test.db"
       run: |
         # Tests unitaires seulement (pas d'E2E)
         python -m pytest tests/ -v --ignore=tests/test_playwright_e2e.py --tb=short -x --maxfail=3
+        
+        # Tests API IA rapides (structure et mocks)
+        python -m pytest tests/test_routes/test_api_ia_simple.py -v
+        python -m pytest tests/test_routes/test_api_ia_mocked.py -v
 
   # Lint et format
   code-quality:

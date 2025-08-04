@@ -47,10 +47,8 @@ jobs:
       env:
         ENVIRONMENT: "test"
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        AZURE_SERVER: ${{ secrets.AZURE_SERVER }}
-        AZURE_DATABASE: ${{ secrets.AZURE_DATABASE }}
-        AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
-        AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
+        # Variables de base de données locales pour les tests
+        DATABASE_URL: "sqlite:///./test.db"
         ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
         ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         TEST_URL: "https://engravedetect.fr"
