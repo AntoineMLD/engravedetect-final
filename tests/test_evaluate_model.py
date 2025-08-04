@@ -11,15 +11,34 @@ import torch
 from PIL import Image
 from sklearn.metrics import confusion_matrix
 
-from src.models.efficientnet_triplet import EfficientNetEmbedding
-from src.models.evaluate_model import (
-    compute_topk_accuracy,
-    extract_embeddings,
-    load_model,
-    plot_confusion,
-    plot_topk,
-    transform,
-)
+# Test de compatibilité PyTorch/TorchVision avant d'importer les modules
+def check_torch_compatibility():
+    """Vérifie la compatibilité PyTorch/TorchVision"""
+    try:
+        import torch
+        import torchvision
+        from torchvision import models
+        
+        # Test simple de compatibilité
+        model = models.efficientnet_b0(weights=None)
+        return True
+    except Exception:
+        return False
+
+# Import conditionnel des modules
+if check_torch_compatibility():
+    from src.models.efficientnet_triplet import EfficientNetEmbedding
+    from src.models.evaluate_model import (
+        compute_topk_accuracy,
+        extract_embeddings,
+        load_model,
+        plot_confusion,
+        plot_topk,
+        transform,
+    )
+    TORCH_AVAILABLE = True
+else:
+    TORCH_AVAILABLE = False
 
 # Configuration matplotlib
 matplotlib.use("Agg")  # Utiliser le backend Agg pour éviter les problèmes avec Tkinter
@@ -35,6 +54,7 @@ class TestEvaluateModel:
         self.embedding_dim = 256
         self.image_size = 224
 
+    @pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch/TorchVision non compatibles")
     def test_transform_pipeline(self):
         """Test de la pipeline de transformation d'image"""
         # Convertir le numpy array en PIL Image

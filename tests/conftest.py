@@ -19,80 +19,90 @@ try:
     from src.api.core.database.database import Base, get_db
     from src.api.core.security import create_access_token
     from src.api.main import app
-
     API_AVAILABLE = True
 except ImportError:
     API_AVAILABLE = False
 
-# --- Config base SQLite pour tests ---
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
-
-# Créer le moteur de base de données de test
-test_engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-
-# Créer la session de test
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+import pytest
 
 
-@pytest.fixture(scope="function")
+def pytest_configure(config):
+    """Configuration pytest pour les marqueurs personnalisés"""
+    config.addinivalue_line(
+        "markers", "torch: Tests nécessitant PyTorch/TorchVision"
+    )
+    config.addinivalue_line(
+        "markers", "skip_torch: Tests à skiper si PyTorch non disponible"
+    )
+
+
+def check_torch_availability():
+    """Vérifie si PyTorch et TorchVision sont disponibles et compatibles"""
+    try:
+        import torch
+        import torchvision
+        from torchvision import models
+        
+        # Test simple de compatibilité
+        model = models.efficientnet_b0(weights=None)
+        return True
+    except Exception:
+        return False
+
+
+@pytest.fixture(scope="session")
+def torch_available():
+    """Fixture pour vérifier la disponibilité de PyTorch"""
+    return check_torch_availability()
+
+
+# Fixtures existantes avec vérification de disponibilité
+@pytest.fixture
 def db_session():
-    """
-    Crée une session de base de données de test pour chaque test.
-    """
+    """Fixture pour la session de base de données"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-
+    
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    
+    # Base de données de test en mémoire
+    engine = create_engine("sqlite:///:memory:")
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
     # Créer les tables
-    Base.metadata.create_all(bind=test_engine)
-
-    # Créer une session
+    Base.metadata.create_all(bind=engine)
+    
     session = TestingSessionLocal()
-
     try:
         yield session
     finally:
         session.close()
-        # Nettoyer les tables après chaque test
-        Base.metadata.drop_all(bind=test_engine)
+        Base.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def auth_headers():
-    """
-    Crée des en-têtes d'authentification pour les tests.
-    """
+    """Fixture pour les headers d'authentification"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-
-    # Créer un token d'accès pour les tests
-    token = create_access_token(data={"sub": "test_user"})
+    
+    from fastapi.testclient import TestClient
+    
+    client = TestClient(app)
+    
+    # Créer un token de test
+    test_user = {"sub": "test@example.com", "exp": 9999999999}
+    token = create_access_token(data=test_user)
+    
     return {"Authorization": f"Bearer {token}"}
 
 
-@pytest.fixture(scope="function")
-def client(db_session):
-    """
-    Crée un client de test FastAPI avec une base de données de test.
-    """
+@pytest.fixture
+def client():
+    """Fixture pour le client de test FastAPI"""
     if not API_AVAILABLE:
         pytest.skip("API principale non disponible")
-
-    # Override de la dépendance get_db pour utiliser la session de test
-    def override_get_db():
-        try:
-            yield db_session
-        finally:
-            db_session.close()
-
-    # Override de la dépendance get_current_user pour les tests
-    def override_get_current_user():
-        return {"id": 1, "username": "test_user"}
-
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_current_user] = override_get_current_user
-
-    with TestClient(app) as test_client:
-        yield test_client
-
-    # Nettoyer les overrides
-    app.dependency_overrides.clear()
+    
+    from fastapi.testclient import TestClient
+    return TestClient(app)
