@@ -19,6 +19,7 @@ class EfficientNetEmbedding(nn.Module):
         model = EfficientNetEmbedding(embedding_dim=256, pretrained=True)
         emb = model.forward_one(image_tensor)
     """
+
     def __init__(self, embedding_dim: int = 256, pretrained: bool = True):
         """
         Initialise le modèle EfficientNetEmbedding.

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="23" time="72.437" timestamp="2025-08-03T21:00:05.308736" hostname="scott-HP-EliteBook-840-G5"><testcase classname="tests.test_playwright_e2e.TestAuthentification" name="test_connexion_utilisateur[chromium]" time="3.138" /><testcase classname="tests.test_playwright_e2e.TestAuthentification" name="test_debug_page_structure[chromium]" time="1.187" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_interface_principale_charge[chromium]" time="2.278" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_dessin_sur_canvas[chromium]" time="2.464" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_effacer_dessin[chromium]" time="2.463" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_recherche_symboles_similaires[chromium]" time="3.440" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_selection_image_resultat[chromium]" time="3.442" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_ajout_tags[chromium]" time="2.260" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_recherche_verres_avec_tags[chromium]" time="3.335" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_reset_tags[chromium]" time="2.382" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_deconnexion[chromium]" time="3.290" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_actualisation_donnees[chromium]" time="2.884" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_affichage_details_verre[chromium]" time="3.560" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_responsive_design[chromium]" time="2.893" /><testcase classname="tests.test_playwright_e2e.TestInterfaceUtilisateur" name="test_erreur_404[chromium]" time="2.865" /><testcase classname="tests.test_playwright_e2e.TestPerformanceInterface" name="test_temps_chargement_page[chromium]" time="2.788" /><testcase classname="tests.test_playwright_e2e.TestPerformanceInterface" name="test_temps_recherche_symboles[chromium]" time="3.423" /><testcase classname="tests.test_playwright_e2e.TestPerformanceInterface" name="test_stabilite_interface[chromium]" time="2.580" /><testcase classname="tests.test_playwright_e2e.TestAccessibilite" name="test_contraste_couleurs[chromium]" time="7.260"><failure message="AssertionError: Locator expected to be visible&#10;Actual value: hidden &#10;Call log:&#10;  - Expect &quot;to_be_visible&quot; with timeout 5000ms&#10;  - waiting for locator(&quot;h1#login-title&quot;)&#10;    9 × locator resolved to &lt;h1 id=&quot;login-title&quot;&gt;Connexion à EngraveDetect&lt;/h1&gt;&#10;      - unexpected value &quot;hidden&quot;">self = &lt;test_playwright_e2e.TestAccessibilite object at 0x78f8d79c9d90&gt;
+page = &lt;Page url='https://engravedetect.fr/'&gt;
+
+    @pytest.mark.playwright
+    def test_contraste_couleurs(self, page: Page):
+        """
+        Test du contraste des couleurs
+        """
+        # Vérification que le texte est lisible avec des sélecteurs spécifiques
+&gt;       expect(page.locator("h1#login-title")).to_be_visible()
+E       AssertionError: Locator expected to be visible
+E       Actual value: hidden 
+E       Call log:
+E         - Expect "to_be_visible" with timeout 5000ms
+E         - waiting for locator("h1#login-title")
+E           9 × locator resolved to &lt;h1 id="login-title"&gt;Connexion à EngraveDetect&lt;/h1&gt;
+E             - unexpected value "hidden"
+
+tests/test_playwright_e2e.py:471: AssertionError</failure></testcase><testcase classname="tests.test_playwright_e2e.TestAccessibilite" name="test_navigation_clavier[chromium]" time="2.507" /><testcase classname="tests.test_playwright_e2e.TestAccessibilite" name="test_labels_formulaires[chromium]" time="2.265" /><testcase classname="tests.test_playwright_e2e.TestAccessibilite" name="test_boutons_accessibles[chromium]" time="2.290" /><testcase classname="tests.test_playwright_e2e.TestAccessibilite" name="test_structure_heading[chromium]" time="7.327"><failure message="AssertionError: Locator expected to be visible&#10;Actual value: hidden &#10;Call log:&#10;  - Expect &quot;to_be_visible&quot; with timeout 5000ms&#10;  - waiting for locator(&quot;h1#login-title&quot;)&#10;    9 × locator resolved to &lt;h1 id=&quot;login-title&quot;&gt;Connexion à EngraveDetect&lt;/h1&gt;&#10;      - unexpected value &quot;hidden&quot;">self = &lt;test_playwright_e2e.TestAccessibilite object at 0x78f8d79cadb0&gt;
+page = &lt;Page url='https://engravedetect.fr/'&gt;
+
+    @pytest.mark.playwright
+    def test_structure_heading(self, page: Page):
+        """
+        Test de la structure des headings
+        """
+        # Vérification de la structure des titres avec des sélecteurs spécifiques
+&gt;       expect(page.locator("h1#login-title")).to_be_visible()
+E       AssertionError: Locator expected to be visible
+E       Actual value: hidden 
+E       Call log:
+E         - Expect "to_be_visible" with timeout 5000ms
+E         - waiting for locator("h1#login-title")
+E           9 × locator resolved to &lt;h1 id="login-title"&gt;Connexion à EngraveDetect&lt;/h1&gt;
+E             - unexpected value "hidden"
+
+tests/test_playwright_e2e.py:511: AssertionError</failure></testcase></testsuite></testsuites>

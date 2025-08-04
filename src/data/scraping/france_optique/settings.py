@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Scrapy settings for france_optique project
 #
 # For simplicity, this file contains only settings considered important or
@@ -8,6 +10,7 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import os
+
 from dotenv import load_dotenv
 
 # Chargement des variables d'environnement

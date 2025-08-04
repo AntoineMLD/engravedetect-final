@@ -1,26 +1,23 @@
 """
-Script de réinitialisation de la base de données PostgreSQL.
+Script de réinitialisation de la base de données
 
-Ce module permet de réinitialiser complètement la base de données en supprimant
-et recréant toutes les tables nécessaires au projet de détection de gravures.
+Ce script permet de réinitialiser complètement la base de données
+en supprimant toutes les tables et en les recréant.
 
 Fonctionnalités :
-- Suppression sécurisée des tables existantes
-- Création des tables staging, enhanced et verres
-- Création des index pour optimiser les performances
-- Gestion des erreurs et logging détaillé
-
-Tables créées :
-- staging : Données brutes en cours de traitement
-- enhanced : Données enrichies et nettoyées
-- verres : Données finales des verres optiques
+- Suppression de toutes les tables existantes
+- Création des nouvelles tables
+- Initialisation des données de base
+- Gestion des erreurs et logging
 
 Auteur : Équipe de développement
 Version : 1.0.0
 """
 
 import logging
+
 from sqlalchemy import create_engine, text
+
 from src.api.core.config import settings  # adapt path if needed
 
 # Configuration du logging
@@ -46,7 +43,9 @@ def reset_database():
             logger.info("🛠️ Création des tables...")
 
             # Table staging
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE staging (
                     id SERIAL PRIMARY KEY,
                     source_url TEXT,
@@ -57,10 +56,14 @@ def reset_database():
                     fournisseur VARCHAR(100),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """))
+            """
+                )
+            )
 
             # Table enhanced
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE enhanced (
                     id SERIAL PRIMARY KEY,
                     nom_du_verre TEXT,
@@ -71,14 +74,18 @@ def reset_database():
                     source_url TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """))
+            """
+                )
+            )
 
             # Indexes enhanced
             conn.execute(text("CREATE INDEX idx_enhanced_fournisseur ON enhanced (fournisseur)"))
             conn.execute(text("CREATE INDEX idx_enhanced_materiaux ON enhanced (materiaux)"))
 
             # Table verres
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE verres (
                     id SERIAL PRIMARY KEY,
                     nom VARCHAR(255) NOT NULL,
@@ -95,7 +102,9 @@ def reset_database():
                     tags TEXT,
                     image_gravure TEXT
                 )
-            """))
+            """
+                )
+            )
 
             # Indexes verres
             conn.execute(text("CREATE INDEX idx_verres_nom ON verres (nom)"))

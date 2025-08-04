@@ -1,10 +1,12 @@
 ## src/api/core/database/init_db.py
 import logging
+
 from sqlalchemy.orm import Session
-from .database import Base, engine, SessionLocal
+
+from ...schemas.auth import UserCreate
 from ..auth.service import create_user
 from ..config import settings
-from ...schemas.auth import UserCreate
+from .database import Base, SessionLocal, engine
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)

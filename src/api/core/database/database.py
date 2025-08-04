@@ -1,9 +1,11 @@
-#src/api/core/database/database.py
+# src/api/core/database/database.py
+import logging
+
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, event
+
 from ..config import settings
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -19,18 +21,22 @@ Base = declarative_base()
 # Création du SessionLocal
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # Event listeners pour tracer les transactions
-@event.listens_for(SessionLocal, 'after_begin')
+@event.listens_for(SessionLocal, "after_begin")
 def after_begin(session, transaction, connection):
-    logger.info('Transaction BEGIN')
+    logger.info("Transaction BEGIN")
 
-@event.listens_for(SessionLocal, 'after_commit')
+
+@event.listens_for(SessionLocal, "after_commit")
 def after_commit(session):
-    logger.info('Transaction COMMIT')
+    logger.info("Transaction COMMIT")
 
-@event.listens_for(SessionLocal, 'after_rollback')
+
+@event.listens_for(SessionLocal, "after_rollback")
 def after_rollback(session):
-    logger.info('Transaction ROLLBACK')
+    logger.info("Transaction ROLLBACK")
+
 
 def get_db():
     """Dépendance pour obtenir une session de base de données."""

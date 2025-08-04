@@ -1,10 +1,18 @@
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from ...core.database.database import get_db
+
 from ...core.auth.jwt import get_current_user
+from ...core.database.database import get_db
+from ...schemas.verres import (
+    VerreCreate,
+    VerreFilters,
+    VerreList,
+    VerreResponse,
+    VerreUpdate,
+)
 from ...services import verres as verres_service
-from ...schemas.verres import VerreResponse, VerreList, VerreFilters, VerreCreate, VerreUpdate
 
 router = APIRouter()
 

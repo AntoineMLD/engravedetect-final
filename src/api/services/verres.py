@@ -1,7 +1,15 @@
 from typing import List, Optional
+
 from sqlalchemy.orm import Session
+
 from ..models.verres import Verre
-from ..schemas.verres import VerreFilters, VerreResponse, VerreList, VerreCreate, VerreUpdate
+from ..schemas.verres import (
+    VerreCreate,
+    VerreFilters,
+    VerreList,
+    VerreResponse,
+    VerreUpdate,
+)
 
 
 def get_verres(db: Session, filters: Optional[VerreFilters] = None, skip: int = 0, limit: int = 100) -> VerreList:

@@ -44,29 +44,20 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
 - Configuration de Python 3.10
 - Installation des dépendances
   - Dépendances principales (requirements.txt)
-  - Dépendances de test (pytest, pytest-asyncio, pytest-cov, flake8)
+  - Dépendances de test (pytest, pytest-asyncio, pytest-cov)
   - Installation du package en mode développement (-e .)
 - Configuration du PYTHONPATH
   - Ajout du dossier src au PYTHONPATH
   - Ajout du dossier racine au PYTHONPATH
 
 #### 3.2.2 Tests de Code
-- Linting avec flake8
-  - Vérification de la complexité du code (max-complexity=10)
-  - Vérification de la longueur des lignes (max-line-length=127)
-  - Statistiques de linting
 - Tests unitaires avec pytest
   - Exécution de tous les tests dans le dossier tests/
   - Mode verbeux pour plus de détails
   - Configuration de la clé secrète pour les tests
-- Métriques de qualité du code (radon)
-  - Complexité du code (radon cc)
-  - Indice de maintenabilité (radon mi)
-  - Métriques brutes (radon raw)
 - Couverture de code
   - Génération du rapport XML
   - Génération du rapport terminal
-  - Upload vers Codecov
 
 ### 3.3 Packaging
 
@@ -79,13 +70,10 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
 - Dépendances système
   - build-essential
   - libgl1-mesa-glx
-  - msodbcsql18
+  - curl, gnupg, libmagic1
 - Sécurité
   - Utilisateur non-root (appuser)
   - Permissions minimales
-- Support GPU
-  - Configuration CUDA
-  - Détection automatique GPU/CPU
 
 #### 3.3.2 Build Docker
 - Construction de l'image
@@ -93,31 +81,10 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
   - Copie des dépendances
   - Copie du code source
   - Copie des poids du modèle
-- Scan de sécurité
-  - Analyse avec Trivy
-  - Vérification des vulnérabilités OS et bibliothèques
-  - Niveaux de sévérité : CRITICAL, HIGH
 
-### 3.4 Sécurité
+### 3.4 Déploiement (CD)
 
-#### 3.4.1 Vérifications
-- Analyse de sécurité avec Bandit
-  - Scan récursif du dossier src/
-  - Format de sortie : JSON
-- Vérification des dépendances
-  - Scan des vulnérabilités connues (Safety)
-  - Audit des dépendances (pip-audit)
-
-### 3.5 Documentation
-
-#### 3.5.1 Vérifications
-- Vérification de la documentation
-  - Style avec pydocstyle
-  - Liens morts avec mkdocs-linkcheck
-
-### 3.6 Déploiement (CD)
-
-#### 3.6.1 Build
+#### 3.4.1 Build
 - Construction de l'image Docker pour test local
 - Pas de déploiement configuré actuellement
 
@@ -133,15 +100,16 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
 ### 4.2 Variables d'Environnement
 ```env
 SECRET_KEY=test-secret-key-for-testing-only
+DATABASE_URL=postgresql://postgres:******@localhost:5432/glass_db
+ADMIN_EMAIL=<admin-email>
+ADMIN_PASSWORD=<admin-password>
+database_url=sqlite:///./test.db
 ```
 
 ## 5. Monitoring
 
 ### 5.1 Métriques
 - Couverture de code
-- Complexité du code
-- Indice de maintenabilité
-- Métriques brutes
 - Performance du modèle
 - Temps de réponse API
 - Utilisation mémoire
@@ -164,7 +132,7 @@ SECRET_KEY=test-secret-key-for-testing-only
 ### 7.2 Installation
 1. Cloner le repository :
    ```bash
-   git clone https://github.com/votre-org/engravedetect.git
+   git clone 
    cd engravedetect
    ```
 
@@ -187,7 +155,8 @@ SECRET_KEY=test-secret-key-for-testing-only
    - Aller dans Settings > Secrets and variables > Actions
    - Ajouter les secrets nécessaires :
      - `SECRET_KEY` pour les tests
-     - `DOCKER_USERNAME` et `DOCKER_PASSWORD` pour Docker Hub
+     - `DATABASE_URL` pour la connexion PostgreSQL
+     - `ADMIN_EMAIL`, `ADMIN_PASSWORD`
 
 2. Configurer les tests :
    - Vérifier que `pytest.ini` est présent

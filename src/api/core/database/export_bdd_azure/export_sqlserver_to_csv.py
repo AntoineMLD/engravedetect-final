@@ -1,17 +1,18 @@
 import os
-import pandas as pd
-from sqlalchemy import create_engine, inspect
 import urllib
 
+import pandas as pd
+from sqlalchemy import create_engine, inspect
+
 # Config SQL Server
-server = 'localhost'
-database = 'engravedetect'
-username = 'sa'
-password = 'Az3rton3359!'
-driver = 'ODBC Driver 18 for SQL Server'
+server = "localhost"
+database = "engravedetect"
+username = "sa"
+password = "Az3rton3359!"
+driver = "ODBC Driver 18 for SQL Server"
 
 # Dossier de sortie
-output_dir = '/home/scott/Documents/Projets/engravedetect-final/src/api/core/database/export_bdd_azure/csv_exports'
+output_dir = "/home/scott/Documents/Projets/engravedetect-final/src/api/core/database/export_bdd_azure/csv_exports"
 
 os.makedirs(output_dir, exist_ok=True)
 

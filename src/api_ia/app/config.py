@@ -1,12 +1,13 @@
-#src/api_ia/app/config.py
 """
-Configuration centralisée pour l'API
+Configuration de l'API IA pour EngraveDetect
 
-Centralise les paramètres de configuration de l'API pour faciliter
-la maintenance et les modifications.
+Ce module centralise toutes les configurations nécessaires pour l'API IA,
+incluant les variables d'environnement, les chemins de fichiers et les
+paramètres de sécurité.
 """
 
 import os
+
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement depuis .env

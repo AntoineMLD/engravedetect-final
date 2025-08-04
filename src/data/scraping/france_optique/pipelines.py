@@ -1,16 +1,17 @@
+import logging
 import os
 import re
-import logging
 import time
-import requests
 from pathlib import Path
+
+import requests
 from bs4 import BeautifulSoup
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from src.api.models.verres import Verre
+
 from src.api.core.database.database import Base
+from src.api.models.verres import Verre
 from src.data.processing.cleaner import OpticalDataCleaner
-from sqlalchemy import text
 
 
 class PostgresPipeline:

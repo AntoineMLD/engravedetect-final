@@ -1,12 +1,13 @@
 """
-Middleware de sécurité pour l'API FastAPI.
+Middleware de sécurité pour l'API IA
 Implémente des en-têtes de sécurité HTTP recommandés.
 """
+
+import logging
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-import logging
 
 logger = logging.getLogger(__name__)
 

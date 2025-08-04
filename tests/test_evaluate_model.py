@@ -1,23 +1,25 @@
-import sys
 import os
-import pytest
-import numpy as np
-import torch
+import sys
 import tempfile
-from unittest.mock import Mock, patch, MagicMock
-from PIL import Image
+from unittest.mock import MagicMock, Mock, patch
+
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
+import torch
+from PIL import Image
 from sklearn.metrics import confusion_matrix
+
+from src.models.efficientnet_triplet import EfficientNetEmbedding
 from src.models.evaluate_model import (
-    load_model,
     compute_topk_accuracy,
-    plot_topk,
-    plot_confusion,
     extract_embeddings,
+    load_model,
+    plot_confusion,
+    plot_topk,
     transform,
 )
-from src.models.efficientnet_triplet import EfficientNetEmbedding
 
 # Configuration matplotlib
 matplotlib.use("Agg")  # Utiliser le backend Agg pour éviter les problèmes avec Tkinter

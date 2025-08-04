@@ -1,284 +1,217 @@
 """
-Module de sécurité pour l'API
+Module de sécurité pour l'API IA
 Gère la validation des entrées, les tokens et les logs de sécurité
 """
 
-from datetime import datetime, timedelta
-from typing import Optional, Tuple
-from pydantic import BaseModel, EmailStr
-import jwt
-from fastapi import HTTPException, status
 import logging
 import os
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
-from passlib.context import CryptContext
-from sqlalchemy import create_engine, text
-from api_ia.app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, DATABASE_URL
+from typing import Optional, Tuple
+
+import jwt
 import magic
+from fastapi import HTTPException, status
+from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr
+from sqlalchemy import create_engine, text
+
+from api_ia.app.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ALGORITHM,
+    DATABASE_URL,
+    SECRET_KEY,
+)
 
 
 # Logger sécurité
 def setup_security_logging():
     """
     Configure le logger de sécurité pour l'API.
-    Crée un fichier de log rotatif dans le dossier logs/security.
-
-    Returns:
-        logging.Logger: Logger configuré pour la sécurité.
-
-    Exemple d'utilisation :
-        logger = setup_security_logging()
     """
-    log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "security")
-    os.makedirs(log_path, exist_ok=True)
+    # Créer le dossier de logs s'il n'existe pas
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
 
-    logger = logging.getLogger("security")
-    logger.setLevel(logging.INFO)
+    # Configuration du logger de sécurité
+    security_logger = logging.getLogger("security")
+    security_logger.setLevel(logging.INFO)
 
-    handler = RotatingFileHandler(os.path.join(log_path, "security.log"), maxBytes=1024 * 1024, backupCount=5)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    # Handler pour fichier avec rotation
+    file_handler = RotatingFileHandler(f"{log_dir}/security.log", maxBytes=1024 * 1024, backupCount=5)
+    file_handler.setLevel(logging.INFO)
 
-    return logger
+    # Format du log
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
+
+    # Ajouter le handler au logger
+    security_logger.addHandler(file_handler)
+
+    return security_logger
 
 
+# Initialiser le logger de sécurité
 security_logger = setup_security_logging()
 
+# Configuration du hachage des mots de passe
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Modèles
-class TokenData(BaseModel):
-    """
-    Modèle Pydantic pour représenter les données d'un token JWT.
 
-    Attributs :
-        username (str): Nom d'utilisateur associé au token.
-        exp (datetime): Date d'expiration du token.
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
+    Vérifie un mot de passe en clair contre son hash.
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    """
+    Génère le hash d'un mot de passe.
+    """
+    return pwd_context.hash(password)
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Crée un token d'accès JWT.
+    """
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def verify_token(token: str) -> Optional[dict]:
+    """
+    Vérifie et décode un token JWT.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        return None
+
+
+def authenticate_user(username: str, password: str) -> Tuple[bool, Optional[dict]]:
+    """
+    Authentifie un utilisateur avec la base de données.
+    """
+    try:
+        # Connexion à la base de données
+        engine = create_engine(DATABASE_URL)
+        with engine.connect() as connection:
+            # Requête pour récupérer l'utilisateur
+            query = text("SELECT id, username, hashed_password FROM users WHERE username = :username")
+            result = connection.execute(query, {"username": username})
+            user = result.fetchone()
+
+            if user and verify_password(password, user.hashed_password):
+                # Log de connexion réussie
+                log_security_event(
+                    "login_success",
+                    f"Connexion réussie pour l'utilisateur {username}",
+                    username,
+                )
+                return True, {
+                    "id": user.id,
+                    "username": user.username,
+                }
+            else:
+                # Log de tentative de connexion échouée
+                log_security_event(
+                    "login_failed",
+                    f"Tentative de connexion échouée pour l'utilisateur {username}",
+                    username,
+                )
+                return False, None
+
+    except Exception as e:
+        security_logger.error(f"Erreur lors de l'authentification: {e}")
+        return False, None
+
+
+def validate_image_file(file_content: bytes, filename: str) -> bool:
+    """
+    Valide qu'un fichier est bien une image.
+    """
+    try:
+        # Vérification du type MIME
+        mime_type = magic.from_buffer(file_content, mime=True)
+        if not mime_type.startswith("image/"):
+            return False
+
+        # Vérification de l'extension
+        allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}
+        file_extension = os.path.splitext(filename.lower())[1]
+        if file_extension not in allowed_extensions:
+            return False
+
+        # Vérification de la taille (max 10MB)
+        if len(file_content) > 10 * 1024 * 1024:
+            return False
+
+        return True
+
+    except Exception as e:
+        security_logger.error(f"Erreur lors de la validation du fichier: {e}")
+        return False
+
+
+def log_security_event(event_type: str, message: str, username: Optional[str] = None):
+    """
+    Enregistre un événement de sécurité.
+    """
+    event_data = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "event_type": event_type,
+        "message": message,
+        "username": username,
+        "ip_address": "N/A",  # À implémenter avec FastAPI Request
+    }
+
+    if event_type in ["login_failed", "invalid_token", "file_upload_error"]:
+        security_logger.warning(message)
+    else:
+        security_logger.info(message)
+
+
+# Modèles Pydantic pour la validation
+class UserLogin(BaseModel):
     username: str
-    exp: datetime
+    password: str
 
 
-class UserCredentials(BaseModel):
-    """
-    Modèle Pydantic pour représenter les identifiants d'un utilisateur.
+class TokenData(BaseModel):
+    username: Optional[str] = None
 
-    Attributs :
-        email (EmailStr): Adresse email de l'utilisateur.
-        password (str): Mot de passe de l'utilisateur.
-    """
+
+class UserCreate(BaseModel):
+    username: str
     email: EmailStr
     password: str
 
 
-# Configs
-TOKEN_SETTINGS = {
-    "SECRET_KEY": SECRET_KEY,
-    "ALGORITHM": ALGORITHM,
-    "ACCESS_TOKEN_EXPIRE_MINUTES": ACCESS_TOKEN_EXPIRE_MINUTES,
-}
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-# Auth - Utilise la même logique que l'API principale
-def verify_password(plain: str, hashed: str) -> bool:
+def get_user(username: str) -> Optional[dict]:
     """
-    Vérifie qu'un mot de passe en clair correspond à son hash.
-
-    Args:
-        plain (str): Mot de passe en clair.
-        hashed (str): Hash du mot de passe.
-
-    Returns:
-        bool: True si le mot de passe correspond, False sinon.
-    """
-    return pwd_context.verify(plain, hashed)
-
-
-def get_user(username: str):
-    """
-    Récupère un utilisateur depuis la base PostgreSQL par son username.
-
-    Args:
-        username (str): Nom d'utilisateur à rechercher.
-
-    Returns:
-        dict | None: Dictionnaire des infos utilisateur ou None si non trouvé.
+    Récupère un utilisateur par son nom d'utilisateur.
     """
     try:
-        engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-        with engine.connect() as conn:
-            result = conn.execute(
-                text("SELECT id, username, email, hashed_password, is_active, email_confirmed FROM users WHERE username = :username"),
-                {"username": username}
-            )
-            row = result.fetchone()
-            if row:
-                return {
-                    "id": row[0], 
-                    "username": row[1], 
-                    "email": row[2], 
-                    "hashed_password": row[3], 
-                    "is_active": row[4],
-                    "email_confirmed": row[5]
-                }
+        engine = create_engine(DATABASE_URL)
+        with engine.connect() as connection:
+            query = text("SELECT id, username FROM users WHERE username = :username")
+            result = connection.execute(query, {"username": username})
+            user = result.fetchone()
+
+            if user:
+                return {"id": user.id, "username": user.username}
+            return None
+
     except Exception as e:
-        security_logger.error(f"Erreur lors de la récupération de l'utilisateur : {e}")
-    return None
-
-
-def authenticate_user(username: str, password: str):
-    """
-    Authentifie un utilisateur en vérifiant son mot de passe et la confirmation email.
-
-    Args:
-        username (str): Nom d'utilisateur.
-        password (str): Mot de passe en clair.
-
-    Returns:
-        dict | bool: Dictionnaire utilisateur si authentifié, False sinon.
-    """
-    user = get_user(username)
-    if not user:
-        return False
-    if not verify_password(password, user["hashed_password"]):
-        return False
-    if not user["email_confirmed"]:
-        return False
-    return user
-
-
-# Tokens - Utilise la même logique que l'API principale
-def create_access_token(username: str) -> str:
-    """
-    Crée un token d'accès JWT pour un utilisateur donné.
-
-    Args:
-        username (str): Nom d'utilisateur.
-
-    Returns:
-        str: Token JWT encodé.
-    """
-    expire = datetime.utcnow() + timedelta(minutes=TOKEN_SETTINGS["ACCESS_TOKEN_EXPIRE_MINUTES"])
-    payload = {"sub": username, "exp": expire}
-
-    token = jwt.encode(payload, TOKEN_SETTINGS["SECRET_KEY"], algorithm=TOKEN_SETTINGS["ALGORITHM"])
-
-    log_security_event("TOKEN_CREATED", f"Token généré pour {username}")
-    return token
-
-
-def verify_token(token: str) -> TokenData:
-    """
-    Vérifie la validité d'un token JWT et retourne les données associées.
-
-    Args:
-        token (str): Token JWT à vérifier.
-
-    Returns:
-        TokenData: Données extraites du token.
-
-    Raises:
-        HTTPException: Si le token est invalide ou expiré.
-    """
-    try:
-        payload = jwt.decode(token, TOKEN_SETTINGS["SECRET_KEY"], algorithms=[TOKEN_SETTINGS["ALGORITHM"]])
-        username = payload.get("sub")
-
-        if not username:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token (missing subject)",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        return TokenData(username=username, exp=datetime.fromtimestamp(payload["exp"]))
-
-    except jwt.ExpiredSignatureError:
-        log_security_event("TOKEN_EXPIRED", "Token expiré", "WARNING")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expiré", headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    except jwt.PyJWTError as e:
-        log_security_event("TOKEN_INVALID", f"Erreur JWT : {str(e)}", "ERROR")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide", headers={"WWW-Authenticate": "Bearer"}
-        )
-
-
-# Validation fichier
-def check_mime_type(file_content: bytes) -> Tuple[bool, str]:
-    """
-    Vérifie le type MIME d'un fichier en utilisant python-magic.
-
-    Args:
-        file_content (bytes): Contenu du fichier à vérifier
-
-    Returns:
-        Tuple[bool, str]: (est_valide, type_mime)
-    """
-    try:
-        mime = magic.Magic(mime=True)
-        mime_type = mime.from_buffer(file_content)
-
-        # Types MIME autorisés pour les images
-        allowed_mime_types = {"image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp"}
-
-        return mime_type in allowed_mime_types, mime_type
-    except Exception as e:
-        log_security_event("MIME_CHECK_ERROR", str(e), "ERROR")
-        return False, "unknown"
-
-
-def validate_image_file(file_content: bytes, max_size: int = 5 * 1024 * 1024) -> bool:
-    """
-    Valide un fichier image en vérifiant sa taille, son type MIME et sa signature binaire.
-
-    Args:
-        file_content (bytes): Contenu du fichier à valider
-        max_size (int): Taille maximale autorisée en octets (défaut: 5MB)
-
-    Returns:
-        bool: True si le fichier est valide, False sinon
-    """
-    # Vérification de la taille
-    if len(file_content) > max_size:
-        log_security_event("FILE_TOO_LARGE", f"Taille : {len(file_content)} > {max_size}", "WARNING")
-        return False
-
-    # Vérification du type MIME
-    is_valid_mime, mime_type = check_mime_type(file_content)
-    if not is_valid_mime:
-        log_security_event("INVALID_FILE_TYPE", f"Type MIME non autorisé : {mime_type}", "WARNING")
-        return False
-
-    # Vérification des signatures de fichier (double vérification)
-    allowed_signatures = [b"\xff\xd8\xff", b"\x89\x50\x4e\x47"]
-    is_valid_signature = any(file_content.startswith(sig) for sig in allowed_signatures)
-
-    if not is_valid_signature:
-        log_security_event("INVALID_FILE_SIGNATURE", "Signature de fichier non autorisée", "WARNING")
-        return False
-
-    return True
-
-
-# Logs sécurité
-def log_security_event(event_type: str, details: str, level: str = "INFO"):
-    """
-    Loggue un événement de sécurité dans le logger dédié.
-
-    Args:
-        event_type (str): Type d'événement (ex: TOKEN_EXPIRED, INVALID_FILE_TYPE).
-        details (str): Détails de l'événement.
-        level (str): Niveau de log (INFO, WARNING, ERROR).
-    """
-    message = f"{event_type} - {details}"
-    if level == "ERROR":
-        security_logger.error(message)
-    elif level == "WARNING":
-        security_logger.warning(message)
-    else:
-        security_logger.info(message)
+        security_logger.error(f"Erreur lors de la récupération de l'utilisateur: {e}")
+        return None

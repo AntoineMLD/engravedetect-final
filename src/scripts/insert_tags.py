@@ -1,26 +1,14 @@
 """
-Script d'insertion des tags extraits dans la base de données PostgreSQL.
+Script d'insertion des tags dans la base de données
 
-Ce module charge les tags extraits depuis un fichier JSON et les insère
-dans la table verres de la base de données PostgreSQL.
+Ce script permet d'insérer automatiquement les tags extraits
+des noms de fichiers d'images dans la base de données PostgreSQL.
 
 Fonctionnalités :
-- Chargement des tags depuis le fichier JSON
-- Connexion sécurisée à PostgreSQL
-- Mise à jour en lot des enregistrements
-- Gestion des erreurs et logging détaillé
-- Validation des correspondances de gravures
-
-Processus :
-1. Lecture du fichier output/verres_tags.json
-2. Connexion à la base PostgreSQL
-3. Mise à jour des tags pour chaque gravure
-4. Validation et reporting des résultats
-
-Format des données :
-- Tags stockés en JSON dans la colonne tags
-- Correspondance par gravure (recherche ILIKE)
-- Gestion des caractères spéciaux (UTF-8)
+- Lecture des fichiers de tags extraits
+- Insertion en base de données PostgreSQL
+- Gestion des erreurs et validation des données
+- Logging des opérations
 
 Auteur : Équipe de développement
 Version : 1.0.0
@@ -28,10 +16,11 @@ Version : 1.0.0
 
 # src/scripts/insert_tags.py
 
-import os
 import json
 import logging
-from typing import List, Dict
+import os
+from typing import Dict, List
+
 import psycopg2
 from dotenv import load_dotenv
 

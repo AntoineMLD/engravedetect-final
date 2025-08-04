@@ -1,9 +1,11 @@
+import logging
 import smtplib
 from email.mime.text import MIMEText
+
 from ..config import settings
-import logging
 
 logger = logging.getLogger(__name__)
+
 
 def send_confirmation_email(email: str, token: str) -> None:
     """

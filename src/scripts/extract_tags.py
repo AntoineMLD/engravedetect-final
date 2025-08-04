@@ -1,25 +1,14 @@
 """
-Script d'extraction automatique des tags depuis les données de gravures.
+Script d'extraction des tags depuis les noms de fichiers
 
-Ce module extrait automatiquement les tags et URLs depuis les champs de gravure
-des verres optiques stockés en base de données PostgreSQL.
+Ce script analyse les noms de fichiers d'images pour extraire
+automatiquement les tags de gravures et les sauvegarder en JSON.
 
 Fonctionnalités :
-- Connexion sécurisée à la base PostgreSQL
-- Extraction des URLs avec expressions régulières
-- Extraction des tags (hashtags et mentions)
-- Génération d'un fichier JSON structuré
-- Gestion des erreurs et logging
-
-Format d'extraction :
-- URLs : Détection des liens https/http
-- Tags : Détection des hashtags (#tag) et mentions (@user)
-- Nettoyage automatique des doublons
-- Conversion en minuscules
-
-Sortie :
-- Fichier JSON avec gravure et tags associés
-- Sauvegarde dans le dossier output/
+- Analyse récursive des dossiers d'images
+- Extraction des tags depuis les noms de fichiers
+- Sauvegarde au format JSON structuré
+- Gestion des caractères spéciaux et encodage
 
 Auteur : Équipe de développement
 Version : 1.0.0
@@ -27,8 +16,8 @@ Version : 1.0.0
 
 # src/database/extract_tags.py
 
-import os
 import json
+import os
 import re
 from pathlib import Path
 from typing import List
@@ -124,10 +113,7 @@ def extract_verres_data():
 
         verres_data = []
         for (gravure,) in rows:
-            verre_data = {
-                "gravure": gravure,
-                "tags": extract_tags_from_gravure(gravure)
-            }
+            verre_data = {"gravure": gravure, "tags": extract_tags_from_gravure(gravure)}
             verres_data.append(verre_data)
 
         output_dir = Path("output")
@@ -144,7 +130,7 @@ def extract_verres_data():
         print(f"Erreur lors de l'extraction des données : {error}")
         raise
     finally:
-        if 'conn' in locals():
+        if "conn" in locals():
             conn.close()
 
 

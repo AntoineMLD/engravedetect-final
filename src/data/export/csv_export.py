@@ -1,6 +1,7 @@
 import csv
 import os
 from datetime import datetime
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
@@ -13,7 +14,7 @@ def get_connection():
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             raise ValueError("DATABASE_URL must be defined in the .env file")
-        
+
         engine = create_engine(database_url, pool_pre_ping=True)
         return engine.connect()
     except Exception as error:
@@ -93,12 +94,16 @@ def get_staging_stats():
             fournisseurs_count = result.fetchone()[0]
 
             # Nombre de verres par fournisseur
-            result = conn.execute(text("""
+            result = conn.execute(
+                text(
+                    """
                 SELECT fournisseur, COUNT(*) as nb_verres
                 FROM staging
                 GROUP BY fournisseur
                 ORDER BY nb_verres DESC
-            """))
+            """
+                )
+            )
             fournisseurs_stats = result.fetchall()
 
             print("\n STATISTIQUES DE LA TABLE STAGING:")

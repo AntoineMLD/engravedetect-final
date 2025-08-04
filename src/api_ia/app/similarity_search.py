@@ -1,11 +1,13 @@
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-import os
-from PIL import Image
-import torch
 import logging
-from api_ia.app.model_loader import preprocess_image
+import os
+
+import numpy as np
+import torch
+from PIL import Image
+from sklearn.metrics.pairwise import cosine_similarity
+
 from api_ia.app.config import REFERENCE_DIR
+from api_ia.app.model_loader import preprocess_image
 
 logger = logging.getLogger(__name__)
 reference_embeddings = []

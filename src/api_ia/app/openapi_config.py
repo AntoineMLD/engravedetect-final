@@ -1,12 +1,13 @@
 """
-Configuration OpenAPI pour FastAPI
+Configuration OpenAPI pour l'API IA
 Ce module permet de configurer FastAPI pour utiliser un fichier OpenAPI personnalisé.
 """
 
-import os
 import json
-import yaml
 import logging
+import os
+
+import yaml
 
 logger = logging.getLogger(__name__)
 

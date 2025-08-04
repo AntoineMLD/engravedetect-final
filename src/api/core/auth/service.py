@@ -1,16 +1,19 @@
-from datetime import datetime
-from fastapi import HTTPException, status, Request
-from sqlalchemy.orm import Session
-from src.api.core.auth.models import User
-from src.api.core.security import (
-    verify_password,
-    get_password_hash,
-    create_access_token,
-    create_confirmation_token
-)
-from src.api.core.auth.token_service import create_db_token
-from src.api.core.auth.email_service import send_confirmation_email
 import logging
+from datetime import datetime
+
+from fastapi import HTTPException, Request, status
+from sqlalchemy.orm import Session
+
+from src.api.core.auth.email_service import send_confirmation_email
+from src.api.core.auth.models import User
+from src.api.core.auth.token_service import create_db_token
+from src.api.core.security import (
+    create_access_token,
+    create_confirmation_token,
+    get_password_hash,
+    verify_password,
+)
+
 
 def authenticate_user(db: Session, username: str, password: str, request: Request = None) -> tuple[User, str]:
     user = db.query(User).filter(User.username == username).first()
@@ -24,8 +27,7 @@ def authenticate_user(db: Session, username: str, password: str, request: Reques
 
     if not user.email_confirmed:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Veuillez confirmer votre adresse email avant de vous connecter."
+            status_code=status.HTTP_403_FORBIDDEN, detail="Veuillez confirmer votre adresse email avant de vous connecter."
         )
 
     user.last_login = datetime.utcnow()
@@ -37,6 +39,7 @@ def authenticate_user(db: Session, username: str, password: str, request: Reques
     db.commit()
 
     return user, access_token
+
 
 def create_user(db: Session, user_data) -> User:
     if db.query(User).filter(User.email == user_data.email).first():
@@ -51,7 +54,7 @@ def create_user(db: Session, user_data) -> User:
         username=user_data.username,
         hashed_password=get_password_hash(user_data.password),
         email_confirmed=False,
-        confirmation_token=None
+        confirmation_token=None,
     )
     db.add(db_user)
     db.commit()
@@ -75,5 +78,3 @@ def create_user(db: Session, user_data) -> User:
         # Ne pas faire de rollback, l'utilisateur pourra demander un nouveau mail de confirmation plus tard
 
     return db_user
-
-

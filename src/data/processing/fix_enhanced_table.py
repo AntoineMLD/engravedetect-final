@@ -1,5 +1,6 @@
-from database import Database
 import logging
+
+from database import Database
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

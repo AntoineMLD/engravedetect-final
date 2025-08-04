@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from ..core.auth.models import User as UserModel
 from ..core.auth.service import create_user as create_user_service
 

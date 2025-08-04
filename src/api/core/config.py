@@ -1,13 +1,15 @@
-from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, computed_field
 import os
+
 from dotenv import load_dotenv
+from pydantic import ConfigDict, computed_field
+from pydantic_settings import BaseSettings
 
 # Charger les variables d'environnement
 load_dotenv()
 
 # Déterminer si nous sommes en mode test
 IS_TEST = os.getenv("ENVIRONMENT") == "test"
+
 
 class Settings(BaseSettings):
     # Nom et version de l'application
@@ -20,7 +22,7 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "user@example.com")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "password")
     SMTP_SENDER: str = os.getenv("SMTP_SENDER", "noreply@example.com")
-    
+
     # Configuration de l'API
     API_V1_STR: str = "/api/v1"
 
