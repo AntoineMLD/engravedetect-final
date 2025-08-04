@@ -4,12 +4,16 @@
 
 Ce document décrit la chaîne de livraison continue (CI/CD) mise en place pour le modèle d'IA EngraveDetect, suivant les principes MLOps.
 
+---
+
 ## 2. Déclencheurs
 
 La chaîne est déclenchée automatiquement dans les cas suivants :
 - Push sur la branche `main`
 - Pull Request vers la branche `main`
 - Push sur la branche `ci/cd`
+
+---
 
 ## 3. Étapes de la Chaîne
 
@@ -41,7 +45,7 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
 
 #### 3.2.1 Configuration de l'Environnement
 - Checkout du code
-- Configuration de Python 3.10
+- Configuration de Python 3.12
 - Installation des dépendances
   - Dépendances principales (requirements.txt)
   - Dépendances de test (pytest, pytest-asyncio, pytest-cov)
@@ -62,7 +66,7 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
 ### 3.3 Packaging
 
 #### 3.3.1 Configuration Docker
-- Image de base : Python 3.10-slim
+- Image de base : Python 3.12-slim
 - Environnement Python
   - PYTHONUNBUFFERED=1
   - PYTHONDONTWRITEBYTECODE=1
@@ -88,6 +92,8 @@ La chaîne est déclenchée automatiquement dans les cas suivants :
 - Construction de l'image Docker pour test local
 - Pas de déploiement configuré actuellement
 
+---
+
 ## 4. Configuration
 
 ### 4.1 Fichiers de Configuration
@@ -106,6 +112,8 @@ ADMIN_PASSWORD=<admin-password>
 database_url=sqlite:///./test.db
 ```
 
+---
+
 ## 5. Monitoring
 
 ### 5.1 Métriques
@@ -114,6 +122,8 @@ database_url=sqlite:///./test.db
 - Temps de réponse API
 - Utilisation mémoire
 
+---
+
 ## 6. Documentation
 
 ### 6.1 Liens vers la Documentation
@@ -121,12 +131,14 @@ database_url=sqlite:///./test.db
 - [Documentation Intégration](C10_Integration_API_IA.md)
 - [Documentation Base de Données](C4_Base_Donnees_RGPD.md)
 
+---
+
 ## 7. Procédures d'Installation et de Configuration
 
 ### 7.1 Prérequis
 - Git 2.x ou supérieur
 - Docker 20.x ou supérieur
-- Python 3.10
+- Python 3.12
 - Compte GitHub avec accès au repository
 
 ### 7.2 Installation

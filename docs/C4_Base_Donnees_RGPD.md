@@ -1,7 +1,9 @@
 # C4. Base de Données et Conformité RGPD
 
 ## Contexte
-Ce document présente la modélisation et l'implémentation de la base de données du projet EngraveDetect. Le projet utilise Azure SQL comme système de gestion de base de données relationnelle, avec SQLAlchemy comme ORM.
+Ce document présente la modélisation et l'implémentation de la base de données du projet EngraveDetect. Le projet utilise PostgreSQL comme système de gestion de base de données relationnelle, avec SQLAlchemy comme ORM.
+
+---
 
 ## 1. Modélisation des Données (Merise)
 
@@ -36,28 +38,28 @@ Ce document présente la modélisation et l'implémentation de la base de donné
 
 ```sql
 CREATE TABLE users (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    username NVARCHAR(150) NOT NULL UNIQUE,
-    email NVARCHAR(255) NOT NULL UNIQUE,
-    hashed_password NVARCHAR(255) NOT NULL,
-    is_active BIT DEFAULT 1
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(150) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    hashed_password VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE verres (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    nom NVARCHAR(500) NOT NULL,
-    materiaux NVARCHAR(100),
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(500) NOT NULL,
+    materiaux VARCHAR(100),
     indice FLOAT,
-    fournisseur NVARCHAR(200),
-    gravure NVARCHAR(1000),
-    url_source NVARCHAR(500),
-    variante NVARCHAR(200),
-    hauteur_min INT,
-    hauteur_max INT,
-    protection BIT DEFAULT 0,
-    photochromic BIT DEFAULT 0,
-    tags NVARCHAR(500),
-    image_gravure NVARCHAR(500)
+    fournisseur VARCHAR(200),
+    gravure VARCHAR(1000),
+    url_source VARCHAR(500),
+    variante VARCHAR(200),
+    hauteur_min INTEGER,
+    hauteur_max INTEGER,
+    protection BOOLEAN DEFAULT FALSE,
+    photochromic BOOLEAN DEFAULT FALSE,
+    tags VARCHAR(500),
+    image_gravure VARCHAR(500)
 );
 ```
 
@@ -79,29 +81,19 @@ ALTER TABLE verres
 ADD CONSTRAINT chk_hauteur CHECK (hauteur_min <= hauteur_max);
 ```
 
+---
+
 ## 2. Implémentation de la Base de Données
 
 ### 2.1 Configuration de la Connexion
 ```python
-# src/api_ia/app/config.py
-AZURE_SERVER = os.getenv("AZURE_SERVER", "")
-AZURE_DATABASE = os.getenv("AZURE_DATABASE", "")
-AZURE_USERNAME = os.getenv("AZURE_USERNAME", "")
-AZURE_PASSWORD = os.getenv("AZURE_PASSWORD", "")
-AZURE_DRIVER = "{ODBC Driver 18 for SQL Server}"
+# src/api/core/config.py
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
 ```
 
 ### 2.2 Modèle SQLAlchemy
 ```python
-# src/api_ia/app/database.py (exemple simplifié)
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(150), unique=True, nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
-    is_active = Column(Boolean, default=True)
-
+# src/api/models/verres.py
 class Verre(Base):
     __tablename__ = "verres"
     id = Column(Integer, primary_key=True, index=True)
@@ -118,40 +110,51 @@ class Verre(Base):
     photochromic = Column(Boolean, default=False)
     tags = Column(String(500))
     image_gravure = Column(String(500))
+
+# src/api/core/auth/models.py
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(150), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
 ```
+
+---
 
 ## 3. Conformité RGPD
 
 ### 3.1 Nature des Données
 
-Le projet EngraveDetect traite :
+Le projet EngraveDetect traite :
 - Données techniques (verres, images, fournisseurs)
-- **Données personnelles** : email, username, mot de passe (hashé) pour la gestion des comptes utilisateurs
+- **Données personnelles** : email, username, mot de passe (hashé) pour la gestion des comptes utilisateurs
 
 ### 3.2 Registre des Traitements
 
 #### 1. Gestion des comptes utilisateurs
-- **Finalité** : Création, gestion et suppression de comptes utilisateurs
-- **Base légale** : Consentement explicite de l'utilisateur
-- **Données concernées** : email, username, mot de passe (hashé)
-- **Durée de conservation** : Jusqu'à suppression du compte par l'utilisateur
-- **Droits** : Accès, rectification, suppression, portabilité
+- **Finalité** : Création, gestion et suppression de comptes utilisateurs
+- **Base légale** : Consentement explicite de l'utilisateur
+- **Données concernées** : email, username, mot de passe (hashé)
+- **Durée de conservation** : Jusqu'à suppression du compte par l'utilisateur
+- **Droits** : Accès, rectification, suppression, portabilité
 
 #### 2. Collecte et traitement des données verres
-- **Finalité** : Identification, analyse et classification des verres optiques
-- **Base légale** : Intérêt légitime
-- **Données concernées** : Caractéristiques techniques, images, fournisseurs
-- **Durée de conservation** : 5 ans
+- **Finalité** : Identification, analyse et classification des verres optiques
+- **Base légale** : Intérêt légitime
+- **Données concernées** : Caractéristiques techniques, images, fournisseurs
+- **Durée de conservation** : 5 ans
 
 ### 3.3 Procédures de Conformité RGPD
 
 #### Consentement et politique de confidentialité
 - Consentement explicite requis à l'inscription (case à cocher, lien vers la politique de confidentialité)
-- Politique de confidentialité accessible sur le site (`confidentialite.html`)
+- Politique de confidentialité accessible sur le site (`src/front/confidentialite.html`)
 
 #### Accès et suppression des données personnelles
-- **Accès** : route API `/me` (GET) pour récupérer ses données personnelles (username, email)
-- **Suppression** : route API `/me` (DELETE) pour supprimer son compte (droit à l'oubli)
+- **Accès** : route API `/me` (GET) pour récupérer ses données personnelles (username, email)
+- **Suppression** : route API `/me` (DELETE) pour supprimer son compte (droit à l'oubli)
 - Suppression effective des données utilisateur en base
 
 #### Sécurité des données personnelles
@@ -167,13 +170,14 @@ Le projet EngraveDetect traite :
 - Documentation technique sur la gestion des utilisateurs et des droits RGPD
 - Tests automatisés pour les routes RGPD
 
+---
+
 ## 4. Documentation Technique
 
 ### 4.1 Dépendances
 ```python
 # requirements.txt (extrait)
 fastapi
-pyodbc
 sqlalchemy
 pydantic
 python-dotenv
@@ -191,11 +195,10 @@ pillow
 pip install -r requirements.txt
 
 # Configuration de la base de données
-python src/database/migrate_to_verres.py
-
-# Réinitialisation de la base de données (si nécessaire)
 python src/database/reset_database.py
 ```
+
+---
 
 ## Conclusion
 

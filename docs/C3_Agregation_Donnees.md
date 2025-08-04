@@ -10,12 +10,12 @@ Ce document décrit l’architecture réelle et le pipeline d’agrégation, de 
 Le pipeline de données EngraveDetect suit les étapes suivantes :
 
 1. **Scraping** (Scrapy) → insertion en base `staging`
-2. **Nettoyage** (`OpticalDataCleaner`) → création de la table `enhanced` et export CSV
-3. **Enrichissement** (`DataEnricher`) → ajout de tags, variantes, propriétés, etc.
+2. **Nettoyage** (`OpticalDataCleaner` dans `src/data/processing/cleaner.py`) → création de la table `enhanced` et export CSV
+3. **Enrichissement** (`DataEnricher` dans `src/data/processing/enricher.py`) → ajout de tags, variantes, propriétés, etc.
 4. **Corrections post-nettoyage** (`fix_enhanced_table.py`) → gestion des clés étrangères, valeurs par défaut
 5. **Import final** (`import_enhanced.py`) → insertion du CSV enhanced en base
 6. **Extraction/Insertion de tags** (`extract_tags.py`, `insert_tags.py`)
-7. **Orchestration** (`DataPipelineManager`) → exécution séquentielle de toutes les étapes
+7. **Orchestration** (`PipelineManager` dans `src/orchestrator/pipeline_manager.py`) → exécution séquentielle de toutes les étapes
 
 ---
 
@@ -23,14 +23,14 @@ Le pipeline de données EngraveDetect suit les étapes suivantes :
 
 ### a) Scraping et pipelines
 - **Fichier** : `src/data/scraping/france_optique/pipelines.py`
-- **Rôle** : Pipeline Scrapy pour insérer les données brutes dans la table `staging` (Azure SQL), nettoyage HTML, téléchargement d’images.
-- **Dépendances** : `pyodbc`, `requests`, `BeautifulSoup`, `sqlalchemy`, `dotenv`, `logging`
+- **Rôle** : Pipeline Scrapy pour insérer les données brutes dans la table `staging` (PostgreSQL), nettoyage HTML, téléchargement d’images.
+- **Dépendances** : `sqlalchemy`, `requests`, `BeautifulSoup`, `logging`, `os`, `re`, `time`, `pathlib`
 
 ### b) Nettoyage et préparation
 - **Fichier** : `src/data/processing/cleaner.py`
 - **Classe** : `OpticalDataCleaner`
 - **Rôle** : Chargement depuis `staging`, nettoyage, création de la table `enhanced`, export CSV, insertion en base, statistiques, gestion des références (fournisseurs, matériaux).
-- **Dépendances** : `pandas`, `pyodbc`, `dotenv`, `logging`, `os`, `csv`, `datetime`
+- **Dépendances** : `pandas`, `sqlalchemy`, `dotenv`, `logging`, `os`, `csv`, `datetime`
 
 ### c) Enrichissement
 - **Fichier** : `src/data/processing/enricher.py`
@@ -41,7 +41,7 @@ Le pipeline de données EngraveDetect suit les étapes suivantes :
 ### d) Corrections post-nettoyage
 - **Fichier** : `src/data/processing/fix_enhanced_table.py`
 - **Rôle** : Corrige les valeurs par défaut, lie les IDs manquants (fournisseur, matériau) dans `enhanced`.
-- **Dépendances** : `pyodbc`, `logging`
+- **Dépendances** : `sqlalchemy`, `logging`
 
 ### e) Import final
 - **Fichier** : `src/data/processing/import_enhanced.py`
@@ -51,11 +51,11 @@ Le pipeline de données EngraveDetect suit les étapes suivantes :
 ### f) Extraction/Insertion de tags
 - **Fichiers** : `src/scripts/extract_tags.py`, `src/scripts/insert_tags.py`
 - **Rôle** : Extraction des tags des gravures, sauvegarde en JSON, puis insertion en base.
-- **Dépendances** : `pyodbc`, `dotenv`, `re`, `json`, `os`, `pathlib`, `logging`
+- **Dépendances** : `sqlalchemy`, `dotenv`, `re`, `json`, `os`, `pathlib`, `logging`
 
 ### g) Orchestration
 - **Fichier** : `src/orchestrator/pipeline_manager.py`
-- **Classe** : `DataPipelineManager`
+- **Classe** : `PipelineManager`
 - **Rôle** : Orchestration du pipeline complet (scraping, nettoyage, enrichissement, corrections, import, etc.).
 - **Dépendances** : `logging`, `pathlib`, `scrapy`, `src.data.processing.cleaner`, etc.
 
@@ -64,7 +64,7 @@ Le pipeline de données EngraveDetect suit les étapes suivantes :
 ## 3. Enchaînement logique du pipeline
 
 1. **Lancement du scraping**
-   - Exécution des spiders Scrapy (via `DataPipelineManager` ou Scrapy CLI)
+   - Exécution des spiders Scrapy (via `PipelineManager` ou Scrapy CLI)
    - Insertion des données brutes dans la table `staging`
 2. **Nettoyage**
    - Chargement des données de `staging` (`OpticalDataCleaner`)
@@ -81,7 +81,7 @@ Le pipeline de données EngraveDetect suit les étapes suivantes :
    - `extract_tags.py` : extraction des tags des gravures, sauvegarde en JSON
    - `insert_tags.py` : insertion des tags extraits dans la base
 7. **Orchestration**
-   - `DataPipelineManager` : exécution séquentielle de toutes les étapes, gestion des logs et des erreurs
+   - `PipelineManager` : exécution séquentielle de toutes les étapes, gestion des logs et des erreurs
 
 ---
 
@@ -89,7 +89,6 @@ Le pipeline de données EngraveDetect suit les étapes suivantes :
 
 - pandas
 - numpy
-- pyodbc
 - sqlalchemy
 - python-dotenv
 - beautifulsoup4
@@ -110,7 +109,7 @@ scrapy crawl glass_spider
 python -m src.data.processing.cleaner
 
 # 3. Enrichir les données
-enricher_main()  # ou python -m src.data.processing.enricher
+python -m src.data.processing.enricher
 
 # 4. Corriger la table enhanced
 python src/data/processing/fix_enhanced_table.py

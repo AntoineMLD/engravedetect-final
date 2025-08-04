@@ -3,57 +3,73 @@
 ## Contexte
 Ce document décrit l'API REST du projet EngraveDetect, développée avec FastAPI. L'API permet l'accès sécurisé aux données des verres optiques, la gestion des comptes utilisateurs, et l'accès aux fonctionnalités d'IA (embedding, matching). L'authentification se fait par JWT.
 
+---
+
 ## 1. Documentation Technique de l'API
 
 ### 1.1 Points de Terminaison (Endpoints)
 
 #### Authentification et gestion utilisateur
 ```python
-@app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Obtient un token JWT en échange des identifiants."""
-    ...
-
-@app.post("/auth/register")
-async def register(user: UserCreate):
+# src/api/routes/v1/auth.py
+@router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+def register(user: UserCreate, db: Session = Depends(get_db)):
     """Inscription d'un nouvel utilisateur (email, username, mot de passe)."""
-    ...
+    return auth_service.create_user(db, user)
 
-@app.get("/me")
+@router.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+) -> Dict[str, str]:
+    """Obtient un token JWT en échange des identifiants."""
+    user, access_token = authenticate_user(db, form_data.username, form_data.password)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me")
 async def get_me(current_user: str = Depends(get_current_user)):
     """Retourne les données personnelles de l'utilisateur authentifié (username, email)."""
-    ...
+    return {"username": current_user, "email": current_user}
 
-@app.delete("/me")
+@router.delete("/me")
 async def delete_me(current_user: str = Depends(get_current_user)):
     """Supprime le compte de l'utilisateur authentifié (droit à l'oubli RGPD)."""
-    ...
+    return {"message": "Compte supprimé avec succès"}
 ```
 
 #### Endpoints Données Verres
 ```python
-@app.get("/verre/{verre_id}")
+# src/api/routes/v1/verres.py
+@router.get("/verre/{verre_id}")
 async def get_verre(verre_id: int, current_user: str = Depends(get_current_user)):
     """Détails d'un verre par son ID."""
-    ...
+    return verres_service.get_verre_by_id(verre_id)
 
-@app.get("/verres")
-async def get_verres(...):
+@router.get("/verres")
+async def get_verres(
+    skip: int = 0,
+    limit: int = 100,
+    fournisseur: Optional[str] = None,
+    materiaux: Optional[str] = None,
+    current_user: str = Depends(get_current_user)
+):
     """Liste des verres avec filtres optionnels."""
-    ...
+    return verres_service.get_verres(skip=skip, limit=limit, fournisseur=fournisseur, materiaux=materiaux)
 ```
 
 #### Endpoints IA (Embedding, Matching)
 ```python
+# src/api_ia/app/main.py
 @app.post("/embedding")
-async def get_image_embedding(file: UploadFile = File(...), token: str = Depends(oauth2_scheme)):
+@limiter.limit("5/minute")
+async def get_image_embedding(request: Request, file: UploadFile = File(...), token: str = Depends(oauth2_scheme)):
     """Retourne l'embedding d'une image de gravure (auth requis)."""
-    ...
+    return {"embedding": embedding_vector}
 
-@app.post("/match")
-async def get_best_match(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+@app.post("/match", response_model=MatchResponse)
+@limiter.limit("5/minute")
+async def get_best_match(request: Request, file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
     """Retourne les meilleures correspondances IA pour une image (auth requis)."""
-    ...
+    return {"matches": matches_list}
 ```
 
 ### 1.2 Authentification JWT
@@ -65,6 +81,8 @@ async def get_best_match(file: UploadFile = File(...), current_user: str = Depen
 - Documentation automatique générée par FastAPI (`/docs`)
 - Schémas de validation avec Pydantic
 - Réponses typées et gestion des erreurs standardisée
+
+---
 
 ## 2. Fonctionnalités de l'API
 
@@ -89,6 +107,7 @@ async def get_best_match(file: UploadFile = File(...), current_user: str = Depen
 
 ### 2.5 Tests
 ```python
+# tests/test_routes/test_auth.py
 def test_get_me_ok(client, user_token):
     token, username, email = user_token
     resp = client.get("/me", headers={"Authorization": f"Bearer {token}"})
@@ -111,6 +130,8 @@ def test_get_verres(client, auth_headers, test_verre):
     assert "items" in data
     assert "total" in data
 ```
+
+---
 
 ## Conclusion
 

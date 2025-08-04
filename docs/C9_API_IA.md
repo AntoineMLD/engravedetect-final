@@ -4,6 +4,8 @@
 
 Le projet EngraveDetect intègre une API d'intelligence artificielle conçue pour la classification et l'analyse d'images de verres optiques, la gestion des comptes utilisateurs et la conformité RGPD. L'API, développée avec FastAPI, offre une interface REST robuste et documentée automatiquement.
 
+---
+
 ## Architecture Technique
 
 ### Stack Technologique
@@ -11,14 +13,14 @@ Le projet EngraveDetect intègre une API d'intelligence artificielle conçue pou
 - **PyTorch** (moteur de deep learning)
 - **EfficientNet** (modèle de classification)
 - **JWT** (authentification)
-- **Azure SQL** (base de données)
+- **PostgreSQL** (base de données)
 - **python-magic** (validation MIME images)
 - **slowapi** (rate limiting)
 
 ### Organisation du Code
 
 ```
-api_ia/
+src/api_ia/
 ├── app/
 │   ├── main.py            # Point d'entrée et configuration de l'API
 │   ├── model_loader.py    # Chargement du modèle
@@ -30,10 +32,11 @@ api_ia/
 └── weights/               # Poids du modèle EfficientNet
 ```
 
+---
+
 ## Endpoints de l'API
 
 ### Authentification et gestion utilisateur
-- `POST /auth/register` : Inscription (email, username, mot de passe)
 - `POST /token` : Connexion, obtention d'un JWT
 - `GET /me` : Récupération des données personnelles (username, email)
 - `DELETE /me` : Suppression du compte utilisateur (droit à l'oubli RGPD)
@@ -45,6 +48,9 @@ api_ia/
 ### IA (embedding, matching)
 - `POST /embedding` : Calcul d'embedding d'une image (auth requis)
 - `POST /match` : Recherche de correspondances IA pour une image (auth requis)
+- `POST /search_tags` : Recherche par tags (auth requis)
+
+---
 
 ## Fonctionnalités de l'API
 
@@ -62,10 +68,11 @@ api_ia/
 - Rate limiting (5 requêtes/minute)
 
 ### 3. Gestion RGPD et comptes utilisateurs
-- Inscription avec consentement RGPD (case à cocher, lien vers `confidentialite.html`)
 - Accès à ses données personnelles (`/me` GET)
 - Suppression de compte (`/me` DELETE)
 - Politique de confidentialité accessible sur le site
+
+---
 
 ## Sécurité
 - Authentification JWT obligatoire pour toutes les routes sensibles
@@ -74,18 +81,13 @@ api_ia/
 - Validation rigoureuse des entrées (Pydantic, python-magic)
 - Logging des accès et des erreurs
 
+---
+
 ## Exemples d'utilisation
 
 ### Authentification (connexion)
 ```bash
 curl -X POST http://localhost:8001/token -d "username=monuser&password=monmdp"
-```
-
-### Inscription
-```bash
-curl -X POST http://localhost:8001/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "username": "testuser", "password": "monmdp"}'
 ```
 
 ### Accès à ses données personnelles
@@ -112,10 +114,14 @@ curl -X POST http://localhost:8001/embedding \
   -F "file=@monimage.png"
 ```
 
+---
+
 ## Documentation
 - Documentation interactive Swagger UI : `/docs`
 - Documentation ReDoc : `/redoc`
 - Schéma OpenAPI : `/openapi.json`
+
+---
 
 ## Limitations et TODO
 - Pas de rotation automatique de la clé JWT
@@ -123,6 +129,8 @@ curl -X POST http://localhost:8001/embedding \
 - Pas de gestion de révocation de token
 - Les headers de sécurité sont gérés par middleware, mais peuvent être renforcés
 - Les tests de performance et d'intégration sont à compléter
+
+---
 
 ## Conclusion
 

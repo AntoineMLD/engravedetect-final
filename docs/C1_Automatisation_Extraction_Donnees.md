@@ -1,241 +1,125 @@
 # C1. Automatisation de l'Extraction de Données
 
 ## Contexte
-Ce document analyse l'implémentation de l'automatisation de l'extraction de données dans le projet EngraveDetect, un système de gestion de données optiques. Le projet vise à automatiser la collecte et le stockage des données des verres optiques.
+Ce document décrit l'automatisation réelle de l'extraction de données dans le projet EngraveDetect. Toutes les informations sont vérifiées dans le code et les scripts du projet.
 
-## Analyse des Critères d'Évaluation
+---
 
-### 1. Présentation du Projet et Contexte
+## 1. Architecture et objectifs
 
-#### Acteurs
-- **Utilisateurs finaux** : Opticiens et professionnels de l'optique
-- **Équipe de développement** : Développeurs Python, DevOps
-- **Partenaires** : Fournisseurs de services cloud (Azure)
+- **Objectif principal** : Automatiser la collecte, le nettoyage et l'intégration des données de verres optiques dans une base PostgreSQL.
+- **Technologies** : Python, Scrapy, SQLAlchemy, FastAPI, Docker, GitHub Actions.
+- **Stockage** : Base PostgreSQL (Azure SQL en production), accès via SQLAlchemy.
+- **API** : FastAPI pour l'accès aux données et la gestion des utilisateurs.
 
-#### Objectifs Fonctionnels
-Le projet vise à :
-- Automatiser la collecte des données des verres optiques
-- Centraliser les données dans une base Azure SQL
-- Fournir une API REST pour l'accès aux données
-- Assurer un stockage structuré et sécurisé des données
+---
 
-#### Objectifs Techniques
-- Mise en place d'un système de scraping automatisé
-- Développement d'une API REST sécurisée
-- Stockage structuré dans Azure SQL
-- Gestion des erreurs et monitoring
+## 2. Extraction automatisée (Scraping)
 
-### 2. Spécifications Techniques
+### a) Spiders Scrapy
+- **Fichier principal** : `src/data/scraping/france_optique/spiders/glass_spider.py`
+- **Classe** : `GlassSpider(scrapy.Spider)`
+- **Rôle** : Extraction des données de verres optiques depuis france-optique.com, parsing HTML, création d'items structurés.
+- **Exemple réel** :
+```python
+class GlassSpider(scrapy.Spider):
+    name = "glass_spider"
+    allowed_domains = ["www.france-optique.com"]
+    start_urls = [
+        "https://www.france-optique.com/fournisseur/1344-bbgr-optique/gravures",
+        "https://www.france-optique.com/fournisseur/2399-adn-optis",
+    ]
 
-#### Technologies et Outils
-- **Backend** : Python avec FastAPI
-- **Base de données** : Azure SQL
-- **Scraping** : Scrapy
-- **DevOps** : Docker, GitHub Actions
+    def parse(self, response):
+        fournisseur_nom = response.xpath("/html/body/div[2]/div/div[3]/div[2]/h2/text()").get()
+        lines = response.xpath('//*[@id="gravures"]/div[2]//div')
+        for line in lines:
+            item = FranceOptiqueItem()
+            item["source_url"] = response.url
+            item["nom_verre"] = line.css("div.row.tr:not(.group) div.td.col.s3.m3 p::text").get("")
+            item["gravure_nasale"] = line.xpath('.//div[contains(@class, "td")][2]//p[@class="gravure_txt"]/b/text()').get()
+            item["indice"] = line.css("div.row.tr:not(.group) div.td.col.s1.m1 p::text").get()
+            item["materiaux"] = line.css("div.td.col.s2.m2 p::text").get()
+            item["fournisseur"] = fournisseur_nom.strip()
+            yield item
+```
 
-#### Services Externes
-- **Azure SQL** : Base de données principale
-- **GitHub** : Gestion du code source et CI/CD
-- **Docker Hub** : Distribution des images Docker
+### b) Pipeline Scrapy
+- **Fichier** : `src/data/scraping/france_optique/pipelines.py`
+- **Classe** : `PostgresPipeline`
+- **Rôle** : Nettoyage HTML, téléchargement d'images, insertion en base `staging` (PostgreSQL).
+- **Dépendances** : `sqlalchemy`, `requests`, `BeautifulSoup`, `logging`, `os`, `re`, `time`, `pathlib`
 
-### 3. Périmètre des Spécifications Techniques
+---
 
-#### Extraction depuis les Pages Web (Scraping)
-Le système utilise Scrapy pour le scraping de données optiques :
+## 3. Intégration et nettoyage des données
 
-1. **Spiders Spécialisés**
-   ```python
-   class GlassSpider(scrapy.Spider):
-       name = "glass_spider"
-       allowed_domains = ["www.france-optique.com"]
-       start_urls = [
-           "https://www.france-optique.com/fournisseur/1344-bbgr-optique/gravures",
-           "https://www.france-optique.com/fournisseur/2399-adn-optis",
-       ]
+### a) Nettoyage et préparation
+- **Fichier** : `src/data/processing/cleaner.py`
+- **Classe** : `OpticalDataCleaner`
+- **Rôle** : Chargement depuis `staging`, nettoyage, création de la table `enhanced`, export CSV, insertion en base, statistiques.
+- **Dépendances** : `pandas`, `sqlalchemy`, `dotenv`, `logging`, `os`, `csv`, `datetime`
 
-       def parse(self, response):
-           fournisseur_nom = response.xpath("/html/body/div[2]/div/div[3]/div[2]/h2/text()").get()
-           lines = response.xpath('//*[@id="gravures"]/div[2]//div')
-           
-           for line in lines:
-               item = FranceOptiqueItem()
-               item["source_url"] = response.url
-               item["nom_verre"] = line.css("div.row.tr:not(.group) div.td.col.s3.m3 p::text").get("")
-               item["gravure_nasale"] = line.xpath('.//div[contains(@class, "td")][2]//p[@class="gravure_txt"]/b/text()').get()
-               item["indice"] = line.css("div.row.tr:not(.group) div.td.col.s1.m1 p::text").get()
-               item["materiaux"] = line.css("div.td.col.s2.m2 p::text").get()
-               item["fournisseur"] = fournisseur_nom.strip()
-               yield item
-   ```
+### b) Enrichissement
+- **Fichier** : `src/data/processing/enricher.py`
+- **Classe** : `DataEnricher`
+- **Rôle** : Ajout de tags, variantes, détection de propriétés, gestion des fournisseurs, passage de `enhanced` à `verres`.
+- **Dépendances** : `pandas`, `sqlalchemy`, `re`, `json`, `logging`
 
-2. **Pipeline de Traitement**
-   ```python
-   class AzureSQLPipeline:
-       def __init__(self):
-           # Configuration de la connexion
-           self.conn_str = (
-               f"DRIVER={driver};"
-               f"SERVER={self.server};"
-               f"DATABASE={self.database};"
-               f"UID={self.username};"
-               f"PWD={self.password};"
-           )
-           
-       def process_item(self, item, spider):
-           # Nettoyage des données
-           item["materiaux"] = self.clean_html_tags(item["materiaux"])
-           # Insertion dans la base
-           self._insert_into_staging(item, spider)
-           return item
-   ```
+### c) Corrections post-nettoyage
+- **Fichier** : `src/data/processing/fix_enhanced_table.py`
+- **Rôle** : Correction des valeurs par défaut, liaison des IDs manquants (fournisseur, matériau) dans `enhanced`.
+- **Dépendances** : `sqlalchemy`, `logging`
 
-3. **Gestion des Erreurs et Retry**
-   ```python
-   def download_image_with_retry(self, image_url: str, spider) -> str:
-       retry_count = 0
-       while retry_count < self.max_retries:
-           try:
-               response = requests.get(image_url, stream=True, timeout=30)
-               if response.status_code == 200:
-                   return str(local_image_path)
-           except Exception as e:
-               retry_count += 1
-               time.sleep(self.retry_delay)
-   ```
+### d) Import final
+- **Fichier** : `src/data/processing/import_enhanced.py`
+- **Rôle** : Import du dernier CSV enhanced en base via `OpticalDataCleaner`.
+- **Dépendances** : `logging`, `os`, `pathlib`
 
-#### Extraction depuis la Base de Données Azure SQL
-L'extraction depuis Azure SQL est gérée de manière robuste :
+---
 
-1. **Connexion et Configuration**
-   ```python
-   def __init__(self):
-       # Initialisation de SQLAlchemy
-       self.engine = create_engine(settings.DATABASE_URL)
-       Base.metadata.create_all(bind=self.engine)
-       self.Session = sessionmaker(bind=self.engine)
-   ```
+## 4. Orchestration du pipeline
 
-2. **Requêtes Optimisées**
-   ```python
-   def _insert_into_staging(self, item: dict, spider) -> bool:
-       try:
-           with pyodbc.connect(self.conn_str) as conn:
-               cursor = conn.cursor()
-               cursor.execute(
-                   """
-                   INSERT INTO staging (source_url, nom_verre, gravure_nasale, indice, materiaux, fournisseur)
-                   VALUES (?, ?, ?, ?, ?, ?)
-                   """,
-                   (item["source_url"], item["nom_verre"], item["gravure_nasale"],
-                    item["indice"], item["materiaux"], item["fournisseur"]),
-               )
-               conn.commit()
-               return True
-       except Exception as e:
-           spider.logger.error(f"Erreur lors de l'insertion dans staging: {e}")
-           return False
-   ```
+- **Fichier** : `src/orchestrator/pipeline_manager.py`
+- **Classe** : `PipelineManager`
+- **Rôle** : Orchestration complète du pipeline (scraping, nettoyage, enrichissement, corrections, import, etc.).
+- **Dépendances** : `logging`, `pathlib`, `scrapy`, `src.data.processing.cleaner`, etc.
 
-#### API REST pour l'Accès aux Données
-L'API FastAPI permet l'accès aux données :
+---
 
-1. **Endpoints de Données**
-   ```python
-   @app.get("/verre/{verre_id}")
-   async def get_verre(verre_id: int):
-       try:
-           with Session() as session:
-               verre = session.query(Verre).filter(Verre.id == verre_id).first()
-               if not verre:
-                   raise HTTPException(status_code=404, detail="Verre non trouvé")
-               return verre
-       except Exception as e:
-           raise HTTPException(status_code=500, detail=str(e))
-   ```
+## 5. Commandes d’exécution principales
 
-2. **Gestion des Erreurs**
-   ```python
-   @app.exception_handler(HTTPException)
-   async def http_exception_handler(request, exc):
-       return JSONResponse(
-           status_code=exc.status_code,
-           content={"detail": exc.detail},
-       )
-   ```
+```bash
+# 1. Lancer le scraping (exemple)
+scrapy crawl glass_spider
 
-### 4. Fonctionnalité des Scripts d'Extraction
+# 2. Nettoyer et créer la table enhanced
+python -m src.data.processing.cleaner
 
-#### Pipeline de Traitement
-Le pipeline principal fonctionne selon cette séquence :
+# 3. Enrichir les données
+python -m src.data.processing.enricher
 
-1. **Initialisation**
-   ```python
-   def open_spider(self, spider):
-       # Initialisation des ressources
-       for url in spider.start_urls:
-           self.items_by_url[url] = []
-       
-       # Nettoyage de la table
-       with self.engine.connect() as conn:
-           conn.execute(text("TRUNCATE TABLE verres"))
-           conn.commit()
-   ```
+# 4. Corriger la table enhanced
+python src/data/processing/fix_enhanced_table.py
 
-2. **Extraction et Validation**
-   ```python
-   def _process_gravure_nasale(self, item: dict, spider) -> dict:
-       gravure_nasale = item.get("gravure_nasale")
-       if gravure_nasale:
-           image_url = self.extract_image_url(gravure_nasale)
-           if image_url and image_url.startswith(("http", "https")):
-               local_image_path = self.download_image_with_retry(image_url, spider)
-               item["image_gravure"] = local_image_path
-               item["gravure_nasale"] = image_url
-   ```
+# 5. Importer le CSV enhanced en base
+python src/data/processing/import_enhanced.py
 
-### 5. Structure des Scripts
+# 6. Orchestration complète (optionnel)
+python -m src.orchestrator.pipeline_manager
+```
 
-#### Architecture Logicielle
-L'architecture suit un modèle modulaire :
+---
 
-1. **Couche Extraction**
-   - Spiders Scrapy pour le web scraping
-   - API FastAPI pour l'accès aux données
-   - Gestionnaires de connexion SQL
+## 6. Gestion des logs et des erreurs
 
-2. **Couche Traitement**
-   - Pipelines de nettoyage
-   - Validation des données
-   - Transformation des formats
+- Tous les scripts utilisent le module `logging` pour tracer les étapes, erreurs, et statistiques.
+- Les erreurs critiques sont loguées et lèvent des exceptions explicites.
+- Les scripts de correction et d’import vérifient l’intégrité des données après chaque étape.
 
-3. **Couche Persistance**
-   - Gestion des connexions SQL
-   - Transactions et rollback
-   - Optimisation des requêtes
-
-### 6. Versionnement
-
-#### Gestion du Code
-Le versionnement est géré de manière professionnelle :
-
-1. **Structure Git**
-   - Branches feature/, develop/, main/
-   - Tags de version
-   - Pull requests
-
-2. **CI/CD**
-   - Tests automatisés
-   - Déploiement continu
-   - Qualité du code
+---
 
 ## Conclusion
 
-Le projet EngraveDetect implémente de manière robuste l'automatisation de l'extraction de données depuis différentes sources. L'architecture est bien pensée, avec une séparation claire des responsabilités et une documentation complète. Les scripts d'extraction sont fonctionnels et maintenables, avec une bonne gestion des erreurs et une intégration efficace avec les services externes.
-
-### Points Forts
-1. Architecture modulaire et extensible
-2. Documentation technique complète
-3. Pipeline d'extraction automatisé robuste
-4. Intégration efficace avec Azure SQL
-5. Gestion des erreurs et logging
+L’automatisation de l’extraction de données dans EngraveDetect repose sur des spiders Scrapy robustes, un pipeline de nettoyage et d’enrichissement modulaire, et une orchestration centralisée. Toutes les étapes, scripts et dépendances sont explicitement listés et vérifiés dans le code du projet.
 
