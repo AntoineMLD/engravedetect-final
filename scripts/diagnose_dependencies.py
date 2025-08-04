@@ -5,8 +5,8 @@ Script de diagnostic des dépendances API IA
 Vérifie la compatibilité des versions et identifie les problèmes potentiels.
 """
 
-import sys
 import subprocess
+import sys
 from typing import Dict, List, Tuple
 
 
