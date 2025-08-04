@@ -62,20 +62,32 @@ def db_session():
 
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
+    import tempfile
+    import os
 
-    # Base de données de test en mémoire
-    engine = create_engine("sqlite:///:memory:")
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    # Utiliser un fichier temporaire au lieu de :memory: pour éviter les problèmes de threads
+    temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
+    temp_db.close()
 
-    # Créer les tables
-    Base.metadata.create_all(bind=engine)
-
-    session = TestingSessionLocal()
     try:
-        yield session
+        engine = create_engine(f"sqlite:///{temp_db.name}")
+        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+        # Créer les tables
+        Base.metadata.create_all(bind=engine)
+
+        session = TestingSessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
+            Base.metadata.drop_all(bind=engine)
     finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
+        # Nettoyer le fichier temporaire
+        try:
+            os.unlink(temp_db.name)
+        except OSError:
+            pass
 
 
 @pytest.fixture
