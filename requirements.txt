@@ -22,3 +22,4 @@ psutil==5.9.5
 scikit-learn>=1.3.0
 black
 flake8
+prometheus-client==0.22.1

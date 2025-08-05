@@ -1,0 +1,90 @@
+groups:
+  - name: model_ia_alerts
+    rules:
+      - alert: ModelTop1AccuracyDegradation
+        expr: model_top1_accuracy < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: "model_ia"
+        annotations:
+          summary: "Dégradation de la Top-1 accuracy du modèle IA"
+          description: "La Top-1 accuracy du modèle est tombée en dessous de 80% depuis 5 minutes"
+          dashboard: "http://localhost:3001/d/engravedetect-dashboard"
+          
+      - alert: ModelTop3AccuracyDegradation
+        expr: model_top3_accuracy < 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: "model_ia"
+        annotations:
+          summary: "Dégradation de la Top-3 accuracy du modèle IA"
+          description: "La Top-3 accuracy du modèle est tombée en dessous de 90% depuis 5 minutes"
+          dashboard: "http://localhost:3001/d/engravedetect-dashboard"
+          
+      - alert: ModelRejectionRateHigh
+        expr: model_rejection_rate > 0.2
+        for: 3m
+        labels:
+          severity: warning
+          service: "model_ia"
+        annotations:
+          summary: "Taux de rejet élevé du modèle IA"
+          description: "Le taux de rejet du modèle dépasse 20% depuis 3 minutes"
+          dashboard: "http://localhost:3001/d/engravedetect-dashboard"
+          
+      - alert: ModelDriftDetected
+        expr: model_drift_score > 0.7
+        for: 2m
+        labels:
+          severity: warning
+          service: "model_ia"
+        annotations:
+          summary: "Drift de données détecté sur le modèle IA"
+          description: "Un drift significatif a été détecté avec un score de {{ $value }}"
+          dashboard: "http://localhost:3001/d/model-monitoring"
+          
+      - alert: ModelInferenceTimeHigh
+        expr: histogram_quantile(0.95, model_inference_time_seconds_bucket) > 2
+        for: 3m
+        labels:
+          severity: warning
+          service: "model_ia"
+        annotations:
+          summary: "Temps d'inférence élevé du modèle IA"
+          description: "Le temps d'inférence du modèle dépasse 2 secondes (95e percentile)"
+          dashboard: "http://localhost:3001/d/model-monitoring"
+          
+      - alert: ModelEmbeddingQualityLow
+        expr: model_embedding_quality < 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: "model_ia"
+        annotations:
+          summary: "Qualité des embeddings dégradée"
+          description: "La qualité des embeddings générés est tombée en dessous de 50%"
+          dashboard: "http://localhost:3001/d/model-monitoring"
+          
+      - alert: ModelPredictionFailureRate
+        expr: rate(model_predictions_failed[5m]) / rate(model_predictions_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          service: "model_ia"
+        annotations:
+          summary: "Taux d'échec élevé des prédictions"
+          description: "Plus de 10% des prédictions échouent depuis 2 minutes"
+          dashboard: "http://localhost:3001/d/model-monitoring"
+          
+      - alert: ModelNoPredictions
+        expr: rate(model_predictions_total[10m]) == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "model_ia"
+        annotations:
+          summary: "Aucune prédiction du modèle IA"
+          description: "Le modèle n'a effectué aucune prédiction depuis 10 minutes"
+          dashboard: "http://localhost:3001/d/model-monitoring" 

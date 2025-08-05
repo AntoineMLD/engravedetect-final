@@ -111,7 +111,7 @@ def authenticate_user(username: str, password: str) -> Tuple[bool, Optional[dict
             result = connection.execute(query, {"username": username})
             user = result.fetchone()
 
-            if user and verify_password(password, user.hashed_password):
+            if user and verify_password(password, user[2]):  # user[2] = hashed_password
                 # Log de connexion réussie
                 log_security_event(
                     "login_success",
@@ -119,8 +119,8 @@ def authenticate_user(username: str, password: str) -> Tuple[bool, Optional[dict
                     username,
                 )
                 return True, {
-                    "id": user.id,
-                    "username": user.username,
+                    "id": user[0],  # user[0] = id
+                    "username": user[1],  # user[1] = username
                 }
             else:
                 # Log de tentative de connexion échouée
@@ -136,9 +136,16 @@ def authenticate_user(username: str, password: str) -> Tuple[bool, Optional[dict
         return False, None
 
 
-def validate_image_file(file_content: bytes, filename: str) -> bool:
+def validate_image_file(file_content: bytes, filename: Optional[str] = None) -> bool:
     """
     Valide qu'un fichier est bien une image.
+
+    Args:
+        file_content: Contenu du fichier en bytes
+        filename: Nom du fichier (optionnel)
+
+    Returns:
+        True si le fichier est une image valide, False sinon
     """
     try:
         # Vérification du type MIME
@@ -146,11 +153,12 @@ def validate_image_file(file_content: bytes, filename: str) -> bool:
         if not mime_type.startswith("image/"):
             return False
 
-        # Vérification de l'extension
-        allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}
-        file_extension = os.path.splitext(filename.lower())[1]
-        if file_extension not in allowed_extensions:
-            return False
+        # Vérification de l'extension (seulement si le nom de fichier est fourni)
+        if filename:
+            allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}
+            file_extension = os.path.splitext(filename.lower())[1]
+            if file_extension not in allowed_extensions:
+                return False
 
         # Vérification de la taille (max 10MB)
         if len(file_content) > 10 * 1024 * 1024:
@@ -204,12 +212,13 @@ def get_user(username: str) -> Optional[dict]:
     try:
         engine = create_engine(DATABASE_URL)
         with engine.connect() as connection:
-            query = text("SELECT id, username FROM users WHERE username = :username")
+            query = text("SELECT id, username, email FROM users WHERE username = :username")
             result = connection.execute(query, {"username": username})
             user = result.fetchone()
 
             if user:
-                return {"id": user.id, "username": user.username}
+                # Utiliser .mappings() pour avoir un dict ou accéder par index
+                return {"id": user[0], "username": user[1], "email": user[2]}
             return None
 
     except Exception as e:
