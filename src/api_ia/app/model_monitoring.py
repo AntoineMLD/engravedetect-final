@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 from prometheus_client import Counter, Gauge, Histogram
 
-
 logger = logging.getLogger(__name__)
 
 
