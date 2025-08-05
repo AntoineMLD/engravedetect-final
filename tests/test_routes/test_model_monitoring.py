@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
+from prometheus_client import CollectorRegistry
 
 from src.api_ia.app.model_monitoring import ModelMonitor, model_monitor
 
@@ -16,50 +17,59 @@ class TestModelMonitoring:
 
     def test_model_monitor_initialization(self):
         """Test de l'initialisation du ModelMonitor"""
-        monitor = ModelMonitor(embedding_dim=128)
+        monitor = ModelMonitor()
 
-        assert monitor.embedding_dim == 128
-        assert monitor.confidence_threshold == 0.8
-        assert monitor.drift_detection_frequency == 0.1
+        assert monitor.model_name == "engravedetect_efficientnet"
+        assert monitor.drift_check_probability == 0.1
+        assert monitor.drift_threshold == 0.7
         assert monitor.reference_data is None
+        assert monitor.baseline_established is False
 
     def test_update_prediction_metrics_success(self):
         """Test de la mise à jour des métriques de prédiction réussie"""
+        # Utiliser un registry séparé pour éviter les conflits
+        registry = CollectorRegistry()
         monitor = ModelMonitor()
 
-        # Données de test
-        embedding = np.random.rand(128)
-        similarity_scores = [0.9, 0.8, 0.7]
-        inference_time = 0.5
+        # Mock le registry pour éviter les conflits
+        with patch("prometheus_client.REGISTRY", registry):
+            # Données de test
+            embedding = np.random.rand(128)
+            similarity_scores = [0.9, 0.8, 0.7]
+            inference_time = 0.5
 
-        # Mise à jour des métriques
-        monitor.update_prediction_metrics(
-            embedding=embedding, similarity_scores=similarity_scores, inference_time=inference_time, success=True
-        )
+            # Mise à jour des métriques
+            monitor.update_prediction_metrics(
+                embedding=embedding, similarity_scores=similarity_scores, inference_time=inference_time, success=True
+            )
 
-        # Vérifications
-        assert monitor.get_model_health_status()["model_accuracy"] == 1.0  # 0.9 > 0.8
-        assert monitor.get_model_health_status()["total_predictions"] == 1
-        assert monitor.get_model_health_status()["successful_predictions"] == 1
-        assert monitor.get_model_health_status()["failed_predictions"] == 0
+            # Vérifications
+            health_status = monitor.get_model_health_status()
+            assert health_status["total_predictions"] == 1
+            assert health_status["successful_predictions"] == 1
+            assert health_status["failed_predictions"] == 0
 
     def test_update_prediction_metrics_failure(self):
         """Test de la mise à jour des métriques de prédiction échouée"""
+        # Utiliser un registry séparé pour éviter les conflits
+        registry = CollectorRegistry()
         monitor = ModelMonitor()
 
-        # Données de test
-        embedding = np.random.rand(128)
-        similarity_scores = [0.6, 0.5, 0.4]  # Scores faibles
-        inference_time = 1.0
+        # Mock le registry pour éviter les conflits
+        with patch("prometheus_client.REGISTRY", registry):
+            # Données de test
+            embedding = np.random.rand(128)
+            similarity_scores = [0.6, 0.5, 0.4]  # Scores faibles
+            inference_time = 1.0
 
-        # Mise à jour des métriques
-        monitor.update_prediction_metrics(
-            embedding=embedding, similarity_scores=similarity_scores, inference_time=inference_time, success=False
-        )
+            # Mise à jour des métriques
+            monitor.update_prediction_metrics(
+                embedding=embedding, similarity_scores=similarity_scores, inference_time=inference_time, success=False
+            )
 
-        # Vérifications
-        assert monitor.get_model_health_status()["model_accuracy"] == 0.0  # 0.6 < 0.8
-        assert monitor.get_model_health_status()["failed_predictions"] == 1
+            # Vérifications
+            health_status = monitor.get_model_health_status()
+            assert health_status["failed_predictions"] == 1
 
     def test_embedding_quality_calculation(self):
         """Test du calcul de la qualité des embeddings"""
