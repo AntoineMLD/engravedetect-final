@@ -246,7 +246,7 @@ class ModelMonitor:
             logger.debug(
                 f"Métriques mises à jour - Prédictions: {self.prediction_count}, "
                 f"Top-1: {self.top1_correct}, Top-3: {self.top3_correct}, "
-                f"Confiance: {max_confidence:.3f}, Temps: {inference_time:.3f}s"
+                f"Confiance: {max(similarity_scores):.3f}, Temps: {inference_time:.3f}s"
             )
 
         except Exception as e:
