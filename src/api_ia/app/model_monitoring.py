@@ -10,10 +10,10 @@ import logging
 import random
 import time
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
-from prometheus_client import Gauge, Histogram, Counter
+from prometheus_client import Counter, Gauge, Histogram
 
 
 logger = logging.getLogger(__name__)

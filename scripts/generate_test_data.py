@@ -3,10 +3,11 @@
 Script pour générer des données de test pour les métriques du modèle IA.
 """
 
-import requests
-import time
 import json
+import time
 from pathlib import Path
+
+import requests
 
 
 def get_token():

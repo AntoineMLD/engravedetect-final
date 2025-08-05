@@ -3,11 +3,12 @@
 Script de debug pour comprendre pourquoi le drift ne se déclenche pas.
 """
 
-import requests
-import time
 import json
-from pathlib import Path
 import random
+import time
+from pathlib import Path
+
+import requests
 
 
 def get_token():

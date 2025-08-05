@@ -3,9 +3,10 @@ Tests pour le monitoring du modèle d'IA EngraveDetect
 Vérifie le bon fonctionnement des métriques et de la détection de drift.
 """
 
+from unittest.mock import Mock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import Mock, patch
 
 from src.api_ia.app.model_monitoring import ModelMonitor, model_monitor
 

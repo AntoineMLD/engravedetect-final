@@ -3,11 +3,12 @@
 Script pour tester la détection de drift avec beaucoup de requêtes et images diverses.
 """
 
-import requests
-import time
 import json
-from pathlib import Path
 import random
+import time
+from pathlib import Path
+
+import requests
 
 
 def get_token():
