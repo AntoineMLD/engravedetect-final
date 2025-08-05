@@ -199,6 +199,23 @@ body {
     background: #c82333;
 }
 
+.dashboard-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 /* Container */
 .container {
     max-width: 1200px;
@@ -649,6 +666,11 @@ body {
     .user-info {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .dashboard-btn {
+        padding: 10px 20px;
+        font-size: 13px;
     }
 }
 

@@ -71,6 +71,12 @@ function setupEventListeners() {
         searchVerresBtn.addEventListener('click', searchVerres);
     }
 
+    // Bouton Dashboard
+    const dashboardBtn = document.getElementById('dashboardBtn');
+    if (dashboardBtn) {
+        dashboardBtn.addEventListener('click', openDashboard);
+    }
+
     // Fermer la modale (bouton X)
     const closeModalBtn = document.querySelector('#verreModal .close');
     if (closeModalBtn) {
@@ -845,4 +851,9 @@ function updateVerreDetails() {
     `;
     
     detailsContainer.innerHTML = html;
+}
+
+function openDashboard() {
+    // Ouvrir le dashboard Grafana dans un nouvel onglet
+    window.open('http://37.27.217.233:3001/d/engravedetect/engravedetect-monitoring-modele-ia?orgId=1&from=now-1h&to=now&timezone=browser&refresh=30s', '_blank');
 } 
