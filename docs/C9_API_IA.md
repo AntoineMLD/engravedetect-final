@@ -1,5 +1,21 @@
 # C9. API d'Intelligence Artificielle
 
+## Table des Matières
+- [Contexte et Objectifs](#contexte-et-objectifs)
+- [Architecture Technique](#architecture-technique)
+  - [Stack Technologique](#stack-technologique)
+  - [Organisation du Code](#organisation-du-code)
+- [Endpoints de l'API](#endpoints-de-lapi)
+  - [Authentification et gestion utilisateur](#authentification-et-gestion-utilisateur)
+  - [Données verres](#données-verres)
+  - [IA (embedding, matching)](#ia-embedding-matching)
+  - [Monitoring et santé](#monitoring-et-santé)
+- [Fonctionnalités de l'API](#fonctionnalités-de-lapi)
+- [Sécurité](#sécurité)
+- [Exemples d'utilisation](#exemples-dutilisation)
+
+---
+
 ## Contexte et Objectifs
 
 Le projet EngraveDetect intègre une API d'intelligence artificielle conçue pour la classification et l'analyse d'images de verres optiques, la gestion des comptes utilisateurs et la conformité RGPD. L'API, développée avec FastAPI, offre une interface REST robuste et documentée automatiquement.
@@ -19,7 +35,9 @@ Le projet EngraveDetect intègre une API d'intelligence artificielle conçue pou
 
 ### Organisation du Code
 
-```
+**Structure des répertoires de l'API IA :**
+
+```bash
 src/api_ia/
 ├── app/
 │   ├── main.py            # Point d'entrée et configuration de l'API
@@ -31,6 +49,8 @@ src/api_ia/
 ├── models/                # Modèles deep learning
 └── weights/               # Poids du modèle EfficientNet
 ```
+
+*Description : Cette structure organise le code en modules logiques avec une séparation claire entre la logique métier (app/), les modèles d'IA et les poids du modèle.*
 
 ---
 
@@ -49,6 +69,10 @@ src/api_ia/
 - `POST /embedding` : Calcul d'embedding d'une image (auth requis)
 - `POST /match` : Recherche de correspondances IA pour une image (auth requis)
 - `POST /search_tags` : Recherche par tags (auth requis)
+
+### Monitoring et santé
+- `GET /metrics` : Métriques Prometheus (public)
+- `GET /model/health` : Statut de santé du modèle IA (public)
 
 ---
 
@@ -72,6 +96,12 @@ src/api_ia/
 - Suppression de compte (`/me` DELETE)
 - Politique de confidentialité accessible sur le site
 
+### 4. Monitoring et détection de drift
+- Métriques Prometheus en temps réel (`/metrics`)
+- Statut de santé du modèle (`/model/health`)
+- Détection automatique de drift des données
+- Alertes et seuils configurables
+
 ---
 
 ## Sécurité
@@ -86,9 +116,14 @@ src/api_ia/
 ## Exemples d'utilisation
 
 ### Authentification (connexion)
+
+**Commande curl pour s'authentifier :**
+
 ```bash
 curl -X POST http://localhost:8001/token -d "username=monuser&password=monmdp"
 ```
+
+*Description : Cette commande envoie les identifiants utilisateur au endpoint /token pour obtenir un token JWT d'authentification.*
 
 ### Accès à ses données personnelles
 ```bash
@@ -114,6 +149,15 @@ curl -X POST http://localhost:8001/embedding \
   -F "file=@monimage.png"
 ```
 
+### Monitoring du modèle
+```bash
+# Métriques Prometheus
+curl http://localhost:8001/metrics
+
+# Santé du modèle
+curl http://localhost:8001/model/health | jq
+```
+
 ---
 
 ## Documentation
@@ -129,6 +173,12 @@ curl -X POST http://localhost:8001/embedding \
 - Pas de gestion de révocation de token
 - Les headers de sécurité sont gérés par middleware, mais peuvent être renforcés
 - Les tests de performance et d'intégration sont à compléter
+
+## Documentation Complémentaire
+- [Monitoring de l'API IA](C14_Monitoring_API_IA.md) : Architecture de monitoring, métriques, dashboards
+- [Détection de Drift](C15_Drift_Detection.md) : Guide complet de la détection de dérives
+- [Intégration API IA](C10_Integration_API_IA.md) : Communication entre services
+- [Sécurité et Authentification](C16_Securite_Authentification.md) : Règles d'authentification, autorisation et sécurité
 
 ---
 

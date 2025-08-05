@@ -46,8 +46,8 @@ src/
 - Authentification : Obligatoire (Bearer)
 - Paramètres : `file` (UploadFile, image JPG/PNG)
 - Limite : 5 requêtes/minute
-- Réponse : `{ "matches": [ { "class": "nom_classe", "similarity": 0.95 }, ... ] }`
-- Fonctionnement : Extraction embedding, recherche des 20 plus proches via similarité cosinus sur embeddings de référence
+- Réponse : `{ "matches": [ { "class_": "nom_classe", "similarity": 0.95 }, ... ] }`
+- Fonctionnement : Extraction embedding, recherche des correspondances via similarité cosinus sur embeddings de référence
 - Erreurs : 400, 401, 500
 
 #### 3. **/search_tags** (POST)

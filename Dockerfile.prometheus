@@ -1,2 +1,10 @@
 FROM prom/prometheus:latest
+
+# Copy configuration
 COPY monitoring/prometheus/prometheus.yml /etc/prometheus/prometheus.yml
+
+# Expose port
+EXPOSE 9090
+
+# Command
+CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/etc/prometheus/console_libraries", "--web.console.templates=/etc/prometheus/consoles", "--storage.tsdb.retention.time=200h", "--web.enable-lifecycle"]
