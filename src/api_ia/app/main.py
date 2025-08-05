@@ -331,7 +331,7 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
     MATCH_REQUEST_COUNT.inc()
     start_time = time.time()
     success = True
-    
+
     try:
         image_bytes = await file.read()
         if not validate_image_file(image_bytes, file.filename if file.filename else None):
@@ -351,41 +351,36 @@ async def get_best_match(request: Request, file: UploadFile = File(...), current
 
         matches = get_top_matches(embedding)
         similarity_scores = [m.get("similarity", 0.0) for m in matches]
-        
+
         # Monitoring du modèle d'IA
         inference_time = time.time() - start_time
-        
+
         # Récupérer la classe prédite (première correspondance)
         predicted_class = matches[0].get("class", "") if matches else ""
-        
+
         model_monitor.update_prediction_metrics(
             embedding=embedding,
             similarity_scores=similarity_scores,
             inference_time=inference_time,
             success=success,
             predicted_class=predicted_class,
-            true_class=predicted_class  # Simulation pour test - en production ce serait la vraie classe
+            true_class=predicted_class,  # Simulation pour test - en production ce serait la vraie classe
         )
-        
 
-        
         return {"matches": [{"class_": m.get("class", ""), "similarity": m.get("similarity", 0.0)} for m in matches]}
-        
+
     except Exception as e:
         success = False
         MATCH_REQUEST_ERRORS.inc()
         logger.error(f"Erreur dans get_best_match: {e}")
-        
+
         # Monitoring de l'erreur
-        if 'embedding' in locals():
+        if "embedding" in locals():
             inference_time = time.time() - start_time
             model_monitor.update_prediction_metrics(
-                embedding=embedding,
-                similarity_scores=[],
-                inference_time=inference_time,
-                success=success
+                embedding=embedding, similarity_scores=[], inference_time=inference_time, success=success
             )
-        
+
         raise HTTPException(status_code=500, detail=f"Match error: {e}")
     finally:
         MATCH_LATENCY.observe(time.time() - start_time)
@@ -546,18 +541,10 @@ async def model_health_check():
     """
     try:
         model_status = model_monitor.get_model_health_status()
-        return ModelHealthResponse(
-            status="healthy",
-            model_metrics=model_status,
-            timestamp=datetime.now().isoformat()
-        )
+        return ModelHealthResponse(status="healthy", model_metrics=model_status, timestamp=datetime.now().isoformat())
     except Exception as e:
         logger.error(f"Erreur lors de la récupération du statut du modèle: {e}")
-        return {
-            "status": "error",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        }
+        return {"status": "error", "error": str(e), "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/metrics")

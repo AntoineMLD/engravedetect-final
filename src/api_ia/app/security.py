@@ -139,11 +139,11 @@ def authenticate_user(username: str, password: str) -> Tuple[bool, Optional[dict
 def validate_image_file(file_content: bytes, filename: Optional[str] = None) -> bool:
     """
     Valide qu'un fichier est bien une image.
-    
+
     Args:
         file_content: Contenu du fichier en bytes
         filename: Nom du fichier (optionnel)
-        
+
     Returns:
         True si le fichier est une image valide, False sinon
     """
