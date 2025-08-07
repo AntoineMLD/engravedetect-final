@@ -306,6 +306,154 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 
 ---
 
+### **ÉPIC 8 : Récolte et Préparation des Données**
+
+#### **US-021 : Collecte automatique des données de verres**
+**En tant que** administrateur système  
+**Je veux** collecter automatiquement les données de verres depuis les fournisseurs  
+**Afin de** maintenir une base de données à jour
+
+**Critères d'acceptation :**
+- [ ] Le script de collecte s'exécute automatiquement via cron
+- [ ] Les données sont extraites depuis les sources configurées
+- [ ] Les nouvelles données sont insérées dans la table `staging`
+- [ ] Les données existantes sont mises à jour si nécessaire
+- [ ] Les logs de collecte sont générés avec timestamp
+- [ ] Les erreurs de collecte sont gérées et notifiées
+- [ ] La conformité RGPD est respectée (source_url, created_at)
+
+#### **US-022 : Nettoyage et validation des données**
+**En tant que** administrateur système  
+**Je veux** nettoyer et valider les données collectées  
+**Afin de** garantir la qualité des données d'entraînement
+
+**Critères d'acceptation :**
+- [ ] Les données dupliquées sont identifiées et supprimées
+- [ ] Les valeurs manquantes sont détectées et signalées
+- [ ] Les formats de données sont validés (indice, hauteur, etc.)
+- [ ] Les données invalides sont rejetées avec justification
+- [ ] Les données nettoyées sont transférées vers la table `enhanced`
+- [ ] Un rapport de qualité des données est généré
+- [ ] Les métriques de qualité sont exposées via API
+
+#### **US-023 : Enrichissement des données avec tags**
+**En tant que** administrateur système  
+**Je veux** enrichir les données avec des tags descriptifs  
+**Afin de** améliorer la recherche et la classification
+
+**Critères d'acceptation :**
+- [ ] Les tags sont extraits automatiquement des descriptions
+- [ ] Les tags sont normalisés (minuscules, accents, etc.)
+- [ ] Les tags dupliqués sont consolidés
+- [ ] Les tags sont associés aux verres dans la table `verres`
+- [ ] Un dictionnaire de tags est maintenu et accessible
+- [ ] Les nouveaux tags sont détectés et ajoutés automatiquement
+- [ ] La cohérence des tags est vérifiée régulièrement
+
+#### **US-024 : Gestion des images de gravures**
+**En tant que** administrateur système  
+**Je veux** gérer les images de gravures de manière optimisée  
+**Afin de** réduire l'espace de stockage et améliorer les performances
+
+**Critères d'acceptation :**
+- [ ] Les images sont redimensionnées à 400x400px
+- [ ] Les images sont compressées (format JPG, qualité 85%)
+- [ ] Les métadonnées EXIF sont supprimées pour la confidentialité
+- [ ] Les images sont stockées dans `/data/augmented_gravures/`
+- [ ] Les images sont organisées par catégorie de gravure
+- [ ] Les images corrompues sont détectées et remplacées
+- [ ] Un index des images est maintenu pour la recherche rapide
+
+---
+
+### **ÉPIC 9 : Développement et Entraînement du Modèle IA**
+
+#### **US-025 : Préparation du dataset d'entraînement**
+**En tant que** data scientist  
+**Je veux** préparer un dataset équilibré pour l'entraînement  
+**Afin de** optimiser les performances du modèle
+
+**Critères d'acceptation :**
+- [ ] Le dataset est divisé en train/validation/test (70/15/15)
+- [ ] Les classes sont équilibrées (oversampling si nécessaire)
+- [ ] Les images sont augmentées (rotation, zoom, bruit)
+- [ ] Les labels sont encodés en one-hot encoding
+- [ ] Le dataset est sauvegardé dans `/data/datasets/`
+- [ ] Les métriques de répartition sont documentées
+- [ ] Le dataset est versionné avec Git LFS
+
+#### **US-026 : Entraînement du modèle EfficientNet**
+**En tant que** data scientist  
+**Je veux** entraîner un modèle EfficientNet pour la classification  
+**Afin de** obtenir une reconnaissance précise des gravures
+
+**Critères d'acceptation :**
+- [ ] Le modèle EfficientNet-B0 est utilisé comme architecture de base
+- [ ] L'entraînement utilise PyTorch avec GPU si disponible
+- [ ] Les hyperparamètres sont optimisés (learning rate, batch size)
+- [ ] L'early stopping est configuré pour éviter l'overfitting
+- [ ] Les métriques d'entraînement sont sauvegardées (loss, accuracy)
+- [ ] Le modèle est sauvegardé dans `/src/models/`
+- [ ] Un rapport d'entraînement est généré avec les performances
+
+#### **US-027 : Évaluation et validation du modèle**
+**En tant que** data scientist  
+**Je veux** évaluer les performances du modèle entraîné  
+**Afin de** valider sa qualité avant déploiement
+
+**Critères d'acceptation :**
+- [ ] Les métriques de performance sont calculées (accuracy, precision, recall, F1)
+- [ ] La matrice de confusion est générée et analysée
+- [ ] Les prédictions erronées sont analysées pour amélioration
+- [ ] Le modèle est testé sur des données non vues
+- [ ] Les performances sont comparées aux benchmarks
+- [ ] Un rapport d'évaluation détaillé est généré
+- [ ] Les seuils de confiance sont optimisés
+
+#### **US-028 : Déploiement du modèle en production**
+**En tant que** administrateur système  
+**Je veux** déployer le modèle entraîné en production  
+**Afin de** rendre le service IA disponible aux utilisateurs
+
+**Critères d'acceptation :**
+- [ ] Le modèle est chargé dans l'API IA au démarrage
+- [ ] Les endpoints `/embedding` et `/match` sont fonctionnels
+- [ ] Les performances en production sont surveillées
+- [ ] Le modèle est versionné et peut être rollbacké
+- [ ] Les logs de prédiction sont générés pour audit
+- [ ] Le modèle est sauvegardé avec ses métadonnées
+- [ ] Un processus de déploiement automatisé est en place
+
+#### **US-029 : Mise à jour et amélioration continue du modèle**
+**En tant que** data scientist  
+**Je veux** améliorer continuellement le modèle avec de nouvelles données  
+**Afin de** maintenir et améliorer les performances
+
+**Critères d'acceptation :**
+- [ ] Un processus de retraining automatique est configuré
+- [ ] Les nouvelles données sont intégrées progressivement
+- [ ] La détection de concept drift est implémentée
+- [ ] Les performances sont comparées avant/après mise à jour
+- [ ] Le modèle n'est mis à jour que si les performances s'améliorent
+- [ ] Un historique des versions du modèle est maintenu
+- [ ] Les utilisateurs sont notifiés des améliorations
+
+#### **US-030 : Gestion des embeddings et recherche par similarité**
+**En tant que** data scientist  
+**Je veux** générer et gérer les embeddings des images  
+**Afin de** permettre la recherche par similarité
+
+**Critères d'acceptation :**
+- [ ] Les embeddings sont générés pour toutes les images d'entraînement
+- [ ] Les embeddings sont normalisés (cosine similarity)
+- [ ] Un index de similarité est créé pour la recherche rapide
+- [ ] L'endpoint `/embedding` génère les embeddings à la volée
+- [ ] L'endpoint `/match` utilise la similarité cosinus
+- [ ] Les résultats sont triés par score de similarité décroissant
+- [ ] Les performances de recherche sont optimisées (< 2 secondes)
+
+---
+
 ## 6. Contraintes techniques
 
 - API principale : FastAPI (`/api`) — CRUD sécurisé avec SQL Server
