@@ -153,20 +153,8 @@ flowchart TD
     
     NEW_SEARCH -->|Non| END([Fin de session])
     
-    %% === STYLES ===
-    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
-    classDef success fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef api fill:#e0f2f1,stroke:#004d40,stroke-width:2px
-    
-    class START,END startEnd
-    class LOGIN,MAIN_INTERFACE,DRAWING_SECTION,TAG_SECTION,MANUAL_SECTION,SEARCH_SECTION,VERRE_LIST,DETAILS_MODAL process
-    class AUTH,LOGIN_VALID,DASHBOARD_BTN,LOGOUT_BTN,DRAWING_ACTIONS,SEARCH_IA,IA_RESPONSE,RESULT_CLICK,TAG_ACTIONS,MANUAL_BTN,TAGS_CHECK,VERRE_RESPONSE,VERRE_CLICK,DETAILS_ACTIONS,VERRE_PAGINATION,NEW_SEARCH decision
-    class LOGIN_ERROR,EMPTY_ERROR,IA_ERROR,MANUAL_ERROR,TAGS_ERROR,VERRE_ERROR error
-    class TOKEN,STORAGE,IA_RESULTS,VERRE_RESULTS,DETAILS_CONTENT success
-    class IA_PROCESS,VERRE_SEARCH,REFRESH_DATA api
+    %% === STYLES SIMPLIFIÉS ===
+    %% Pas de couleurs pour une meilleure lisibilité
 ```
 
 ---
