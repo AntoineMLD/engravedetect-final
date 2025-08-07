@@ -145,12 +145,53 @@ Le flux automatisé repose sur plusieurs composants interconnectés :
 
 ### 1.2 Flux de Données
 
+#### **Flux Principal de Traitement des Données**
+
 ```
-Sources Web → Spiders Scrapy → Base Staging → Nettoyage → Enrichissement → Base Production
-     ↓              ↓              ↓            ↓            ↓              ↓
-  france-optique  Extraction   PostgreSQL   Cleaner    Enricher    Verres Final
-  autres sites    Images       Table Staging  Enhanced   Tags       API Access
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  COLLECTE   │───▶│  NETTOYAGE  │───▶│STRUCTURATION│───▶│ENRICHISSEMENT│───▶│  INSERTION  │───▶│  EXPOSITION │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                   │                   │                   │                   │
+       ▼                   ▼                   ▼                   ▼                   ▼                   ▼
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  Sources    │    │   Cleaner   │    │   Enhanced  │    │  Enricher   │    │   Verres    │    │     API     │
+│   Web       │    │   Pipeline  │    │   Table     │    │   Pipeline  │    │   Table     │    │   REST      │
+│  Fichiers   │    │   Validation│    │   Schema    │    │   Tags      │    │   Final     │    │   Frontend  │
+│  Database   │    │   Format    │    │   Relations │    │   Metadata  │    │   Production│    │   IA        │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
 ```
+
+#### **Détail des Étapes**
+
+**1. COLLECTE** : Extraction depuis sources multiples
+- **Spiders Scrapy** : france-optique.com, autres sites
+- **Fichiers** : Images JPG/PNG, CSV d'import
+- **Database** : Tables staging, enhanced, verres
+
+**2. NETTOYAGE** : Préparation et validation
+- **Cleaner Pipeline** : Suppression doublons, validation formats
+- **Validation** : Contrôle qualité, gestion erreurs
+- **Format** : Normalisation, standardisation
+
+**3. STRUCTURATION** : Organisation des données
+- **Enhanced Table** : Structure normalisée
+- **Schema** : Modèle de données cohérent
+- **Relations** : Liens entre entités
+
+**4. ENRICHISSEMENT** : Ajout de valeur
+- **Enricher Pipeline** : Extraction variantes, détection propriétés
+- **Tags** : Métadonnées automatiques
+- **Metadata** : Informations enrichies
+
+**5. INSERTION** : Stockage final
+- **Verres Table** : Base de production
+- **Final** : Données validées et enrichies
+- **Production** : Environnement opérationnel
+
+**6. EXPOSITION** : Accès aux données
+- **API REST** : Endpoints sécurisés
+- **Frontend** : Interface utilisateur
+- **IA** : Classification et recherche
 
 ---
 
