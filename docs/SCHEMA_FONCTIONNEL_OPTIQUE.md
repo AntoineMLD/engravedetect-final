@@ -77,7 +77,7 @@ flowchart TD
     %% === GESTION DES RÉSULTATS IA ===
     RESULTS_GRID --> RESULT_CLICK{Utilisateur clique sur un résultat ?}
     RESULT_CLICK -->|Oui| ADD_TAG[Ajout du tag à la liste]
-    ADD_TAG --> TAG_LIST[Section "Tags sélectionnés"]
+    ADD_TAG --> TAG_LIST[Section Tags sélectionnés]
     RESULT_CLICK -->|Non| MORE_RESULTS{Plus de résultats à afficher ?}
     MORE_RESULTS -->|Oui| RESULTS_GRID
     MORE_RESULTS -->|Non| TAG_SECTION[Section tags]
@@ -96,7 +96,7 @@ flowchart TD
     
     %% === SAISIE MANUELLE ===
     MANUAL_SECTION --> MANUAL_INPUT[Champ de saisie texte]
-    MANUAL_INPUT --> MANUAL_BTN{Bouton "Ajouter ces tags" cliqué ?}
+    MANUAL_INPUT --> MANUAL_BTN{Bouton Ajouter ces tags cliqué ?}
     MANUAL_BTN -->|Oui| MANUAL_PROCESS[Traitement des tags]
     MANUAL_PROCESS --> MANUAL_VALID{Format valide ?}
     MANUAL_VALID -->|Non| MANUAL_ERROR[Message d'erreur]
@@ -108,11 +108,11 @@ flowchart TD
     MANUAL_BTN -->|Non| SEARCH_SECTION[Section recherche]
     
     %% === RECHERCHE DE VERRES ===
-    SEARCH_SECTION --> SEARCH_BTN{Bouton "Rechercher les verres" cliqué ?}
+    SEARCH_SECTION --> SEARCH_BTN{Bouton Rechercher les verres cliqué ?}
     SEARCH_BTN -->|Non| MAIN_INTERFACE
     
     SEARCH_BTN -->|Oui| TAGS_CHECK{Liste de tags vide ?}
-    TAGS_CHECK -->|Oui| TAGS_ERROR[Message : Ajoutez des tags d'abord]
+    TAGS_CHECK -->|Oui| TAGS_ERROR[Message Ajoutez des tags d'abord]
     TAGS_ERROR --> TAG_SECTION
     
     TAGS_CHECK -->|Non| VERRE_SEARCH[Envoi tags à API /search_tags]
