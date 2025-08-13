@@ -145,25 +145,10 @@ Le build Docker lance les services, mais la base est vide. Suis ces étapes pour
    python -c "from src.database.reset_database import reset_database; reset_database()"
    ```
 
-5. Remplir la base (choisir une option)
-   - Option A • Scraping (insère en staging), puis nettoyage/enrichissement
-     ```bash
-     # Scraping (Scrapy)
-     cd src/data/scraping
-     export PYTHONPATH=$(pwd)/../../..
-     scrapy crawl glass_spider
-
-     # Nettoyage → enhanced
-     cd -
-     python -m src.data.processing.cleaner
-
-     # Enrichissement → verres
-     python -m src.data.processing.enricher
-     ```
-   - Option B • Importer depuis un CSV enhanced (si disponible)
-     ```bash
-     python -m src.data.processing.import_enhanced
-     ```
+5. Remplir la base via le Pipeline Manager (extraction → staging, nettoyage → enhanced, enrichissement → verres)
+   ```bash
+   python -m src.orchestrator.pipeline_manager
+   ```
 
 6. Vérifier l'accès API et documentation locale
    - API: http://localhost:8000
