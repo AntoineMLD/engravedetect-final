@@ -42,11 +42,11 @@ class TestAuthentification:
 
         # Vérification que l'utilisateur est connecté (plus flexible)
         try:
-            expect(page.locator('button:has-text("📤 Déconnexion")')).to_be_visible(timeout=5000)
+            expect(page.locator('button:has-text(" Déconnexion")')).to_be_visible(timeout=5000)
         except:
             # Si le bouton de déconnexion n'est pas visible, vérifier d'autres indicateurs
             expect(page.locator("canvas")).to_be_attached()
-            expect(page.locator('button:has-text("🗑️ Effacer le dessin")')).to_be_attached()
+            expect(page.locator('button:has-text(" Effacer le dessin")')).to_be_attached()
 
     @pytest.mark.playwright
     @pytest.mark.e2e
@@ -95,7 +95,7 @@ class TestInterfaceUtilisateur:
 
         # Vérification que la connexion a réussi
         try:
-            expect(page.locator('button:has-text("📤 Déconnexion")')).to_be_visible(timeout=5000)
+            expect(page.locator('button:has-text(" Déconnexion")')).to_be_visible(timeout=5000)
         except:
             # Si la connexion échoue, on continue quand même pour tester l'interface
             pass
@@ -108,8 +108,8 @@ class TestInterfaceUtilisateur:
         """
         # Vérification que les éléments principaux sont présents
         expect(page.locator("canvas")).to_be_attached()
-        expect(page.locator('button:has-text("🗑️ Effacer le dessin")')).to_be_attached()
-        expect(page.locator('button:has-text("🔍 Rechercher les symboles similaires")')).to_be_attached()
+        expect(page.locator('button:has-text(" Effacer le dessin")')).to_be_attached()
+        expect(page.locator('button:has-text(" Rechercher les symboles similaires")')).to_be_attached()
 
     @pytest.mark.playwright
     @pytest.mark.e2e
@@ -148,7 +148,7 @@ class TestInterfaceUtilisateur:
             page.mouse.up()
 
         # Vérification que le bouton d'effacement est disponible
-        clear_button = page.locator('button:has-text("🗑️ Effacer le dessin")')
+        clear_button = page.locator('button:has-text(" Effacer le dessin")')
         expect(clear_button).to_be_attached()
 
         # Clic sur le bouton d'effacement (avec gestion d'erreur)
@@ -179,7 +179,7 @@ class TestInterfaceUtilisateur:
             page.mouse.up()
 
         # Vérification que le bouton de recherche est disponible
-        search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
+        search_button = page.locator('button:has-text(" Rechercher les symboles similaires")')
         expect(search_button).to_be_attached()
 
         # Clic sur le bouton de recherche (avec gestion d'erreur)
@@ -210,7 +210,7 @@ class TestInterfaceUtilisateur:
             page.mouse.up()
 
         # Vérification que le bouton de recherche est disponible
-        search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
+        search_button = page.locator('button:has-text(" Rechercher les symboles similaires")')
         expect(search_button).to_be_attached()
 
         # Clic sur le bouton de recherche (avec gestion d'erreur)
@@ -230,7 +230,7 @@ class TestInterfaceUtilisateur:
         Test d'ajout de tags manuellement
         """
         # Vérification que les éléments de tags existent
-        expect(page.locator('button:has-text("➕ Ajouter ces tags")')).to_be_attached()
+        expect(page.locator('button:has-text(" Ajouter ces tags")')).to_be_attached()
 
     @pytest.mark.playwright
     @pytest.mark.e2e
@@ -239,7 +239,7 @@ class TestInterfaceUtilisateur:
         Test de recherche de verres avec des tags
         """
         # Vérification que le bouton de recherche de verres existe
-        search_verres_button = page.locator('button:has-text("📦 Rechercher les verres correspondants")')
+        search_verres_button = page.locator('button:has-text(" Rechercher les verres correspondants")')
         expect(search_verres_button).to_be_attached()
 
         # Clic sur le bouton de recherche de verres (avec gestion d'erreur)
@@ -259,7 +259,7 @@ class TestInterfaceUtilisateur:
         Test de réinitialisation des tags
         """
         # Vérification que le bouton de reset existe
-        reset_button = page.locator('button:has-text("🧹 Réinitialiser les tags")')
+        reset_button = page.locator('button:has-text(" Réinitialiser les tags")')
         expect(reset_button).to_be_attached()
 
         # Clic sur le bouton de reset (avec gestion d'erreur)
@@ -279,7 +279,7 @@ class TestInterfaceUtilisateur:
         Test de déconnexion
         """
         # Vérification que le bouton de déconnexion existe
-        logout_button = page.locator('button:has-text("📤 Déconnexion")')
+        logout_button = page.locator('button:has-text(" Déconnexion")')
         expect(logout_button).to_be_attached()
 
         # Clic sur le bouton de déconnexion (avec gestion d'erreur)
@@ -322,7 +322,7 @@ class TestInterfaceUtilisateur:
             page.mouse.up()
 
         # Vérification que le bouton de recherche est disponible
-        search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
+        search_button = page.locator('button:has-text(" Rechercher les symboles similaires")')
         expect(search_button).to_be_attached()
 
         # Clic sur le bouton de recherche (avec gestion d'erreur)
@@ -353,7 +353,7 @@ class TestInterfaceUtilisateur:
 
         # Vérification que le contenu reste accessible sur mobile
         # Utilisation d'un sélecteur spécifique pour éviter l'ambiguïté
-        expect(page.locator('button:has-text("🗑️ Effacer le dessin")')).to_be_attached()
+        expect(page.locator('button:has-text(" Effacer le dessin")')).to_be_attached()
 
     @pytest.mark.playwright
     @pytest.mark.e2e
@@ -438,7 +438,7 @@ class TestPerformanceInterface:
         start_time = time.time()
 
         # Recherche de symboles
-        search_button = page.locator('button:has-text("🔍 Rechercher les symboles similaires")')
+        search_button = page.locator('button:has-text(" Rechercher les symboles similaires")')
         search_button.click()
 
         # Attente réduite
@@ -473,7 +473,7 @@ class TestPerformanceInterface:
                 page.mouse.up()
 
             # Effacement
-            clear_button = page.locator('button:has-text("🗑️ Effacer le dessin")')
+            clear_button = page.locator('button:has-text(" Effacer le dessin")')
             clear_button.click()
 
             # Vérification que l'interface reste stable
@@ -535,5 +535,5 @@ class TestAccessibilite:
         Test de l'accessibilité des boutons
         """
         # Vérification que les boutons sont accessibles
-        expect(page.locator('button:has-text("🗑️ Effacer le dessin")')).to_be_attached()
-        expect(page.locator('button:has-text("🔍 Rechercher les symboles similaires")')).to_be_attached()
+        expect(page.locator('button:has-text(" Effacer le dessin")')).to_be_attached()
+        expect(page.locator('button:has-text(" Rechercher les symboles similaires")')).to_be_attached()

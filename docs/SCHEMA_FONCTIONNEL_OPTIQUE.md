@@ -1,12 +1,12 @@
-# 🔍 Schéma Fonctionnel - Parcours Opticien EngraveDetect
+#  Schéma Fonctionnel - Parcours Opticien EngraveDetect
 
-## 📋 Vue d'ensemble
+##  Vue d'ensemble
 
 Ce schéma fonctionnel détaille l'enchaînement complet des étapes côté opticien, de la connexion initiale à l'exploration des résultats, en passant par la saisie d'un dessin ou de tags.
 
 ---
 
-## 🎯 Acteurs et Contexte
+##  Acteurs et Contexte
 
 **Acteur principal :** Opticien professionnel  
 **Objectif :** Identifier un verre optique à partir de sa gravure nasale  
@@ -14,7 +14,7 @@ Ce schéma fonctionnel détaille l'enchaînement complet des étapes côté opti
 
 ---
 
-## 🔄 Schéma Fonctionnel Détaillé
+##  Schéma Fonctionnel Détaillé
 
 ```mermaid
 flowchart TD
@@ -159,7 +159,7 @@ flowchart TD
 
 ---
 
-## 📊 Détail des Étapes Fonctionnelles
+##  Détail des Étapes Fonctionnelles
 
 ### **1. PHASE D'AUTHENTIFICATION**
 
@@ -174,8 +174,8 @@ flowchart TD
 - **Saisie :** Nom d'utilisateur et mot de passe
 - **Validation :** Vérification des identifiants via API `/api/v1/auth/token`
 - **Résultat :**
-  - ✅ Succès → Génération JWT, stockage localStorage, redirection interface principale
-  - ❌ Échec → Message d'erreur, retour au formulaire
+  -  Succès → Génération JWT, stockage localStorage, redirection interface principale
+  -  Échec → Message d'erreur, retour au formulaire
 
 ### **2. PHASE D'INTERFACE PRINCIPALE**
 
@@ -189,16 +189,16 @@ flowchart TD
 - **Canvas :** Zone de dessin 400x400px, responsive
 - **Actions disponibles :**
   - **Dessin :** Souris/tactile, affichage temps réel
-  - **Effacement :** Bouton "🗑️" ou touche Espace
-  - **Recherche IA :** Bouton "🔍 Rechercher les symboles similaires"
+  - **Effacement :** Bouton "" ou touche Espace
+  - **Recherche IA :** Bouton " Rechercher les symboles similaires"
 
 ### **3. PHASE DE RECHERCHE IA**
 
 #### **3.1 Validation du dessin**
 - **Vérification :** Canvas non vide
 - **Décision :**
-  - ❌ Vide → Message "Veuillez dessiner d'abord"
-  - ✅ Dessiné → Envoi à l'API
+  -  Vide → Message "Veuillez dessiner d'abord"
+  -  Dessiné → Envoi à l'API
 
 #### **3.2 Traitement IA**
 - **Envoi :** Image canvas à API `/api_ia/match`
@@ -207,12 +207,12 @@ flowchart TD
 
 #### **3.3 Affichage des résultats**
 - **Format :** Grille responsive (4 colonnes desktop, 2 tablet, 1 mobile)
-- **Contenu :** Image symbole, nom, score de similarité, bouton "➕ Ajouter ce tag"
+- **Contenu :** Image symbole, nom, score de similarité, bouton " Ajouter ce tag"
 
 ### **4. PHASE DE GESTION DES TAGS**
 
 #### **4.1 Sélection depuis résultats IA**
-- **Action :** Clic sur "➕ Ajouter ce tag"
+- **Action :** Clic sur " Ajouter ce tag"
 - **Traitement :** Ajout à la liste des tags sélectionnés
 - **Contrôle :** Éviter les doublons
 
@@ -225,15 +225,15 @@ flowchart TD
 - **Affichage :** Tags avec bouton "×" pour suppression
 - **Actions :**
   - **Suppression individuelle :** Bouton "×" sur chaque tag
-  - **Réinitialisation globale :** Bouton "🧹 Réinitialiser les tags"
+  - **Réinitialisation globale :** Bouton " Réinitialiser les tags"
 
 ### **5. PHASE DE RECHERCHE DE VERRES**
 
 #### **5.1 Validation des tags**
 - **Vérification :** Au moins un tag sélectionné
 - **Décision :**
-  - ❌ Aucun tag → Message "Ajoutez des tags d'abord"
-  - ✅ Tags présents → Lancement recherche
+  -  Aucun tag → Message "Ajoutez des tags d'abord"
+  -  Tags présents → Lancement recherche
 
 #### **5.2 Recherche en base**
 - **Envoi :** Liste tags à API `/api_ia/search_tags`
@@ -259,7 +259,7 @@ flowchart TD
   - **Image :** Gravure complète en haute résolution
 
 #### **6.2 Actions dans la modale**
-- **Actualisation :** Bouton "🔄 Actualiser les données"
+- **Actualisation :** Bouton " Actualiser les données"
 - **Fermeture :** Bouton "×" ou clic extérieur
 - **Accessibilité :** Focus trap, navigation clavier
 
@@ -270,7 +270,7 @@ flowchart TD
 
 ---
 
-## 🔧 Points de Décision Critiques
+##  Points de Décision Critiques
 
 ### **1. Authentification**
 - **Token expiré :** Redirection automatique vers connexion
@@ -294,7 +294,7 @@ flowchart TD
 
 ---
 
-## 📱 Adaptations Responsive
+##  Adaptations Responsive
 
 ### **Desktop (1200px+)**
 - Canvas : 400x400px
@@ -313,7 +313,7 @@ flowchart TD
 
 ---
 
-## ⚡ Optimisations de Performance
+##  Optimisations de Performance
 
 ### **1. Chargement asynchrone**
 - Requêtes API non-bloquantes
@@ -332,7 +332,7 @@ flowchart TD
 
 ---
 
-## 🔒 Aspects Sécurité
+##  Aspects Sécurité
 
 ### **1. Authentification**
 - JWT avec expiration (30 min)

@@ -25,15 +25,15 @@ def run_command(command: str, description: str) -> bool:
     Returns:
         True si la commande réussit, False sinon
     """
-    print(f"🔄 {description}...")
+    print(f" {description}...")
     print(f"   Commande: {command}")
 
     try:
         result = subprocess.run(command, shell=True, check=True, text=True)
-        print(f"✅ {description} - Succès")
+        print(f" {description} - Succès")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} - Échec")
+        print(f" {description} - Échec")
         print(f"   Code de sortie: {e.returncode}")
         return False
 
@@ -48,10 +48,10 @@ def check_playwright_installation() -> bool:
     try:
         import playwright
 
-        print("✅ Playwright est installé")
+        print(" Playwright est installé")
         return True
     except ImportError:
-        print("❌ Playwright n'est pas installé")
+        print(" Playwright n'est pas installé")
         print("   Exécutez: pip install -r requirements-dev.txt")
         return False
 
@@ -71,14 +71,14 @@ def check_environment_variables() -> bool:
             missing_vars.append(var)
 
     if missing_vars:
-        print(f"❌ Variables d'environnement manquantes: {', '.join(missing_vars)}")
+        print(f" Variables d'environnement manquantes: {', '.join(missing_vars)}")
         print("   Créez un fichier .env basé sur env.example")
         print("   Exemple:")
         print("   ADMIN_USERNAME=***")
         print("   ADMIN_PASSWORD=****")
         return False
 
-    print("✅ Variables d'environnement configurées")
+    print(" Variables d'environnement configurées")
     return True
 
 
@@ -108,7 +108,7 @@ def run_tests(test_type: str, headed: bool = False, verbose: bool = True) -> boo
     elif test_type == "accessibility":
         cmd_parts.append("tests/test_playwright_e2e.py::TestAccessibilite")
     else:
-        print(f"❌ Type de test inconnu: {test_type}")
+        print(f" Type de test inconnu: {test_type}")
         return False
 
     if headed:
@@ -149,12 +149,12 @@ def list_available_tests() -> None:
     """
     Liste tous les tests Playwright disponibles
     """
-    print("📋 Tests Playwright disponibles:")
+    print(" Tests Playwright disponibles:")
     print()
 
     test_file = Path("tests/test_playwright_e2e.py")
     if not test_file.exists():
-        print("❌ Fichier de tests Playwright non trouvé")
+        print(" Fichier de tests Playwright non trouvé")
         return
 
     try:
@@ -171,7 +171,7 @@ def list_available_tests() -> None:
             # Détection des classes de test
             if line.startswith("class Test") and line.endswith(":"):
                 current_class = line.split("class ")[1].split("(")[0]
-                print(f"📁 {current_class}")
+                print(f" {current_class}")
 
             # Détection des méthodes de test
             elif line.startswith("def test_") and line.endswith(":"):
@@ -183,7 +183,7 @@ def list_available_tests() -> None:
                     print(f"   └── {test_name}")
 
     except Exception as e:
-        print(f"❌ Erreur lors de la lecture du fichier de tests: {e}")
+        print(f" Erreur lors de la lecture du fichier de tests: {e}")
 
 
 def main():
@@ -201,7 +201,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("🧪 Tests Playwright - EngraveDetect")
+    print(" Tests Playwright - EngraveDetect")
     print("=" * 40)
 
     # Vérification de l'installation
@@ -226,10 +226,10 @@ def main():
     success = run_tests(args.type, args.headed, not args.quiet)
 
     if success:
-        print("\n🎉 Tous les tests ont réussi!")
+        print("\n Tous les tests ont réussi!")
     else:
-        print("\n❌ Certains tests ont échoué")
-        print("\n💡 Conseils:")
+        print("\n Certains tests ont échoué")
+        print("\n Conseils:")
         print("   - Vérifiez que l'application est lancée sur http://localhost:8000")
         print("   - Utilisez --headed pour voir le navigateur")
         print("   - Utilisez --list pour voir tous les tests disponibles")

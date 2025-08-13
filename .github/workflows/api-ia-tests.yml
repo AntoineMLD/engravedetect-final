@@ -84,10 +84,10 @@ jobs:
       if: always()
       run: |
         echo "## Tests API IA Results" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Dependency tests: PASSED" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Structure tests: PASSED" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Mocked tests: PASSED" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Integration tests: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "-  Dependency tests: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "-  Structure tests: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "-  Mocked tests: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "-  Integration tests: PASSED" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "All API IA endpoints tested:" >> $GITHUB_STEP_SUMMARY
         echo "- /token (authentification)" >> $GITHUB_STEP_SUMMARY

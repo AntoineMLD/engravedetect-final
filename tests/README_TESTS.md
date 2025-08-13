@@ -4,7 +4,7 @@ Ce fichier a pour but de documenter les tests automatisés mis en place autour d
 
 ---
 
-## 🧪 Objectifs
+##  Objectifs
 
 Les tests permettent de garantir que :
 
@@ -14,7 +14,7 @@ Les tests permettent de garantir que :
 
 ---
 
-## ✅ Cas testés
+##  Cas testés
 
 Voici les cas de test couverts par les différents scripts présents dans le dépôt :
 
@@ -29,7 +29,7 @@ Voici les cas de test couverts par les différents scripts présents dans le dé
 
 ---
 
-## ⚙️ Environnement technique
+##  Environnement technique
 
 - Langage : Python 3.10+
 - Tests : `pytest`
@@ -39,7 +39,7 @@ Voici les cas de test couverts par les différents scripts présents dans le dé
 
 ---
 
-## 📦 Dépendances requises
+##  Dépendances requises
 
 Les dépendances sont gérées automatiquement dans l’image Docker. Pour référence :
 
@@ -56,7 +56,7 @@ scikit-learn
 
 ---
 
-## 🚀 Exécution des tests
+##  Exécution des tests
 
 ### **Exécution Locale**
 
@@ -100,7 +100,7 @@ Tous les fichiers de test se trouvent dans le répertoire `/tests`.
 
 ---
 
-## 📊 Calcul de couverture (optionnel)
+##  Calcul de couverture (optionnel)
 
 Pour mesurer la couverture, il est recommandé d’ajouter :
 
@@ -113,20 +113,20 @@ pytest --cov=src/api_ia
 
 ---
 
-## 🔐 Versionnage et sécurité
+##  Versionnage et sécurité
 
 Les tests sont présents dans le dépôt Git du projet.  
 Aucune donnée sensible n’est versionnée (usage de `.env` pour les secrets).
 
 ---
 
-## ♿ Accessibilité
+##  Accessibilité
 
 Ce fichier est fourni au format Markdown, lisible par tous les lecteurs d’écran. Il respecte les recommandations d’accessibilité de l’association Valentin Haüy.
 
 ---
 
-## 📁 Structure concernée
+##  Structure concernée
 
 ```
 tests/

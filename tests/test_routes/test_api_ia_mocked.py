@@ -214,7 +214,7 @@ class TestAPIIAMocked:
             for endpoint in endpoints:
                 assert endpoint in content, f"Endpoint {endpoint} non trouvé"
 
-        print("✅ Structure API IA validée")
+        print(" Structure API IA validée")
 
     def test_verre_details_endpoint(self, client, auth_token):
         """Test de récupération des détails d'un verre mocké"""
@@ -306,7 +306,7 @@ class TestAPIIARealIntegration:
             from src.api_ia.app.main import app
 
             assert app is not None
-            print("✅ Import API IA réussi")
+            print(" Import API IA réussi")
         except Exception as e:
             pytest.skip(f"Import échoué: {e}")
 

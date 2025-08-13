@@ -1,12 +1,12 @@
-# 🗄️ Schéma Entité-Relation Complet - EngraveDetect
+#  Schéma Entité-Relation Complet - EngraveDetect
 
-## 📋 Vue d'ensemble
+##  Vue d'ensemble
 
 Ce document présente le schéma entité-relation complet de la base de données EngraveDetect, basé sur l'analyse du code source et des modèles SQLAlchemy existants.
 
 ---
 
-## 🎯 Méthodologie Merise
+##  Méthodologie Merise
 
 Le schéma suit la méthodologie Merise avec :
 - **MCD** (Modèle Conceptuel de Données)
@@ -15,7 +15,7 @@ Le schéma suit la méthodologie Merise avec :
 
 ---
 
-## 🔍 Modèle Conceptuel de Données (MCD)
+##  Modèle Conceptuel de Données (MCD)
 
 ### **Entités Principales**
 
@@ -102,7 +102,7 @@ Le schéma suit la méthodologie Merise avec :
 
 ---
 
-## 🔗 Relations Conceptuelles
+##  Relations Conceptuelles
 
 ```mermaid
 erDiagram
@@ -190,7 +190,7 @@ erDiagram
 
 ---
 
-## 📊 Modèle Logique de Données (MLD)
+##  Modèle Logique de Données (MLD)
 
 ### **Tables Principales**
 
@@ -292,7 +292,7 @@ CREATE TABLE enhanced (
 
 ---
 
-## ⚙️ Modèle Physique de Données (MPD)
+##  Modèle Physique de Données (MPD)
 
 ### **Index de Performance**
 
@@ -395,7 +395,7 @@ CREATE TRIGGER trigger_cleanup_tokens
 
 ---
 
-## 🔒 Aspects Sécurité et RGPD
+##  Aspects Sécurité et RGPD
 
 ### **Chiffrement des Données Sensibles**
 - **Mots de passe** : Hashés avec bcrypt
@@ -423,7 +423,7 @@ CREATE TABLE security_events (
 
 ---
 
-## 📈 Optimisations de Performance
+##  Optimisations de Performance
 
 ### **Partitionnement**
 ```sql
@@ -460,7 +460,7 @@ REFRESH MATERIALIZED VIEW verres_stats;
 
 ---
 
-## 🔄 Flux de Données
+##  Flux de Données
 
 ### **Pipeline de Traitement**
 1. **Extraction** → Table `staging`

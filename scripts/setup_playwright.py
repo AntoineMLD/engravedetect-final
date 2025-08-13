@@ -24,15 +24,15 @@ def run_command(command: str, description: str) -> bool:
     Returns:
         True si la commande réussit, False sinon
     """
-    print(f"🔄 {description}...")
+    print(f" {description}...")
     try:
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"✅ {description} - Succès")
+        print(f" {description} - Succès")
         if result.stdout:
             print(f"   Sortie: {result.stdout.strip()}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} - Échec")
+        print(f" {description} - Échec")
         print(f"   Erreur: {e.stderr.strip()}")
         return False
 
@@ -46,9 +46,9 @@ def check_python_version() -> bool:
     """
     version = sys.version_info
     if version.major < 3 or (version.major == 3 and version.minor < 8):
-        print("❌ Python 3.8+ est requis")
+        print(" Python 3.8+ est requis")
         return False
-    print(f"✅ Python {version.major}.{version.minor}.{version.micro} - Compatible")
+    print(f" Python {version.major}.{version.minor}.{version.micro} - Compatible")
     return True
 
 
@@ -86,10 +86,10 @@ def create_test_data_directory() -> bool:
     test_data_dir = Path("tests/test_data")
     try:
         test_data_dir.mkdir(parents=True, exist_ok=True)
-        print(f"✅ Répertoire de test créé: {test_data_dir}")
+        print(f" Répertoire de test créé: {test_data_dir}")
         return True
     except Exception as e:
-        print(f"❌ Erreur lors de la création du répertoire: {e}")
+        print(f" Erreur lors de la création du répertoire: {e}")
         return False
 
 
@@ -114,13 +114,13 @@ def create_sample_test_image() -> bool:
         img_path = test_data_dir / "test_image.jpg"
         img.save(img_path, "JPEG")
 
-        print(f"✅ Image de test créée: {img_path}")
+        print(f" Image de test créée: {img_path}")
         return True
     except ImportError:
-        print("⚠️  PIL/Pillow non installé - image de test non créée")
+        print("  PIL/Pillow non installé - image de test non créée")
         return True
     except Exception as e:
-        print(f"❌ Erreur lors de la création de l'image de test: {e}")
+        print(f" Erreur lors de la création de l'image de test: {e}")
         return False
 
 
@@ -135,7 +135,7 @@ def verify_installation() -> bool:
         import playwright
         from playwright.sync_api import sync_playwright
 
-        print("🔄 Test de Playwright...")
+        print(" Test de Playwright...")
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -145,14 +145,14 @@ def verify_installation() -> bool:
             browser.close()
 
             if "Example Domain" in title:
-                print("✅ Test de Playwright réussi")
+                print(" Test de Playwright réussi")
                 return True
             else:
-                print("❌ Test de Playwright échoué")
+                print(" Test de Playwright échoué")
                 return False
 
     except Exception as e:
-        print(f"❌ Erreur lors du test de Playwright: {e}")
+        print(f" Erreur lors du test de Playwright: {e}")
         return False
 
 
@@ -160,7 +160,7 @@ def main():
     """
     Fonction principale du script d'installation
     """
-    print("🚀 Installation et configuration de Playwright")
+    print(" Installation et configuration de Playwright")
     print("=" * 50)
 
     # Vérification de la version Python
@@ -169,12 +169,12 @@ def main():
 
     # Installation de Playwright
     if not install_playwright():
-        print("❌ Échec de l'installation de Playwright")
+        print(" Échec de l'installation de Playwright")
         sys.exit(1)
 
     # Création du répertoire de test
     if not create_test_data_directory():
-        print("❌ Échec de la création du répertoire de test")
+        print(" Échec de la création du répertoire de test")
         sys.exit(1)
 
     # Création d'une image de test
@@ -182,17 +182,17 @@ def main():
 
     # Vérification de l'installation
     if not verify_installation():
-        print("❌ Échec de la vérification de l'installation")
+        print(" Échec de la vérification de l'installation")
         sys.exit(1)
 
-    print("\n🎉 Installation de Playwright terminée avec succès!")
-    print("\n📋 Prochaines étapes:")
+    print("\n Installation de Playwright terminée avec succès!")
+    print("\n Prochaines étapes:")
     print("1. Configurer les variables d'environnement:")
     print("   cp env.example .env")
     print("   # Éditer .env avec vos identifiants")
     print("2. Exécuter les tests Playwright: python scripts/run_playwright_tests.py")
     print("3. Exécuter tous les tests: pytest tests/ -v")
-    print("\n📚 Documentation:")
+    print("\n Documentation:")
     print("- Tests Playwright: tests/test_playwright_e2e.py")
     print("- Configuration: playwright.config.py")
     print("- Variables d'environnement: .env")

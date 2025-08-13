@@ -2,7 +2,7 @@
 
 Ce guide explique comment configurer, utiliser et maintenir le système de monitoring d'EngraveDetect avec Grafana et Prometheus.
 
-## 📊 Architecture du Monitoring
+##  Architecture du Monitoring
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -15,7 +15,7 @@ Ce guide explique comment configurer, utiliser et maintenir le système de monit
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Lancement avec Docker Compose
+##  Lancement avec Docker Compose
 
 ### 1. Démarrage rapide
 
@@ -45,7 +45,7 @@ docker-compose ps
 - **Configuration** : `monitoring/prometheus/prometheus.yml`
 - **Règles d'alertes** : `monitoring/prometheus/rules/`
 
-## 📈 Métriques Collectées
+##  Métriques Collectées
 
 ### Métriques de Performance du Modèle
 
@@ -78,7 +78,7 @@ docker-compose ps
 |----------|------|-------------|
 | `model_drift_score` | Gauge | Score de drift des données |
 
-## 🔧 Où modifier les métriques
+##  Où modifier les métriques
 
 ### Fichier principal : `src/api_ia/app/model_monitoring.py`
 
@@ -108,7 +108,7 @@ model_monitor.update_prediction_metrics(
 )
 ```
 
-## ➕ Comment ajouter une nouvelle métrique
+##  Comment ajouter une nouvelle métrique
 
 ### Étape 1 : Définir la métrique dans `model_monitoring.py`
 
@@ -160,7 +160,7 @@ self.model_latency_p95.labels(self.model_name).observe(inference_time)
 histogram_quantile(0.95, rate(model_latency_p95_bucket[5m]))
 ```
 
-## 📊 Dashboards Grafana
+##  Dashboards Grafana
 
 ### Dashboard principal : "EngraveDetect - Monitoring Modèle IA"
 
@@ -264,7 +264,7 @@ histogram_quantile(0.95, rate(model_latency_p95_bucket[5m]))
 }
 ```
 
-## 🔍 Requêtes Prometheus utiles
+##  Requêtes Prometheus utiles
 
 ### Métriques de base
 
@@ -306,7 +306,7 @@ model_drift_score
     description: "95ème percentile: {{ $value }}s"
 ```
 
-## 🛠️ Maintenance et Dépannage
+##  Maintenance et Dépannage
 
 ### Vérifier l'état des services
 
@@ -350,14 +350,14 @@ docker exec prometheus promtool tsdb backup /prometheus/data
 docker exec grafana grafana-cli admin restore backup.tar.gz
 ```
 
-## 📚 Ressources supplémentaires
+##  Ressources supplémentaires
 
 - [Documentation Prometheus](https://prometheus.io/docs/)
 - [Documentation Grafana](https://grafana.com/docs/)
 - [Guide des métriques Prometheus](https://prometheus.io/docs/concepts/metric_types/)
 - [Requêtes PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/)
 
-## 🔗 Liens utiles
+##  Liens utiles
 
 - **Dashboard principal** : http://37.27.217.233:3001/d/engravedetect/engravedetect-monitoring-modele-ia
 - **Grafana** : http://37.27.217.233:3001/

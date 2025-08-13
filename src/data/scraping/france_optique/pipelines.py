@@ -72,7 +72,7 @@ class PostgresPipeline:
         return None
 
     def open_spider(self, spider):
-        spider.logger.info("🔁 Vidage de la table staging")
+        spider.logger.info(" Vidage de la table staging")
         with self.engine.connect() as conn:
             conn.execute(text("TRUNCATE TABLE staging"))
             conn.commit()
@@ -98,7 +98,7 @@ class PostgresPipeline:
         return item
 
     def close_spider(self, spider):
-        spider.logger.info("🔁 Nettoyage des données via OpticalDataCleaner")
+        spider.logger.info(" Nettoyage des données via OpticalDataCleaner")
         cleaner = OpticalDataCleaner()
         cleaner.insert_raw_data(self.items)
         df_clean = cleaner.clean_dataframe(cleaner.load_data_from_staging())
@@ -117,9 +117,9 @@ class PostgresPipeline:
                 )
                 session.add(verre)
             session.commit()
-            spider.logger.info(f"✅ {len(df_clean)} verres insérés dans la base")
+            spider.logger.info(f" {len(df_clean)} verres insérés dans la base")
         except Exception as e:
             session.rollback()
-            spider.logger.error(f"❌ Erreur lors de l'insertion finale : {e}")
+            spider.logger.error(f" Erreur lors de l'insertion finale : {e}")
         finally:
             session.close()

@@ -1,16 +1,16 @@
-# 💾 Base de Données EngraveDetect
+#  Base de Données EngraveDetect
 
 Gestion de la base de données Azure SQL pour le stockage et l'analyse des données de verres optiques.
 
-## 📋 Fonctionnalités
+##  Fonctionnalités
 
-- 💾 Stockage structuré des données
-- 🔄 Migrations automatisées
-- 📊 Requêtes optimisées
-- 🔒 Gestion des connexions
-- 📈 Monitoring des performances
+-  Stockage structuré des données
+-  Migrations automatisées
+-  Requêtes optimisées
+-  Gestion des connexions
+-  Monitoring des performances
 
-## 🏗️ Structure
+##  Structure
 
 ```
 database/
@@ -20,7 +20,7 @@ database/
 └── utils/          # Utilitaires DB
 ```
 
-## 🚀 Démarrage
+##  Démarrage
 
 1. **Configuration Azure**
    ```bash
@@ -40,7 +40,7 @@ database/
    alembic upgrade head
    ```
 
-## 📊 Schéma de la Base
+##  Schéma de la Base
 
 ### Tables Principales
 - `verres` : Données des verres
@@ -53,7 +53,7 @@ database/
 - Un verre a un matériau
 - Un verre appartient à une gamme
 
-## 🔄 Migrations
+##  Migrations
 
 ```bash
 # Créer une migration
@@ -66,7 +66,7 @@ alembic upgrade head
 alembic downgrade -1
 ```
 
-## 🧪 Tests
+##  Tests
 
 ```bash
 # Tests de la base de données
@@ -76,41 +76,41 @@ pytest tests/database/
 python -m src.database.tests.benchmark
 ```
 
-## 📝 Documentation
+##  Documentation
 
 - [Guide de migration](docs/DB_MIGRATION.md)
 - [Schéma de la base](docs/DB_SCHEMA.md)
 - [Guide d'optimisation](docs/DB_OPTIMIZATION.md)
 
-## 🔒 Sécurité
+##  Sécurité
 
 - Chiffrement des données sensibles
 - Gestion des accès
 - Audit des opérations
 - Sauvegardes automatiques
 
-## 📈 Performance
+##  Performance
 
 - Indexation optimisée
 - Requêtes préparées
 - Mise en cache
 - Pool de connexions
 
-## 🔧 Maintenance
+##  Maintenance
 
 - Nettoyage des données
 - Optimisation des index
 - Mise à jour des statistiques
 - Vérification de l'intégrité
 
-## 🐛 Débogage
+##  Débogage
 
 - Logs de requêtes
 - Métriques de performance
 - Traces d'erreurs
 - Monitoring en temps réel
 
-## 📚 Ressources
+##  Ressources
 
 - [Documentation Azure SQL](https://docs.microsoft.com/azure/sql-database/)
 - [Documentation SQLAlchemy](https://docs.sqlalchemy.org/)

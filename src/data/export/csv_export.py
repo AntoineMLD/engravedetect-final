@@ -77,7 +77,7 @@ def export_staging_to_csv():
             return csv_filename
 
     except Exception as e:
-        print(f"❌ Erreur lors de l'export: {str(e)}")
+        print(f" Erreur lors de l'export: {str(e)}")
         return None
 
 

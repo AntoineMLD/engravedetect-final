@@ -4,7 +4,7 @@ Ce guide explique comment utiliser Playwright pour les tests end-to-end dans le 
 
 ---
 
-## 🎯 Qu'est-ce que Playwright ?
+##  Qu'est-ce que Playwright ?
 
 Playwright est un framework de test automatisé pour les navigateurs web. Il permet de :
 - Tester l'interface utilisateur de bout en bout
@@ -15,7 +15,7 @@ Playwright est un framework de test automatisé pour les navigateurs web. Il per
 
 ---
 
-## 🚀 Installation rapide
+##  Installation rapide
 
 ### 1. Installation automatique
 ```bash
@@ -44,7 +44,7 @@ playwright install
 
 ---
 
-## 📝 Structure des tests
+##  Structure des tests
 
 ### Organisation des tests
 ```
@@ -63,7 +63,7 @@ tests/
 
 ---
 
-## 🧪 Exécution des tests
+##  Exécution des tests
 
 ### Tests de base
 ```bash
@@ -87,7 +87,7 @@ docker compose exec api_ia pytest tests/test_playwright_e2e.py --headed
 
 ---
 
-## 📋 Exemples de tests
+##  Exemples de tests
 
 ### Test de connexion
 ```python
@@ -107,7 +107,7 @@ def test_connexion_utilisateur(page: Page):
     page.click('button:has-text("Se connecter")')
     
     # Vérification de la connexion
-    expect(page.locator("text=📤 Déconnexion")).to_be_visible()
+    expect(page.locator("text= Déconnexion")).to_be_visible()
 ```
 
 ### Test d'upload d'image
@@ -129,7 +129,7 @@ def test_upload_image(page: Page):
 
 ---
 
-## 🔧 Configuration
+##  Configuration
 
 ### Variables d'environnement requises
 ```bash
@@ -159,7 +159,7 @@ markers =
 
 ---
 
-## 📊 Rapports et résultats
+##  Rapports et résultats
 
 ### Génération de rapports
 ```bash
@@ -177,7 +177,7 @@ pytest tests/test_playwright_e2e.py --html=test-results/report.html
 
 ---
 
-## 🐛 Débogage
+##  Débogage
 
 ### Mode debug
 ```bash
@@ -202,7 +202,7 @@ playwright codegen https://engravedetect.fr
 
 ---
 
-## 📈 Intégration CI/CD
+##  Intégration CI/CD
 
 ### GitHub Actions
 ```yaml
@@ -225,7 +225,7 @@ playwright codegen https://engravedetect.fr
 
 ---
 
-## 🎯 Bonnes pratiques
+##  Bonnes pratiques
 
 ### Structure des tests
 - Un test par fonctionnalité
@@ -256,7 +256,7 @@ page.wait_for_selector('button:has-text("Se connecter")', timeout=10000)
 
 ---
 
-## 📚 Ressources
+##  Ressources
 
 - [Documentation Playwright](https://playwright.dev/)
 - [Guide des sélecteurs](https://playwright.dev/docs/selectors)

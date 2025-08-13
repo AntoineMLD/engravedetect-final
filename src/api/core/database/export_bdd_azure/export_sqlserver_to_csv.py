@@ -34,6 +34,6 @@ for table in tables:
     df = pd.read_sql_table(table, con=engine, schema="dbo")
     out_path = os.path.join(output_dir, f"{table}.csv")
     df.to_csv(out_path, index=False)
-    print(f"✔️ Exportée : {out_path}")
+    print(f" Exportée : {out_path}")
 
 print("Export terminé !")

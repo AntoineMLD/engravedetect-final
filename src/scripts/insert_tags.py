@@ -114,7 +114,7 @@ def update_tags_in_database(conn, tags_data: List[Dict]):
             logger.error(f"Erreur pour {item['gravure']} : {error}")
 
     conn.commit()
-    logger.info(f"🔄 Résultat : {updated_count} mis à jour, {error_count} erreurs.")
+    logger.info(f" Résultat : {updated_count} mis à jour, {error_count} erreurs.")
 
 
 def main():

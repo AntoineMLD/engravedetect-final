@@ -134,13 +134,13 @@ def verify_token(token: str) -> Optional[dict]:
 
 ### Endpoints par Niveau d'Accès
 
-#### 🔓 **Public (Aucune authentification)**
+####  **Public (Aucune authentification)**
 - `GET /` : Message d'accueil
 - `GET /health` : Statut de santé
 - `GET /metrics` : Métriques Prometheus
 - `GET /model/health` : Santé du modèle IA
 
-#### 🔐 **Authentification Requise**
+####  **Authentification Requise**
 - `POST /token` : Connexion (username/password)
 - `GET /me` : Données personnelles utilisateur
 - `DELETE /me` : Suppression de compte (RGPD)
@@ -154,14 +154,14 @@ def verify_token(token: str) -> Optional[dict]:
 
 | Endpoint | Méthode | Authentification | Rate Limit | Validation |
 |----------|---------|------------------|------------|------------|
-| `/token` | POST | ❌ (connexion) | 10/min | Username/Password |
-| `/me` | GET | ✅ JWT | 20/min | Token valide |
-| `/me` | DELETE | ✅ JWT | 5/min | Token valide |
-| `/embedding` | POST | ✅ JWT | 5/min | Token + Image |
-| `/match` | POST | ✅ JWT | 5/min | Token + Image |
-| `/search_tags` | POST | ✅ JWT | 10/min | Token + JSON |
-| `/verre/{id}` | GET | ✅ JWT | 20/min | Token + ID |
-| `/metrics` | GET | ❌ Public | 60/min | Aucune |
+| `/token` | POST |  (connexion) | 10/min | Username/Password |
+| `/me` | GET |  JWT | 20/min | Token valide |
+| `/me` | DELETE |  JWT | 5/min | Token valide |
+| `/embedding` | POST |  JWT | 5/min | Token + Image |
+| `/match` | POST |  JWT | 5/min | Token + Image |
+| `/search_tags` | POST |  JWT | 10/min | Token + JSON |
+| `/verre/{id}` | GET |  JWT | 20/min | Token + ID |
+| `/metrics` | GET |  Public | 60/min | Aucune |
 
 ---
 
@@ -354,7 +354,7 @@ def setup_security_logging():
 
 #### Types d'Événements Loggés
 
-##### 🔐 Authentification
+#####  Authentification
 ```python
 # Connexion réussie
 log_security_event("login_success", f"Connexion réussie pour {username}", username)
@@ -366,7 +366,7 @@ log_security_event("login_failed", f"Tentative échouée pour {username}", usern
 log_security_event("TOKEN_CREATED", f"Token for {username}")
 ```
 
-##### 🚫 Accès Refusés
+#####  Accès Refusés
 ```python
 # Token invalide
 log_security_event("invalid_token", "Token invalide fourni")
@@ -378,7 +378,7 @@ log_security_event("rate_limit_exceeded", f"Rate limit pour {username}")
 log_security_event("file_upload_error", "Fichier invalide uploadé")
 ```
 
-##### 👤 Gestion Comptes
+#####  Gestion Comptes
 ```python
 # Compte supprimé
 log_security_event("account_deleted", f"Compte supprimé: {username}")
@@ -428,29 +428,29 @@ async def add_security_headers(request: Request, call_next):
 ## Bonnes Pratiques de Sécurité
 
 ### 1. Gestion des Mots de Passe
-- ✅ **Hachage** : bcrypt avec salt automatique
-- ✅ **Complexité** : Validation côté client
-- ✅ **Stockage** : Jamais en clair en base
+-  **Hachage** : bcrypt avec salt automatique
+-  **Complexité** : Validation côté client
+-  **Stockage** : Jamais en clair en base
 
 ### 2. Gestion des Tokens
-- ✅ **Expiration** : 30 minutes par défaut
-- ✅ **Stateless** : Pas de session côté serveur
-- ✅ **Signature** : HS256 avec clé secrète
+-  **Expiration** : 30 minutes par défaut
+-  **Stateless** : Pas de session côté serveur
+-  **Signature** : HS256 avec clé secrète
 
 ### 3. Validation des Entrées
-- ✅ **Images** : Type MIME + extension + taille
-- ✅ **JSON** : Schémas Pydantic
-- ✅ **Sanitisation** : Échappement automatique
+-  **Images** : Type MIME + extension + taille
+-  **JSON** : Schémas Pydantic
+-  **Sanitisation** : Échappement automatique
 
 ### 4. Rate Limiting
-- ✅ **Par endpoint** : Limites adaptées
-- ✅ **Par IP** : Prévention d'abus
-- ✅ **Logging** : Traçabilité des abus
+-  **Par endpoint** : Limites adaptées
+-  **Par IP** : Prévention d'abus
+-  **Logging** : Traçabilité des abus
 
 ### 5. Logging et Audit
-- ✅ **Rotation** : Logs avec rotation automatique
-- ✅ **Séparation** : Logs de sécurité séparés
-- ✅ **Traçabilité** : Tous les événements loggés
+-  **Rotation** : Logs avec rotation automatique
+-  **Séparation** : Logs de sécurité séparés
+-  **Traçabilité** : Tous les événements loggés
 
 ---
 

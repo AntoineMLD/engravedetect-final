@@ -28,7 +28,7 @@ def check_metrics():
         response = requests.get("http://localhost:8001/metrics")
         if response.status_code == 200:
             metrics = response.text
-            print("📊 Métriques actuelles :")
+            print(" Métriques actuelles :")
 
             # Chercher les métriques importantes
             lines = metrics.split("\n")
@@ -38,9 +38,9 @@ def check_metrics():
                 ):
                     print(f"   {line}")
         else:
-            print(f"❌ Erreur {response.status_code} lors de la récupération des métriques")
+            print(f" Erreur {response.status_code} lors de la récupération des métriques")
     except Exception as e:
-        print(f"❌ Erreur lors de la vérification des métriques: {e}")
+        print(f" Erreur lors de la vérification des métriques: {e}")
 
 
 def check_model_health():
@@ -49,7 +49,7 @@ def check_model_health():
         response = requests.get("http://localhost:8001/model/health")
         if response.status_code == 200:
             health = response.json()
-            print("\n🏥 Santé du modèle :")
+            print("\n Santé du modèle :")
             print(f"   Status: {health.get('status')}")
             if "model_metrics" in health:
                 metrics = health["model_metrics"]
@@ -57,9 +57,9 @@ def check_model_health():
                 print(f"   Dernière vérification drift: {metrics.get('last_drift_check', 'N/A')}")
 
         else:
-            print(f"❌ Erreur {response.status_code} lors de la vérification de santé")
+            print(f" Erreur {response.status_code} lors de la vérification de santé")
     except Exception as e:
-        print(f"❌ Erreur lors de la vérification de santé: {e}")
+        print(f" Erreur lors de la vérification de santé: {e}")
 
 
 def make_test_request(token):
@@ -75,10 +75,10 @@ def make_test_request(token):
                     break
 
         if not image_path:
-            print("❌ Aucune image de test trouvée")
+            print(" Aucune image de test trouvée")
             return False
 
-        print(f"\n🖼️  Test avec {image_path.name}")
+        print(f"\n  Test avec {image_path.name}")
 
         # Faire la requête
         with open(image_path, "rb") as f:
@@ -91,53 +91,53 @@ def make_test_request(token):
                 result = response.json()
                 class_name = result["matches"][0]["class_"]
                 similarity = result["matches"][0]["similarity"]
-                print(f"✅ Prédiction: {class_name} ({similarity:.3f})")
+                print(f" Prédiction: {class_name} ({similarity:.3f})")
 
                 # Vérifier les métriques après
                 time.sleep(1)
                 check_metrics()
                 return True
             else:
-                print(f"❌ Erreur {response.status_code}: {response.text}")
+                print(f" Erreur {response.status_code}: {response.text}")
                 return False
 
     except Exception as e:
-        print(f"❌ Erreur lors de la requête de test: {e}")
+        print(f" Erreur lors de la requête de test: {e}")
         return False
 
 
 def main():
     """Fonction principale."""
-    print("🔍 Debug de la détection de drift")
+    print(" Debug de la détection de drift")
     print("=" * 50)
 
     # Vérifier l'état initial
-    print("📊 État initial :")
+    print(" État initial :")
     check_metrics()
     check_model_health()
 
     # Obtenir le token
-    print("\n🔑 Obtention du token...")
+    print("\n Obtention du token...")
     token = get_token()
     if not token:
-        print("❌ Impossible d'obtenir le token. Arrêt.")
+        print(" Impossible d'obtenir le token. Arrêt.")
         return
 
-    print("✅ Token obtenu")
+    print(" Token obtenu")
 
     # Faire plusieurs requêtes de test
-    print("\n🧪 Tests de requêtes :")
+    print("\n Tests de requêtes :")
     for i in range(1, 6):
         print(f"\n--- Test {i}/5 ---")
         make_test_request(token)
         time.sleep(3)
 
     # État final
-    print("\n📊 État final :")
+    print("\n État final :")
     check_metrics()
     check_model_health()
 
-    print("\n💡 Si le drift ne s'affiche pas, c'est normal !")
+    print("\n Si le drift ne s'affiche pas, c'est normal !")
     print("   Le système ne détecte de drift que pour des changements significatifs.")
 
 

@@ -47,46 +47,46 @@ def make_prediction_request(token, image_path):
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✅ Prédiction réussie: {result['matches'][0]['class_']} ({result['matches'][0]['similarity']:.3f})")
+                print(f" Prédiction réussie: {result['matches'][0]['class_']} ({result['matches'][0]['similarity']:.3f})")
                 return True
             else:
-                print(f"❌ Erreur {response.status_code}: {response.text}")
+                print(f" Erreur {response.status_code}: {response.text}")
                 return False
 
     except Exception as e:
-        print(f"❌ Erreur lors de la requête: {e}")
+        print(f" Erreur lors de la requête: {e}")
         return False
 
 
 def main():
     """Fonction principale."""
-    print("🚀 Génération de données de test pour les métriques du modèle IA")
+    print(" Génération de données de test pour les métriques du modèle IA")
     print("=" * 60)
 
     # Obtenir le token
-    print("🔑 Obtention du token d'authentification...")
+    print(" Obtention du token d'authentification...")
     token = get_token()
     if not token:
-        print("❌ Impossible d'obtenir le token. Arrêt.")
+        print(" Impossible d'obtenir le token. Arrêt.")
         return
 
-    print("✅ Token obtenu avec succès")
+    print(" Token obtenu avec succès")
 
     # Trouver une image de test
-    print("🖼️  Recherche d'une image de test...")
+    print("  Recherche d'une image de test...")
     image_path = find_test_image()
     if not image_path:
-        print("❌ Aucune image de test trouvée. Arrêt.")
+        print(" Aucune image de test trouvée. Arrêt.")
         return
 
-    print(f"✅ Image trouvée: {image_path}")
+    print(f" Image trouvée: {image_path}")
 
     # Faire plusieurs requêtes
-    print("\n📊 Génération de données de test...")
+    print("\n Génération de données de test...")
     success_count = 0
 
     for i in range(1, 11):
-        print(f"\n📈 Requête {i}/10...")
+        print(f"\n Requête {i}/10...")
         if make_prediction_request(token, image_path):
             success_count += 1
 
@@ -94,8 +94,8 @@ def main():
         if i < 10:
             time.sleep(1)
 
-    print(f"\n🎉 Terminé ! {success_count}/10 requêtes réussies")
-    print("\n📋 Vérifiez maintenant votre dashboard Grafana pour voir les métriques !")
+    print(f"\n Terminé ! {success_count}/10 requêtes réussies")
+    print("\n Vérifiez maintenant votre dashboard Grafana pour voir les métriques !")
     print("   URL: http://localhost:3001")
 
 

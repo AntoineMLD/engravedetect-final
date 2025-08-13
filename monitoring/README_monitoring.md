@@ -4,7 +4,7 @@ Ce document décrit la mise en place de la chaîne de monitoring utilisée pour 
 
 ---
 
-## 📦 Installation
+##  Installation
 
 La chaîne complète est incluse dans le `docker-compose.yml` à la racine du projet.  
 Elle se lance automatiquement en même temps que l’API IA et les autres services :
@@ -21,9 +21,9 @@ Les services suivants sont démarrés :
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
-### 🔎 Prometheus
+###  Prometheus
 
 Le fichier `prometheus/prometheus.yml` définit les endpoints à scrapper. L’API IA expose automatiquement les métriques à l’URL suivante :
 
@@ -39,7 +39,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 Instrumentator().instrument(app).expose(app)
 ```
 
-### 📈 Grafana
+###  Grafana
 
 Grafana est préconfiguré pour lire les données exposées par Prometheus.  
 Le port `3001` permet d’accéder à l’interface :
@@ -50,7 +50,7 @@ http://localhost:3001
 
 ---
 
-## 📊 Métriques surveillées
+##  Métriques surveillées
 
 Les métriques disponibles sont les suivantes :
 
@@ -68,7 +68,7 @@ Ces métriques permettent de :
 
 ---
 
-## ♿ Accessibilité et parties prenantes
+##  Accessibilité et parties prenantes
 
 Le choix de Grafana s’est appuyé sur sa conformité avec les recommandations **WCAG 2.1 niveau AA**, avec :
 
@@ -81,14 +81,14 @@ L’interface de monitoring est pensée pour pouvoir être montrée en réunion 
 
 ---
 
-## 🧪 Tests en environnement isolé
+##  Tests en environnement isolé
 
 La chaîne de monitoring a été déployée et testée en **bac à sable local** via Docker.  
 Aucun impact n’a été constaté sur la performance de l’API IA en conditions normales.
 
 ---
 
-## 📁 Fichiers concernés
+##  Fichiers concernés
 
 ```
 .
@@ -107,7 +107,7 @@ Aucun impact n’a été constaté sur la performance de l’API IA en condition
 
 ---
 
-## ✅ Validation des critères RNCP (C11)
+##  Validation des critères RNCP (C11)
 
 Cette chaîne de monitoring répond point par point aux exigences du critère **C11 : Monitorer un modèle d’intelligence artificielle** :
 

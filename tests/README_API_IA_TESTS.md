@@ -55,19 +55,19 @@ Les tests utilisent des mocks simples pour :
 ## Cas de test
 
 ### Authentification
-- ✅ Identifiants valides → Token JWT retourné
-- ❌ Requête sans token → 401 Unauthorized
+-  Identifiants valides → Token JWT retourné
+-  Requête sans token → 401 Unauthorized
 
 ### Endpoint /embedding
-- ✅ Image valide + token → Embedding 512 dimensions
-- ❌ Fichier non-image → 400 Bad Request
+-  Image valide + token → Embedding 512 dimensions
+-  Fichier non-image → 400 Bad Request
 
 ### Endpoint /match
-- ✅ Image valide + token → Liste de correspondances
-- ✅ Structure de réponse correcte (class_, similarity)
+-  Image valide + token → Liste de correspondances
+-  Structure de réponse correcte (class_, similarity)
 
 ### Endpoint /search_tags
-- ✅ Tags valides + token → Liste de verres correspondants
+-  Tags valides + token → Liste de verres correspondants
 
 ## Maintenance
 

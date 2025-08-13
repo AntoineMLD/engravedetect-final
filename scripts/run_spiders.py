@@ -30,7 +30,7 @@ def count_database_rows():
             result = conn.execute(text("SELECT COUNT(*) FROM staging"))
             return result.scalar()
     except Exception as error:
-        print(f"❌ Erreur PostgreSQL: {error}")
+        print(f" Erreur PostgreSQL: {error}")
         return 0
 
 
@@ -59,11 +59,11 @@ def run_spider(spider_name):
         new_items = final_count - initial_count
 
         print("\nRésultats:")
-        print(f"✅ Nouveaux items: {new_items}")
-        print(f"📊 Total en base: {final_count}")
+        print(f" Nouveaux items: {new_items}")
+        print(f" Total en base: {final_count}")
 
     except subprocess.CalledProcessError as error:
-        print(f"\n❌ Erreur spider (code {error.returncode}):")
+        print(f"\n Erreur spider (code {error.returncode}):")
         print(f"STDERR:\n{error.stderr}")
         print(f"STDOUT:\n{error.stdout}")
 
@@ -71,14 +71,14 @@ def run_spider(spider_name):
 def main():
     """Point d'entrée du script de scraping."""
     start_time = datetime.now()
-    print(f"\n🚀 Démarrage du scraping: {start_time.strftime('%H:%M:%S')}")
+    print(f"\n Démarrage du scraping: {start_time.strftime('%H:%M:%S')}")
 
     for spider in SPIDERS:
         run_spider(spider)
         print("-" * 50)
 
     duration = datetime.now() - start_time
-    print(f"\n✨ Scraping terminé en {duration.seconds} secondes")
+    print(f"\n Scraping terminé en {duration.seconds} secondes")
 
 
 if __name__ == "__main__":

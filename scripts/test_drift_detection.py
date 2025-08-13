@@ -52,50 +52,50 @@ def make_prediction_request(token, image_path):
                 result = response.json()
                 class_name = result["matches"][0]["class_"]
                 similarity = result["matches"][0]["similarity"]
-                print(f"✅ {Path(image_path).name} → {class_name} ({similarity:.3f})")
+                print(f" {Path(image_path).name} → {class_name} ({similarity:.3f})")
                 return True
             elif response.status_code == 429:
                 print(f"⏳ Rate limit atteint, pause de 60s...")
                 time.sleep(60)
                 return False
             else:
-                print(f"❌ Erreur {response.status_code}: {response.text}")
+                print(f" Erreur {response.status_code}: {response.text}")
                 return False
 
     except Exception as e:
-        print(f"❌ Erreur lors de la requête: {e}")
+        print(f" Erreur lors de la requête: {e}")
         return False
 
 
 def main():
     """Fonction principale."""
-    print("🚀 Test de détection de drift avec données diverses")
+    print(" Test de détection de drift avec données diverses")
     print("=" * 60)
 
     # Obtenir le token
-    print("🔑 Obtention du token d'authentification...")
+    print(" Obtention du token d'authentification...")
     token = get_token()
     if not token:
-        print("❌ Impossible d'obtenir le token. Arrêt.")
+        print(" Impossible d'obtenir le token. Arrêt.")
         return
 
-    print("✅ Token obtenu avec succès")
+    print(" Token obtenu avec succès")
 
     # Trouver des images diverses
-    print("🖼️  Recherche d'images diverses...")
+    print("  Recherche d'images diverses...")
     images = find_diverse_images()
     if not images:
-        print("❌ Aucune image trouvée. Arrêt.")
+        print(" Aucune image trouvée. Arrêt.")
         return
 
-    print(f"✅ {len(images)} images trouvées pour le test")
+    print(f" {len(images)} images trouvées pour le test")
 
     # Faire des requêtes avec des images différentes
-    print("\n📊 Test de drift avec images diverses...")
+    print("\n Test de drift avec images diverses...")
     success_count = 0
 
     for i, image_path in enumerate(images, 1):
-        print(f"\n📈 Requête {i}/{len(images)} avec {Path(image_path).name}...")
+        print(f"\n Requête {i}/{len(images)} avec {Path(image_path).name}...")
         if make_prediction_request(token, image_path):
             success_count += 1
 
@@ -104,10 +104,10 @@ def main():
             print("⏳ Pause de 12s...")
             time.sleep(12)
 
-    print(f"\n🎉 Terminé ! {success_count}/{len(images)} requêtes réussies")
-    print("\n📋 Vérifiez maintenant votre dashboard Grafana pour voir le drift !")
+    print(f"\n Terminé ! {success_count}/{len(images)} requêtes réussies")
+    print("\n Vérifiez maintenant votre dashboard Grafana pour voir le drift !")
     print("   URL: http://localhost:3001")
-    print("\n💡 Le drift devrait être visible si les embeddings sont suffisamment différents.")
+    print("\n Le drift devrait être visible si les embeddings sont suffisamment différents.")
 
 
 if __name__ == "__main__":

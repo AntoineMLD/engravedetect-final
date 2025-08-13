@@ -107,7 +107,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** recommencer un nouveau dessin
 
 **Critères d'acceptation :**
-- [ ] Le bouton "🗑️ Effacer le dessin" est visible et accessible
+- [ ] Le bouton " Effacer le dessin" est visible et accessible
 - [ ] Le canvas est vidé complètement lors du clic
 - [ ] L'action est confirmée visuellement
 - [ ] Le bouton est désactivé si le canvas est déjà vide
@@ -118,7 +118,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** identifier les gravures correspondantes
 
 **Critères d'acceptation :**
-- [ ] Le bouton "🔍 Rechercher les symboles similaires" lance la recherche
+- [ ] Le bouton " Rechercher les symboles similaires" lance la recherche
 - [ ] L'image du canvas est envoyée à l'API `/match`
 - [ ] Les 20 meilleures correspondances sont affichées
 - [ ] Chaque résultat montre l'image, le nom et le score de similarité
@@ -136,7 +136,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** constituer une liste de critères de recherche
 
 **Critères d'acceptation :**
-- [ ] Chaque résultat IA a un bouton "➕ Ajouter ce tag"
+- [ ] Chaque résultat IA a un bouton " Ajouter ce tag"
 - [ ] Le tag sélectionné apparaît dans la section "Tags sélectionnés"
 - [ ] Les tags dupliqués ne sont pas ajoutés
 - [ ] Chaque tag a un bouton "×" pour le supprimer
@@ -149,7 +149,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 
 **Critères d'acceptation :**
 - [ ] Un champ de saisie permet d'ajouter des tags manuellement
-- [ ] Le bouton "➕ Ajouter ces tags" traite la saisie
+- [ ] Le bouton " Ajouter ces tags" traite la saisie
 - [ ] Les tags sont séparés par des espaces ou virgules
 - [ ] Les tags vides ou dupliqués sont ignorés
 - [ ] Les tags ajoutés apparaissent dans la liste des tags sélectionnés
@@ -160,7 +160,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** recommencer une nouvelle recherche
 
 **Critères d'acceptation :**
-- [ ] Le bouton "🧹 Réinitialiser les tags" vide la liste
+- [ ] Le bouton " Réinitialiser les tags" vide la liste
 - [ ] Tous les tags (IA et manuels) sont supprimés
 - [ ] L'action est confirmée visuellement
 - [ ] Le bouton est désactivé si aucun tag n'est sélectionné
@@ -171,7 +171,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** identifier les verres optiques appropriés
 
 **Critères d'acceptation :**
-- [ ] Le bouton "📦 Rechercher les verres correspondants" lance la recherche
+- [ ] Le bouton " Rechercher les verres correspondants" lance la recherche
 - [ ] Les tags sont envoyés à l'API `/search_tags`
 - [ ] Les verres correspondants sont affichés dans une liste
 - [ ] Chaque verre affiche : nom, fournisseur, indice, image de gravure
@@ -208,7 +208,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** obtenir les informations les plus récentes
 
 **Critères d'acceptation :**
-- [ ] Le bouton "🔄 Actualiser les données" recharge les informations
+- [ ] Le bouton " Actualiser les données" recharge les informations
 - [ ] Les données sont récupérées depuis l'API `/verre/{id}`
 - [ ] Un indicateur de chargement est affiché pendant l'actualisation
 - [ ] Les données mises à jour remplacent les anciennes
@@ -224,7 +224,7 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 **Afin de** surveiller les performances du système
 
 **Critères d'acceptation :**
-- [ ] Le bouton "📊 Dashboard" est visible dans l'interface
+- [ ] Le bouton " Dashboard" est visible dans l'interface
 - [ ] Le clic ouvre Grafana dans un nouvel onglet
 - [ ] L'URL du dashboard est : `http://37.27.217.233:3001/d/engravedetect/engravedetect-monitoring-modele-ia`
 - [ ] Le dashboard affiche les métriques en temps réel
@@ -466,23 +466,23 @@ EngraveDetect est une application web dédiée aux professionnels de l'optique, 
 
 ## 7. Accessibilité et expérience utilisateur
 
-- 🧑‍🦯 Interface contrastée, responsive, lisible sur tablette
-- 🚀 Application légère, chargement asynchrone
-- 🎯 Focus mis sur la rapidité d'exécution du modèle IA et la clarté des résultats
+- ‍ Interface contrastée, responsive, lisible sur tablette
+-  Application légère, chargement asynchrone
+-  Focus mis sur la rapidité d'exécution du modèle IA et la clarté des résultats
 
-### 🧩 Accessibilité (conformité RGAA/WCAG)
+###  Accessibilité (conformité RGAA/WCAG)
 
 L'interface utilisateur de l'application EngraveDetect a été conçue en respectant les principes d'accessibilité définis dans les référentiels RGAA 4.1 et WCAG 2.1. Voici l'état actuel de l'implémentation :
 
 | Critère RGAA/WCAG | Implémenté ? | Emplacement / Détails |
 |-------------------|--------------|----------------------|
-| Contraste minimum (4.5:1) | ✅ | - Texte principal : `#202124` sur blanc (16:1)<br>- Boutons : `#1a5fb4` sur blanc (7:1)<br>- Focus : `#667eea` avec outline blanc |
-| Navigation clavier | ⚠️ | - Focus piégé dans la modale<br>- Touche Espace pour effacer le canvas<br>- Focus visible sur tous les éléments<br>- Manque : raccourcis clavier supplémentaires |
-| Structure Hn correcte | ✅ | - `h1` : Titre principal "Connexion à EngraveDetect"<br>- `h2` : Sections (Dessin, Tags, etc.)<br>- `h3` : Sous-sections (Résultats) |
-| Attributs alt sur les images | ✅ | - Logo : "EngraveDetect Logo"<br>- Canvas : aria-label "Zone de dessin pour la gravure"<br>- Gravures : descriptions spécifiques |
-| Feedback utilisateur accessible | ⚠️ | - Messages d'erreur/succès avec `aria-live`<br>- Formulaires avec `aria-describedby`<br>- Modales avec `aria-modal`<br>- À améliorer : retours sonores et haptiques |
+| Contraste minimum (4.5:1) |  | - Texte principal : `#202124` sur blanc (16:1)<br>- Boutons : `#1a5fb4` sur blanc (7:1)<br>- Focus : `#667eea` avec outline blanc |
+| Navigation clavier |  | - Focus piégé dans la modale<br>- Touche Espace pour effacer le canvas<br>- Focus visible sur tous les éléments<br>- Manque : raccourcis clavier supplémentaires |
+| Structure Hn correcte |  | - `h1` : Titre principal "Connexion à EngraveDetect"<br>- `h2` : Sections (Dessin, Tags, etc.)<br>- `h3` : Sous-sections (Résultats) |
+| Attributs alt sur les images |  | - Logo : "EngraveDetect Logo"<br>- Canvas : aria-label "Zone de dessin pour la gravure"<br>- Gravures : descriptions spécifiques |
+| Feedback utilisateur accessible |  | - Messages d'erreur/succès avec `aria-live`<br>- Formulaires avec `aria-describedby`<br>- Modales avec `aria-modal`<br>- À améliorer : retours sonores et haptiques |
 
-Note : ✅ = Complètement implémenté, ⚠️ = Partiellement implémenté
+Note :  = Complètement implémenté,  = Partiellement implémenté
 
 Les améliorations prévues incluent :
 - Ajout de raccourcis clavier pour les actions principales

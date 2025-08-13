@@ -37,15 +37,15 @@ def check_torch_compatibility() -> Tuple[bool, List[str]]:
         torch_version = torch.__version__
         torchvision_version = torchvision.__version__
 
-        print(f"✅ PyTorch: {torch_version}")
-        print(f"✅ TorchVision: {torchvision_version}")
+        print(f" PyTorch: {torch_version}")
+        print(f" TorchVision: {torchvision_version}")
 
         # Test de compatibilité
         try:
             from torchvision import models
 
             model = models.efficientnet_b0(weights=None)
-            print("✅ Test de création de modèle: OK")
+            print(" Test de création de modèle: OK")
         except Exception as e:
             issues.append(f"Erreur création modèle: {e}")
 
@@ -55,7 +55,7 @@ def check_torch_compatibility() -> Tuple[bool, List[str]]:
             transform = transforms.Compose(
                 [transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
             )
-            print("✅ Test de transformations: OK")
+            print(" Test de transformations: OK")
         except Exception as e:
             issues.append(f"Erreur transformations: {e}")
 
@@ -87,10 +87,10 @@ def check_required_packages() -> Dict[str, bool]:
     for package, min_version in required.items():
         if package in installed:
             installed_version = installed[package]
-            print(f"✅ {package}: {installed_version}")
+            print(f" {package}: {installed_version}")
             results[package] = True
         else:
-            print(f"❌ {package}: NON INSTALLÉ")
+            print(f" {package}: NON INSTALLÉ")
             results[package] = False
 
     return results
@@ -98,32 +98,32 @@ def check_required_packages() -> Dict[str, bool]:
 
 def main():
     """Fonction principale de diagnostic"""
-    print("🔍 Diagnostic des dépendances API IA")
+    print(" Diagnostic des dépendances API IA")
     print("=" * 50)
 
     # Vérification des packages requis
-    print("\n📦 Packages requis:")
+    print("\n Packages requis:")
     package_status = check_required_packages()
 
     # Vérification de la compatibilité PyTorch
-    print("\n🧠 Compatibilité PyTorch/TorchVision:")
+    print("\n Compatibilité PyTorch/TorchVision:")
     torch_ok, torch_issues = check_torch_compatibility()
 
     if torch_issues:
-        print("❌ Problèmes détectés:")
+        print(" Problèmes détectés:")
         for issue in torch_issues:
             print(f"   - {issue}")
     else:
-        print("✅ Compatibilité PyTorch/TorchVision: OK")
+        print(" Compatibilité PyTorch/TorchVision: OK")
 
     # Résumé
-    print("\n📊 Résumé:")
+    print("\n Résumé:")
     all_packages_ok = all(package_status.values())
     if all_packages_ok and torch_ok:
-        print("✅ Toutes les dépendances sont correctement installées")
+        print(" Toutes les dépendances sont correctement installées")
         return 0
     else:
-        print("❌ Problèmes détectés dans les dépendances")
+        print(" Problèmes détectés dans les dépendances")
         return 1
 
 

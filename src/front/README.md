@@ -1,4 +1,4 @@
-## 🛠️ Fonctionnalités
+##  Fonctionnalités
 
 - Authentification par email + mot de passe
 - Canevas de dessin

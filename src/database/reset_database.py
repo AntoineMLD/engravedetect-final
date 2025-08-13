@@ -40,7 +40,7 @@ def reset_database():
                 conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
                 logger.info(f"Table {table} supprimée")
 
-            logger.info("🛠️ Création des tables...")
+            logger.info(" Création des tables...")
 
             # Table staging
             conn.execute(

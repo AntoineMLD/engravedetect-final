@@ -1,6 +1,6 @@
-# 📝 Analyse du Besoin d'Application avec Service d'Intelligence Artificielle
+#  Analyse du Besoin d'Application avec Service d'Intelligence Artificielle
 
-## 📋 Vue d'ensemble
+##  Vue d'ensemble
 
 Ce document détaille la méthodologie complète pour analyser le besoin d'un commanditaire intégrant un service d'intelligence artificielle, en rédigeant les spécifications fonctionnelles et en modélisant les aspects clés, tout en respectant les standards d'utilisabilité et d'accessibilité. L'objectif est d'établir avec précision les objectifs de développement correspondant au besoin et à la faisabilité technique.
 
@@ -508,11 +508,11 @@ Les objectifs de développement doivent être :
 ```
 Technologie    | Avantages           | Inconvénients      | Recommandation
 ---------------|---------------------|-------------------|----------------
-FastAPI        | Performance, docs  | Communauté jeune  | ✅ Adopté
-PostgreSQL     | Robustesse, ACID   | Complexité        | ✅ Adopté
-PyTorch        | Flexibilité IA     | Courbe d'apprentissage | ✅ Adopté
-React          | Écosystème riche   | Complexité        | ❌ Trop lourd
-Vue.js         | Simplicité         | Communauté        | ✅ Alternative
+FastAPI        | Performance, docs  | Communauté jeune  |  Adopté
+PostgreSQL     | Robustesse, ACID   | Complexité        |  Adopté
+PyTorch        | Flexibilité IA     | Courbe d'apprentissage |  Adopté
+React          | Écosystème riche   | Complexité        |  Trop lourd
+Vue.js         | Simplicité         | Communauté        |  Alternative
 ```
 
 #### **Infrastructure**
@@ -616,10 +616,10 @@ CREATE TABLE verres (
 - **Alternatives** : Textes descriptifs
 
 #### **Critères d'Acceptation Accessibles**
-- ✅ Formulaire navigable au clavier
-- ✅ Canvas avec instructions vocales
-- ✅ Messages d'erreur clairs
-- ✅ Contraste suffisant
+-  Formulaire navigable au clavier
+-  Canvas avec instructions vocales
+-  Messages d'erreur clairs
+-  Contraste suffisant
 
 ### 6.5. Objectifs SMART
 

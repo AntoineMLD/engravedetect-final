@@ -26,18 +26,18 @@ from pathlib import Path
 
 def run_command(command, description):
     """Exécute une commande et affiche le résultat."""
-    print(f"🔄 {description}...")
+    print(f" {description}...")
     print(f"Commande: {command}")
 
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-        print(f"✅ {description} terminé avec succès")
+        print(f" {description} terminé avec succès")
         if result.stdout:
             print("Sortie:")
             print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Erreur lors de {description}:")
+        print(f" Erreur lors de {description}:")
         print(f"Code de sortie: {e.returncode}")
         if e.stdout:
             print("Sortie standard:")
@@ -75,7 +75,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("🚀 Démarrage des tests Playwright optimisés...")
+    print(" Démarrage des tests Playwright optimisés...")
 
     # Obtenir le répertoire racine du projet
     project_root = Path(__file__).parent.parent
@@ -105,7 +105,7 @@ def main():
 
     # Options selon le mode
     if args.fast:
-        print("⚡ Mode rapide activé")
+        print(" Mode rapide activé")
         cmd_parts.extend(
             [
                 "-m",
@@ -115,7 +115,7 @@ def main():
         )
 
     if args.ci:
-        print("🏗️ Mode CI activé")
+        print(" Mode CI activé")
         cmd_parts.extend(
             [
                 "-m",
@@ -128,7 +128,7 @@ def main():
         os.environ["CI"] = "true"
 
     if args.debug:
-        print("🐛 Mode debug activé")
+        print(" Mode debug activé")
         cmd_parts.extend(
             [
                 "-s",  # Sortie non capturée
@@ -160,11 +160,11 @@ def main():
 
     # Résultat final
     if success:
-        print("\n🎉 Tests terminés avec succès!")
+        print("\n Tests terminés avec succès!")
         return 0
     else:
-        print("\n❌ Certains tests ont échoué")
-        print("💡 Conseils pour résoudre les problèmes:")
+        print("\n Certains tests ont échoué")
+        print(" Conseils pour résoudre les problèmes:")
         print("   - Vérifiez que le site https://engravedetect.fr est accessible")
         print("   - Vérifiez les variables d'environnement ADMIN_USERNAME et ADMIN_PASSWORD")
         print("   - Utilisez --debug pour plus de détails")

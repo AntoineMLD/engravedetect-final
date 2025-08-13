@@ -116,11 +116,47 @@ class PipelineManager:
             return False
 
         try:
-            self.logger.info("Démarrage du pipeline de nettoyage")
-            # Exécution du nettoyage
+            self.logger.info("Démarrage du pipeline de nettoyage (staging -> enhanced)")
+
+            # 1) Charger les données depuis staging
+            df_raw = self.cleaner.load_data_from_staging()
+            if getattr(df_raw, "empty", False):
+                self.logger.warning("Aucune donnée trouvée dans la table staging")
+                return False
+
+            # 2) Nettoyer les données
+            df_clean = self.cleaner.clean_dataframe(df_raw)
+
+            # 3) Créer la table enhanced si besoin
+            self.cleaner.create_enhanced_table()
+
+            # 4) Insérer dans enhanced
+            self.cleaner.insert_to_enhanced(df_clean)
+
+            self.logger.info("Nettoyage terminé et données insérées dans enhanced")
             return True
         except Exception as e:
             self.logger.error(f"Erreur lors du nettoyage: {e}")
+            return False
+
+    def run_enrichment_pipeline(self) -> bool:
+        """
+        Exécute le pipeline d'enrichissement des données (enhanced -> verres).
+
+        Returns:
+            bool: True si l'enrichissement et l'insertion ont réussi, False sinon
+        """
+        try:
+            self.logger.info("Démarrage du pipeline d'enrichissement (enhanced -> verres)")
+            # Import tardif pour éviter l'initialisation si non utilisé
+            from src.data.processing.enricher import DataEnricher
+
+            enricher = DataEnricher()
+            enricher.process_enhanced_to_verres()
+            self.logger.info("Enrichissement terminé et données insérées dans verres")
+            return True
+        except Exception as e:
+            self.logger.error(f"Erreur lors de l'enrichissement: {e}")
             return False
 
     def run_full_pipeline(self) -> Dict[str, bool]:
@@ -133,6 +169,7 @@ class PipelineManager:
         results = {
             "spiders": {},
             "cleaning": False,
+            "enrichment": False,
             "overall": False,
         }
 
@@ -142,11 +179,19 @@ class PipelineManager:
         for spider_name in self.spiders:
             results["spiders"][spider_name] = self.run_spider(spider_name)
 
-        # Exécution du nettoyage
+        # Exécution du nettoyage (staging -> enhanced)
         results["cleaning"] = self.run_cleaning_pipeline()
 
+        # Exécution de l'enrichissement (enhanced -> verres)
+        if results["cleaning"]:
+            results["enrichment"] = self.run_enrichment_pipeline()
+
         # Résultat global
-        results["overall"] = all(results["spiders"].values()) and results["cleaning"]
+        results["overall"] = (
+            all(results["spiders"].values())
+            and results["cleaning"]
+            and results["enrichment"]
+        )
 
         self.logger.info(f"Pipeline terminé. Résultats: {results}")
         return results
@@ -175,10 +220,10 @@ def main():
     results = manager.run_full_pipeline()
 
     if results["overall"]:
-        print("✅ Pipeline exécuté avec succès")
+        print("Pipeline exécuté avec succès")
         return 0
     else:
-        print("❌ Erreurs détectées dans le pipeline")
+        print("Erreurs détectées dans le pipeline")
         return 1
 
 

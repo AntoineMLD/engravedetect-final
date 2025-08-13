@@ -107,10 +107,10 @@ def _calculate_drift_vs_baseline(self, embedding: np.ndarray) -> float:
 ### Échelle de Drift
 | Score | Couleur | Signification | Action Recommandée |
 |-------|---------|---------------|-------------------|
-| **0.0 - 0.3** | 🟢 Vert | **Excellent** - Aucun drift | Continuer la surveillance |
-| **0.3 - 0.5** | 🟡 Jaune | **Bon** - Drift léger | Surveiller l'évolution |
-| **0.5 - 0.7** | 🟠 Orange | **Attention** - Drift modéré | Analyser les causes |
-| **0.7 - 1.0** | 🔴 Rouge | **Problème** - Drift élevé | Intervention requise |
+| **0.0 - 0.3** |  Vert | **Excellent** - Aucun drift | Continuer la surveillance |
+| **0.3 - 0.5** |  Jaune | **Bon** - Drift léger | Surveiller l'évolution |
+| **0.5 - 0.7** |  Orange | **Attention** - Drift modéré | Analyser les causes |
+| **0.7 - 1.0** |  Rouge | **Problème** - Drift élevé | Intervention requise |
 
 ### Seuils d'Alerte
 ```python

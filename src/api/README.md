@@ -1,17 +1,17 @@
-# 🚀 API EngraveDetect
+#  API EngraveDetect
 
 API REST pour la gestion et l'analyse des verres optiques, développée avec FastAPI.
 
-## 📋 Fonctionnalités
+##  Fonctionnalités
 
-- 🔍 Recherche et filtrage des verres
-- 📊 Statistiques et analyses
-- 🔒 Authentification JWT
-- 📝 Documentation OpenAPI/Swagger
-- 🔄 Validation des données avec Pydantic
-- 🎯 Gestion des erreurs standardisée
+-  Recherche et filtrage des verres
+-  Statistiques et analyses
+-  Authentification JWT
+-  Documentation OpenAPI/Swagger
+-  Validation des données avec Pydantic
+-  Gestion des erreurs standardisée
 
-## 🏗️ Structure
+##  Structure
 
 ```
 api/
@@ -22,7 +22,7 @@ api/
 └── services/       # Logique métier
 ```
 
-## 🚀 Démarrage
+##  Démarrage
 
 1. **Installation des dépendances**
    ```bash
@@ -40,7 +40,7 @@ api/
    uvicorn src.api.main:app --reload
    ```
 
-## 📚 Endpoints Principaux
+##  Endpoints Principaux
 
 ### Verres
 - `GET /api/v1/verres` - Liste des verres
@@ -58,7 +58,7 @@ api/
 - `POST /api/v1/auth/token` - Obtenir un token
 - `POST /api/v1/auth/refresh` - Rafraîchir un token
 
-## 🔒 Sécurité
+##  Sécurité
 
 - Authentification JWT
 - Validation des entrées
@@ -66,7 +66,7 @@ api/
 - Rate limiting
 - Logging des accès
 
-## 🧪 Tests
+##  Tests
 
 ```bash
 # Tests de l'API
@@ -76,13 +76,13 @@ pytest tests/api/
 pytest --cov=src.api tests/api/
 ```
 
-## 📝 Documentation
+##  Documentation
 
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 - OpenAPI JSON: `http://localhost:8000/openapi.json`
 
-## 🔄 Workflow de Développement
+##  Workflow de Développement
 
 1. Créer une branche pour la fonctionnalité
 2. Implémenter les tests
@@ -90,13 +90,13 @@ pytest --cov=src.api tests/api/
 4. Vérifier les tests
 5. Créer une PR
 
-## 🐛 Débogage
+##  Débogage
 
 - Logs détaillés dans `logs/api.log`
 - Mode debug avec `--debug`
 - Traces d'erreurs complètes
 
-## 📈 Monitoring
+##  Monitoring
 
 - Métriques Prometheus
 - Health checks

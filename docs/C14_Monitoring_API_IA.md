@@ -216,10 +216,10 @@ scrape_configs:
 3. **Calcul du score** : Distance normalisée entre embedding actuel et baseline
 
 ### Interprétation des scores
-- **0.0 - 0.3** : 🟢 **Excellent** - Aucun drift détecté
-- **0.3 - 0.5** : 🟡 **Bon** - Drift léger
-- **0.5 - 0.7** : 🟠 **Attention** - Drift modéré
-- **0.7 - 1.0** : 🔴 **Problème** - Drift élevé
+- **0.0 - 0.3** :  **Excellent** - Aucun drift détecté
+- **0.3 - 0.5** :  **Bon** - Drift léger
+- **0.5 - 0.7** :  **Attention** - Drift modéré
+- **0.7 - 1.0** :  **Problème** - Drift élevé
 
 ### Configuration
 ```python

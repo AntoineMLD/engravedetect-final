@@ -20,33 +20,33 @@ Elle est conçue pour être simple, esthétique, accessible, et conforme aux cri
 - Détail d’un verre (infos + image complète de la gravure)
 - Lien vers le monitoring (Prometheus/Grafana)
 
-## 🧰 Technologies utilisées
+## Technologies utilisées
 
 - HTML5 + CSS3 (ou Tailwind)
 - JavaScript (vanilla)
 - API REST FastAPI sécurisée (JWT)
 - Optionnel : fabric.js pour le canevas
 
-## ✅ Accessibilité (WCAG 2.1)
+## Accessibilité (WCAG 2.1)
 
 - Contrastes respectés
 - Structure logique des balises HTML
 - Navigation clavier possible
 - Éléments focusables et décrits
 
-## 🚀 Installation
+## Installation
 
 1. Ouvrir `index.html` dans un navigateur moderne
 2. S’assurer que les endpoints `/match`, `/search_tags`, `/verre/{id}` et `/token` sont accessibles
 3. Aucun backend local requis si l’API est déjà hébergée
 
-## 🔒 Sécurité
+## Sécurité
 
 - Authentification via JWT (stocké en mémoire JS)
 - Appels API sécurisés (Authorization: Bearer)
 - Pas de stockage local sensible
 
-## 📑 Critères pédagogiques couverts (bloc E4)
+## Critères pédagogiques couverts (bloc E4)
 
 - Accessibilité conforme (WCAG)
 - UX centrée utilisateur (recherche graphique + tags)

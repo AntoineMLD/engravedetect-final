@@ -104,17 +104,17 @@ jobs:
               const failures = failuresMatch ? failuresMatch[1] : '0';
               const errors = errorsMatch ? errorsMatch[1] : '0';
               
-              const comment = `## 🧪 Tests E2E Playwright - Résultats
+              const comment = `##  Tests E2E Playwright - Résultats
               
-              **Statut :** ${failures === '0' && errors === '0' ? '✅ Succès' : '❌ Échec'}
+              **Statut :** ${failures === '0' && errors === '0' ? ' Succès' : ' Échec'}
               
               - **Tests exécutés :** ${tests}
               - **Échecs :** ${failures}
               - **Erreurs :** ${errors}
               
               ${failures === '0' && errors === '0' 
-                ? '🎉 Tous les tests E2E passent avec succès !' 
-                : '⚠️ Certains tests ont échoué. Consultez les artefacts pour plus de détails.'}`;
+                ? ' Tous les tests E2E passent avec succès !' 
+                : ' Certains tests ont échoué. Consultez les artefacts pour plus de détails.'}`;
               
               github.rest.issues.createComment({
                 issue_number: context.issue.number,

@@ -164,7 +164,7 @@ class DataEnricher:
                     "protection": self.detect_protection(nom_complet),
                     "photochromic": self.detect_photochromic(nom_complet),
                     "tags": json.dumps(self.extract_tags(nom_complet)),
-                    "image_gravure": None,  # À remplir plus tard avec le chemin de l'image
+                    "image_gravure": None,  
                 }
 
                 enriched_records.append(record)
@@ -203,7 +203,7 @@ class DataEnricher:
             try:
                 session.query(Verre).delete()
                 session.commit()
-                self.logger.info("🗑️ Table verres vidée")
+                self.logger.info("Table verres vidée")
 
                 # 4. Insérer les nouvelles données
                 for record in enriched_records:

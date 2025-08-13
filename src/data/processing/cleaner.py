@@ -538,7 +538,7 @@ class OpticalDataCleaner:
 
                         inserted_count += 1
                         if inserted_count % 100 == 0:
-                            self.logger.info(f"✓ {inserted_count} lignes insérées")
+                            self.logger.info(f" {inserted_count} lignes insérées")
                             conn.commit()
 
                     except Exception as row_error:

@@ -1,10 +1,10 @@
-# 🔍 EngraveDetect
+#  EngraveDetect
 
 Application web intelligente pour la détection et l'analyse des gravures nasales sur les verres optiques.
 
 ---
 
-## 📋 Vue d'ensemble
+##  Vue d'ensemble
 
 EngraveDetect est une solution complète pour l'identification, l'analyse et la gestion des verres optiques à partir de leurs gravures. Elle combine une interface web moderne, une API sécurisée, des modèles IA performants et une infrastructure cloud robuste.
 
@@ -52,7 +52,7 @@ engravedetect-final/
 
 ---
 
-## 🚀 Démarrage rapide
+##  Démarrage rapide
 
 ### Prérequis
 - Python 3.12+
@@ -93,7 +93,7 @@ engravedetect-final/
 
 ---
 
-## 🛠️ Technologies principales
+##  Technologies principales
 - **Frontend** : HTML5, CSS3, JavaScript (vanilla)
 - **Backend** : Python 3.12, FastAPI, SQLAlchemy
 - **IA/ML** : PyTorch, EfficientNet, OpenCV
@@ -103,7 +103,7 @@ engravedetect-final/
 
 ---
 
-## 📚 Documentation
+##  Documentation
 La documentation complète est dans le dossier [`docs/`](docs/).
 
 ### Fichiers clés :
@@ -117,7 +117,7 @@ La documentation complète est dans le dossier [`docs/`](docs/).
 
 ---
 
-## 🧪 Tests
+##  Tests
 ```bash
 # Activer l'environnement virtuel
 source venv/bin/activate
@@ -138,7 +138,7 @@ pytest tests/test_playwright_e2e.py --headed
 
 ---
 
-## 🔒 Sécurité & bonnes pratiques
+##  Sécurité & bonnes pratiques
 - **Aucun secret ne doit être commité** : utilise `.env` (jamais versionné) pour toutes les clés, tokens, accès base de données, etc.
 - **CSP stricte** : la configuration NGINX applique une politique CSP sécurisée.
 - **Authentification JWT** : toutes les routes sensibles sont protégées.
@@ -147,7 +147,7 @@ pytest tests/test_playwright_e2e.py --headed
 
 ---
 
-## 🤝 Contribution
+##  Contribution
 1. Fork le projet
 2. Crée une branche (`git checkout -b feature/ma-feature`)
 3. Commit tes changements (`git commit -m 'feat: ma feature'`)
@@ -156,19 +156,19 @@ pytest tests/test_playwright_e2e.py --headed
 
 ---
 
-## 📝 Licence
+##  Licence
 Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
-## 📞 Support
+##  Support
 Pour toute question ou problème :
 - Ouvre une issue sur GitHub
 - Consulte la documentation dans le dossier `docs/`
 
 ---
 
-## 🙏 Remerciements
+##  Remerciements
 - Tous les contributeurs
 - La communauté open source
 - Nos partenaires et clients

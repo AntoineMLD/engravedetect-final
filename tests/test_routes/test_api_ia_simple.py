@@ -26,9 +26,9 @@ class TestAPIIASimple:
     def test_placeholder(self):
         """Test placeholder - l'API IA nécessite des dépendances complexes"""
         assert True
-        print("✅ Tests API IA prêts - nécessite installation des dépendances complètes")
-        print("📦 Installer: pip install -r src/api_ia/requirements.txt")
-        print("🔧 Puis lancer: pytest tests/test_routes/test_api_ia_integration.py -v")
+        print(" Tests API IA prêts - nécessite installation des dépendances complètes")
+        print(" Installer: pip install -r src/api_ia/requirements.txt")
+        print(" Puis lancer: pytest tests/test_routes/test_api_ia_integration.py -v")
 
 
 class TestAPIIAStructure:
@@ -42,7 +42,7 @@ class TestAPIIAStructure:
         main_file = os.path.join(api_ia_path, "app", "main.py")
         assert os.path.exists(main_file), "Le fichier main.py n'existe pas"
 
-        print("✅ Structure API IA correcte")
+        print(" Structure API IA correcte")
 
     def test_requirements_exist(self):
         """Vérifie que le fichier requirements existe"""
@@ -54,7 +54,7 @@ class TestAPIIAStructure:
             assert "fastapi" in requirements, "FastAPI manquant dans requirements"
             assert "prometheus-client" in requirements, "prometheus-client manquant"
 
-        print("✅ Requirements API IA corrects")
+        print(" Requirements API IA corrects")
 
     def test_endpoints_documented(self):
         """Vérifie que les endpoints sont documentés"""
@@ -69,4 +69,4 @@ class TestAPIIAStructure:
             for endpoint in endpoints:
                 assert endpoint in content, f"Endpoint {endpoint} non trouvé dans main.py"
 
-        print("✅ Endpoints API IA documentés")
+        print(" Endpoints API IA documentés")

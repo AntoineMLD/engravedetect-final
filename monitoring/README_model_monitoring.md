@@ -4,7 +4,7 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 
 ---
 
-## 🎯 Métriques du Modèle d'IA
+##  Métriques du Modèle d'IA
 
 ### **Métriques de Performance**
 - **`model_accuracy`** : Accuracy du modèle basée sur les scores de confiance (> 0.8 = succès)
@@ -22,7 +22,7 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 
 ---
 
-## 🛠️ Outils de Monitoring
+##  Outils de Monitoring
 
 ### **Collecte de Données**
 
@@ -40,7 +40,7 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 
 ---
 
-## 📊 Dashboard Grafana
+##  Dashboard Grafana
 
 ### **Accès**
 - **URL** : `http://localhost:3001`
@@ -59,7 +59,7 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 
 ---
 
-## 🚨 Système d'Alertes
+##  Système d'Alertes
 
 ### **Alertes Configurées**
 - **Dégradation d'Accuracy** : < 85% pendant 5 minutes
@@ -75,7 +75,7 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 
 ---
 
-## ♿ Accessibilité
+##  Accessibilité
 
 ### **Conformité WCAG 2.1 AA**
 - **Contrastes** : Respect des ratios de contraste (4.5:1 minimum)
@@ -90,7 +90,7 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 
 ---
 
-## 🧪 Tests en Bac à Sable
+##  Tests en Bac à Sable
 
 ### **Environnement de Test**
 - **Docker Compose** : Environnement isolé et reproductible
@@ -98,14 +98,14 @@ Ce document décrit la chaîne de monitoring spécifique au **modèle d'IA** Eng
 - **Scénarios de test** : Drift simulé, dégradation de performance
 
 ### **Validation**
-- ✅ **Métriques collectées** : Vérification de la collecte
-- ✅ **Alertes déclenchées** : Test des seuils d'alerte
-- ✅ **Dashboard fonctionnel** : Validation de l'affichage
-- ✅ **Performance** : Impact négligeable sur l'API
+-  **Métriques collectées** : Vérification de la collecte
+-  **Alertes déclenchées** : Test des seuils d'alerte
+-  **Dashboard fonctionnel** : Validation de l'affichage
+-  **Performance** : Impact négligeable sur l'API
 
 ---
 
-## 📁 Architecture des Fichiers
+##  Architecture des Fichiers
 
 ```
 monitoring/
@@ -124,7 +124,7 @@ src/api_ia/app/
 
 ---
 
-## 🚀 Installation et Démarrage
+##  Installation et Démarrage
 
 ### **1. Installation des Dépendances**
 ```bash
@@ -144,7 +144,7 @@ docker compose up --build
 
 ---
 
-## 📈 Utilisation en Production
+##  Utilisation en Production
 
 ### **Surveillance Continue**
 1. **Dashboard Grafana** : Surveillance visuelle en temps réel
@@ -159,22 +159,22 @@ docker compose up --build
 
 ---
 
-## ✅ Validation RNCP C11
+##  Validation RNCP C11
 
 Cette implémentation répond point par point aux exigences :
 
-1. ✅ **Métriques expliquées** : Documentation complète de chaque métrique
-2. ✅ **Outils adaptés** : Prometheus + Grafana + Détection de drift personnalisée
-3. ✅ **Restitution temps réel** : Dashboard Grafana avec rafraîchissement 30s
-4. ✅ **Accessibilité** : Conformité WCAG 2.1 AA
-5. ✅ **Test en bac à sable** : Environnement Docker isolé
-6. ✅ **Chaîne fonctionnelle** : Métriques collectées et restituées
-7. ✅ **Sources versionnées** : Code dans le dépôt Git
-8. ✅ **Documentation technique** : Ce document + commentaires code
+1.  **Métriques expliquées** : Documentation complète de chaque métrique
+2.  **Outils adaptés** : Prometheus + Grafana + Détection de drift personnalisée
+3.  **Restitution temps réel** : Dashboard Grafana avec rafraîchissement 30s
+4.  **Accessibilité** : Conformité WCAG 2.1 AA
+5.  **Test en bac à sable** : Environnement Docker isolé
+6.  **Chaîne fonctionnelle** : Métriques collectées et restituées
+7.  **Sources versionnées** : Code dans le dépôt Git
+8.  **Documentation technique** : Ce document + commentaires code
 
 ---
 
-## 🔧 Configuration Avancée
+##  Configuration Avancée
 
 ### **Ajustement des Seuils**
 ```python
@@ -195,7 +195,7 @@ class ModelMonitor:
 
 ---
 
-## 📞 Support
+##  Support
 
 Pour toute question sur le monitoring du modèle d'IA :
 - **Documentation** : Ce fichier README

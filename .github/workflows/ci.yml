@@ -3,7 +3,7 @@ name: CI/CD Pipeline - EngraveDetect
 on:
   push:
     branches: [ "main", "ci/cd", "develop" ]
-  # Les PR utilisent le workflow pr-checks.yml pour plus de rapidité
+  
 
 permissions:
   contents: read
