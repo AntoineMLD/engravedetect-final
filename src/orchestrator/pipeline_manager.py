@@ -209,11 +209,7 @@ class PipelineManager:
             results["enrichment"] = self.run_enrichment_pipeline()
 
         # Résultat global
-        results["overall"] = (
-            all(results["spiders"].values())
-            and results["cleaning"]
-            and results["enrichment"]
-        )
+        results["overall"] = all(results["spiders"].values()) and results["cleaning"] and results["enrichment"]
 
         self.logger.info(f"Pipeline terminé. Résultats: {results}")
         return results
