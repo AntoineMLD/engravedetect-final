@@ -22,6 +22,8 @@ Version : 1.0.0
 import logging
 import sys
 from datetime import datetime
+import os
+import subprocess
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -97,12 +99,33 @@ class PipelineManager:
 
         try:
             self.logger.info(f"Démarrage du spider: {spider_name}")
-            # Exécution du spider
-            # Note: L'implémentation réelle dépend de la configuration Scrapy
+            scraping_dir = Path(__file__).resolve().parents[2] / "data" / "scraping"
+            env = os.environ.copy()
+            # S'assurer du PYTHONPATH pour Scrapy
+            env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
+            result = subprocess.run(
+                ["scrapy", "crawl", spider_name],
+                cwd=str(scraping_dir),
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            if result.stdout:
+                self.logger.info(result.stdout)
+            if result.stderr:
+                self.logger.warning(result.stderr)
             return True
         except Exception as e:
             self.logger.error(f"Erreur lors de l'exécution du spider {spider_name}: {e}")
             return False
+
+    def run_all_spiders(self) -> Dict[str, bool]:
+        """Exécute tous les spiders configurés et retourne leurs statuts."""
+        statuses: Dict[str, bool] = {}
+        for spider_name in self.spiders:
+            statuses[spider_name] = self.run_spider(spider_name)
+        return statuses
 
     def run_cleaning_pipeline(self) -> bool:
         """
@@ -175,9 +198,8 @@ class PipelineManager:
 
         self.logger.info("Démarrage du pipeline complet")
 
-        # Exécution des spiders
-        for spider_name in self.spiders:
-            results["spiders"][spider_name] = self.run_spider(spider_name)
+        # Exécution des spiders (extraction -> staging)
+        results["spiders"] = self.run_all_spiders()
 
         # Exécution du nettoyage (staging -> enhanced)
         results["cleaning"] = self.run_cleaning_pipeline()

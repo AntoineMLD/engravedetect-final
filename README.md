@@ -85,7 +85,7 @@ engravedetect-final/
    ```bash
    docker-compose up --build
    ```
-   - Frontend : http://localhost (ou http://<IP_VM>)
+   - Frontend : http://localhost:8080
    - API : http://localhost:8000
    - API IA : http://localhost:8001
    - Prometheus : http://localhost:9090
@@ -114,6 +114,62 @@ La documentation complète est dans le dossier [`docs/`](docs/).
 - [`docs/C13_MLOps_Pipeline.md`](docs/C13_MLOps_Pipeline.md) : Pipeline MLOps
 - [`docs/C4_Base_Donnees_RGPD.md`](docs/C4_Base_Donnees_RGPD.md) : RGPD & sécurité
 - [`docs/PLAYWRIGHT_GUIDE.md`](docs/PLAYWRIGHT_GUIDE.md) : Tests E2E
+
+---
+
+##  Initialisation de la base de données et injection de données
+
+Le build Docker lance les services, mais la base est vide. Suis ces étapes pour initialiser le schéma et insérer des données pour tester l'application.
+
+1. Démarrer PostgreSQL (ou tout le stack)
+   ```bash
+   docker-compose up -d postgres
+   # ou
+   docker-compose up --build -d
+   ```
+
+2. Configurer la connexion base de données
+   - Crée un fichier `.env` à la racine (ou copie depuis `.env.example` si présent)
+   - Renseigne `DATABASE_URL` (exemple PostgreSQL local):
+     ```
+     DATABASE_URL=postgresql+psycopg2://postgres:<motdepasse>@localhost:5432/<nom_bdd>
+     ```
+
+3. Créer les tables de l'API (utilisateurs, etc.)
+   ```bash
+   python -c "from src.api.core.database.init_db import init_db; init_db()"
+   ```
+
+4. Créer/réinitialiser les tables données (staging, enhanced, verres)
+   ```bash
+   python -c "from src.database.reset_database import reset_database; reset_database()"
+   ```
+
+5. Remplir la base (choisir une option)
+   - Option A • Scraping (insère en staging), puis nettoyage/enrichissement
+     ```bash
+     # Scraping (Scrapy)
+     cd src/data/scraping
+     export PYTHONPATH=$(pwd)/../../..
+     scrapy crawl glass_spider
+
+     # Nettoyage → enhanced
+     cd -
+     python -m src.data.processing.cleaner
+
+     # Enrichissement → verres
+     python -m src.data.processing.enricher
+     ```
+   - Option B • Importer depuis un CSV enhanced (si disponible)
+     ```bash
+     python -m src.data.processing.import_enhanced
+     ```
+
+6. Vérifier l'accès API et documentation locale
+   - API: http://localhost:8000
+   - Swagger: http://localhost:8000/docs
+   - ReDoc: http://localhost:8000/redoc
+   - Via NGINX: `/api` proxifie l'API; préfère l'accès direct sur le port 8000 pour la doc.
 
 ---
 

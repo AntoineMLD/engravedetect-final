@@ -10,8 +10,6 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from src.api.core.database.database import Base
-from src.api.models.verres import Verre
-from src.data.processing.cleaner import OpticalDataCleaner
 
 
 class PostgresPipeline:
@@ -98,28 +96,30 @@ class PostgresPipeline:
         return item
 
     def close_spider(self, spider):
-        spider.logger.info(" Nettoyage des données via OpticalDataCleaner")
-        cleaner = OpticalDataCleaner()
-        cleaner.insert_raw_data(self.items)
-        df_clean = cleaner.clean_dataframe(cleaner.load_data_from_staging())
-
-        session = self.Session()
+        spider.logger.info(" Insertion des items collectés dans la table staging")
         try:
-            for _, row in df_clean.iterrows():
-                verre = Verre(
-                    nom=row["nom_verre"],
-                    materiaux=row["materiaux"],
-                    indice=self.clean_indice(row["indice"]),
-                    fournisseur=row["fournisseur"],
-                    gravure=row["gravure_nasale"],
-                    url_source=row["source_url"],
-                    image_gravure=row.get("image_gravure"),
-                )
-                session.add(verre)
-            session.commit()
-            spider.logger.info(f" {len(df_clean)} verres insérés dans la base")
+            inserted = 0
+            with self.engine.begin() as conn:
+                for item in self.items:
+                    conn.execute(
+                        text(
+                            """
+                            INSERT INTO staging (
+                                source_url, nom_verre, gravure_nasale,
+                                indice, materiaux, fournisseur
+                            ) VALUES (:source_url, :nom_verre, :gravure_nasale, :indice, :materiaux, :fournisseur)
+                            """
+                        ),
+                        {
+                            "source_url": item.get("source_url"),
+                            "nom_verre": item.get("nom_verre"),
+                            "gravure_nasale": item.get("gravure_nasale"),
+                            "indice": self.clean_indice(item.get("indice")),
+                            "materiaux": item.get("materiaux"),
+                            "fournisseur": item.get("fournisseur"),
+                        },
+                    )
+                    inserted += 1
+            spider.logger.info(f" {inserted} lignes insérées dans staging")
         except Exception as e:
-            session.rollback()
-            spider.logger.error(f" Erreur lors de l'insertion finale : {e}")
-        finally:
-            session.close()
+            spider.logger.error(f" Erreur lors de l'insertion dans staging : {e}")
