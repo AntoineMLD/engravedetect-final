@@ -143,7 +143,7 @@ class DataEnricher:
                     fournisseurs[fournisseur_nom] = fournisseur_id
 
                 # Traitement de l'indice
-                if pd.notna(row["indice"]):  # Utiliser la colonne originale
+                if pd.notna(row["indice"]):  
                     try:
                         indice = float(row["indice"])
                         if 1.0 <= indice <= 2.0:

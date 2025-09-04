@@ -54,11 +54,11 @@ class OpticalDataCleaner:
                 SELECT
                     id,
                     source_url,
-                    nom_verre,
-                    gravure_nasale,
-                    indice,
-                    materiaux,
-                    fournisseur
+                    glass_name,
+                    nasal_engraving,
+                    glass_index,
+                    material,
+                    glass_supplier_name
                 FROM staging
                 ORDER BY id
             """
@@ -412,11 +412,11 @@ class OpticalDataCleaner:
                             ) VALUES (?, ?, ?, ?, ?, ?)
                         """,
                             (
-                                row["nom_verre"],
-                                row["materiaux"],
-                                row["indice"],
-                                row["fournisseur"],
-                                row["gravure_nasale"],
+                                row["glass_name"],
+                                row["material"],
+                                row["glass_index"],
+                                row["glass_supplier_name"],
+                                row["nasal_engraving"],
                                 row["source_url"],
                             ),
                         )
