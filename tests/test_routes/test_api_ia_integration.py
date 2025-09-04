@@ -300,3 +300,5 @@ class TestAPIIAIntegration:
         # Vérifier la présence d'en-têtes de sécurité
         headers = response.headers
         assert "x-content-type-options" in headers or "x-frame-options" in headers
+
+
