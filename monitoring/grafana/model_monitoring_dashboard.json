@@ -1,218 +1,248 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "Modèle IA - Monitoring EngraveDetect",
-    "tags": ["ai", "model", "monitoring"],
-    "style": "dark",
-    "timezone": "browser",
-    "panels": [
+  "annotations": {
+    "list": [
       {
-        "id": 1,
-        "title": "Performance du Modèle IA",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "model_accuracy",
-            "legendFormat": "Accuracy"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 0.7},
-                {"color": "green", "value": 0.9}
-              ]
-            },
-            "unit": "percentunit"
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
-      },
-      {
-        "id": 2,
-        "title": "Temps d'Inférence du Modèle",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "rate(model_inference_time_seconds_sum[5m]) / rate(model_inference_time_seconds_count[5m])",
-            "legendFormat": "Temps moyen d'inférence"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": 0},
-                {"color": "yellow", "value": 1},
-                {"color": "red", "value": 2}
-              ]
-            },
-            "unit": "s"
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
-      },
-      {
-        "id": 3,
-        "title": "Distribution des Scores de Confiance",
-        "type": "histogram",
-        "targets": [
-          {
-            "expr": "rate(model_prediction_confidence_bucket[5m])",
-            "legendFormat": "Distribution des scores"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            }
-          }
-        },
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
-      },
-      {
-        "id": 4,
-        "title": "Détection de Drift des Données",
-        "type": "gauge",
-        "targets": [
-          {
-            "expr": "model_drift_score",
-            "legendFormat": "Score de drift"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": 0},
-                {"color": "yellow", "value": 0.5},
-                {"color": "red", "value": 0.7}
-              ]
-            },
-            "unit": "percentunit",
-            "max": 1
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8}
-      },
-      {
-        "id": 5,
-        "title": "Qualité des Embeddings",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "model_embedding_quality",
-            "legendFormat": "Qualité des embeddings"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 0.5},
-                {"color": "green", "value": 0.8}
-              ]
-            },
-            "unit": "percentunit"
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 8}
-      },
-      {
-        "id": 6,
-        "title": "Volume de Prédictions",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "rate(model_predictions_total[5m])",
-            "legendFormat": "Prédictions par seconde"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "unit": "reqps"
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 8}
-      },
-      {
-        "id": 7,
-        "title": "Taux de Réussite des Prédictions",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "rate(model_predictions_success[5m]) / rate(model_predictions_total[5m])",
-            "legendFormat": "Taux de réussite"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 0.8},
-                {"color": "green", "value": 0.95}
-              ]
-            },
-            "unit": "percentunit"
-          }
-        },
-        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 16}
-      },
-      {
-        "id": 8,
-        "title": "Évolution des Métriques du Modèle",
-        "type": "timeseries",
-        "targets": [
-          {
-            "expr": "model_accuracy",
-            "legendFormat": "Accuracy"
-          },
-          {
-            "expr": "model_drift_score",
-            "legendFormat": "Drift Score"
-          },
-          {
-            "expr": "model_embedding_quality",
-            "legendFormat": "Embedding Quality"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            }
-          }
-        },
-        "gridPos": {"h": 8, "w": 18, "x": 6, "y": 16}
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
       }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
+    ]
+  },
+  "editable": true,
+  "id": 1,
+  "title": "EngraveDetect - Monitoring Modèle IA",
+  "tags": ["engravedetect","ai","monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+
+    {
+      "id": 1,
+      "title": "Top-1 Accuracy",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(rate(model_accuracy_correct_total{model_name=\"engravedetect_efficientnet\",k=\"1\"}[5m])) / sum(rate(model_accuracy_predictions_total{model_name=\"engravedetect_efficientnet\",k=\"1\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.7 },
+              { "color": "green", "value": 0.9 }
+            ]
+          }
+        }
+      }
     },
-    "refresh": "30s"
-  }
-} 
+
+    {
+      "id": 2,
+      "title": "Top-3 Accuracy",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(rate(model_accuracy_correct_total{model_name=\"engravedetect_efficientnet\",k=\"3\"}[5m])) / sum(rate(model_accuracy_predictions_total{model_name=\"engravedetect_efficientnet\",k=\"3\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.7 },
+              { "color": "green", "value": 0.9 }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 3,
+      "title": "Distribution des Confiances",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(model_prediction_confidence_bucket{model_name=\"engravedetect_efficientnet\"}[5m])",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+
+    {
+      "id": 4,
+      "title": "Ambiguïté (margin top1-top2)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(model_prediction_top1_margin_bucket{model_name=\"engravedetect_efficientnet\"}[5m])",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "title": "Prédictions Ambiguës (<0.05)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(increase(model_ambiguous_predictions_total{model_name=\"engravedetect_efficientnet\",threshold=\"0.05\"}[1h]))",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 6,
+      "title": "Latence d'Inférence (P95/P99)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le)(rate(model_inference_latency_seconds_bucket{model_name=\"engravedetect_efficientnet\"}[5m])))",
+          "legendFormat": "P95",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le)(rate(model_inference_latency_seconds_bucket{model_name=\"engravedetect_efficientnet\"}[5m])))",
+          "legendFormat": "P99",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "id": 7,
+      "title": "Drift Score",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "model_drift_score{model_name=\"engravedetect_efficientnet\"}", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.3 },
+              { "color": "red", "value": 0.6 }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "id": 8,
+      "title": "Statut Drift",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "model_drift_status{model_name=\"engravedetect_efficientnet\"}", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": 1, "options": { "0": { "text": "OK", "color": "green" }, "1": { "text": "Warn", "color": "orange" }, "2": { "text": "Alert", "color": "red" } } }
+          ]
+        }
+      }
+    },
+
+    {
+      "id": 9,
+      "title": "Distribution des Classes Prédites",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 40 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(model_predicted_classes_total{model_name=\"engravedetect_efficientnet\"}[5m])",
+          "legendFormat": "{{class}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 10,
+      "title": "Inputs - Luminosité",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(model_input_brightness_bucket{model_name=\"engravedetect_efficientnet\"}[5m])",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 11,
+      "title": "Inputs - Taille Images",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(model_input_width_px_bucket{model_name=\"engravedetect_efficientnet\"}[5m])", "legendFormat": "Largeur {{le}}", "refId": "A" },
+        { "expr": "rate(model_input_height_px_bucket{model_name=\"engravedetect_efficientnet\"}[5m])", "legendFormat": "Hauteur {{le}}", "refId": "B" }
+      ]
+    },
+
+    {
+      "id": 12,
+      "title": "Inputs - Payload Size",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 56 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(model_request_payload_bytes_bucket{model_name=\"engravedetect_efficientnet\"}[5m])",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ]
+    }
+
+  ]
+}
